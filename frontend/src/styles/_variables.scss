@@ -153,7 +153,9 @@
   --shadow-focus: 0 0 0 3px rgba(4, 120, 87, 0.25);
 
   // —— Layout ——
-  --sidebar-width: 268px;
+  --sidebar-width: 280px;
+  --sidebar-width-expanded: 280px;
+  --sidebar-width-collapsed: 76px;
   --header-height: 64px;
   --content-max-width: 1400px;
 }

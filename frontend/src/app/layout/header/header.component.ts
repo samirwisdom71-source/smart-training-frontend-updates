@@ -14,14 +14,32 @@ import { appConfig } from '../../config/app.config';
   template: `
     <header class="header-inner">
       <div class="header-start">
-        <img src="/assets/images/logo.png" alt="{{ 'app.shortTitle' | translate }}" class="header-logo" />
-        <h1 class="page-title">{{ 'app.shortTitle' | translate }}</h1>
+        <a
+          routerLink="/dashboard"
+          class="header-brand"
+          [attr.aria-label]="'app.shortTitle' | translate"
+        >
+          <img
+            src="/assets/images/logo4.png"
+            alt=""
+            class="header-logo"
+            width="40"
+            height="40"
+          />
+          <div class="header-titles">
+            <h1 class="page-title">{{ 'app.shortTitle' | translate }}</h1>
+          </div>
+        </a>
       </div>
       <div class="header-end">
         @if (auth.user(); as user) {
           <app-notification-bell />
           <app-language-switcher />
-          <div class="user-block" [class.user-block--open]="menuOpen" (click)="$event.stopPropagation()">
+          <div
+            class="user-block"
+            [class.user-block--open]="menuOpen"
+            (click)="$event.stopPropagation()"
+          >
             <button type="button" class="user-trigger" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen">
               @if (user.profilePicturePath) {
                 <img [src]="profileImageUrl(user.profilePicturePath)" alt="" class="user-avatar user-avatar--img" />
@@ -48,136 +66,7 @@ import { appConfig } from '../../config/app.config';
       </div>
     </header>
   `,
-  styles: [`
-    :host {
-      display: block;
-      background: var(--color-bg-header);
-      border-bottom: 1px solid var(--color-header-border);
-    }
-    .header-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-inline: var(--space-xl);
-      min-height: var(--header-height);
-      gap: var(--space-md);
-      color: var(--color-header-text);
-    }
-    .header-start {
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-    }
-    .header-logo {
-      width: 32px;
-      height: 32px;
-      object-fit: contain;
-    }
-    .page-title {
-      margin: 0;
-      font-size: var(--text-h2);
-      font-weight: 600;
-      color: var(--color-header-text);
-      letter-spacing: -0.01em;
-    }
-    @media (max-width: 768px) {
-      .page-title {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        max-width: 50vw;
-      }
-    }
-    .header-end {
-      display: flex;
-      align-items: center;
-      gap: var(--space-md);
-    }
-    .user-block {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-      padding-inline-start: var(--space-md);
-      border-inline-start: 1px solid var(--color-border-light);
-    }
-    .user-trigger {
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-      background: none;
-      border: none;
-      padding: 0;
-      cursor: pointer;
-      color: inherit;
-    }
-    .user-trigger:hover {
-      background: var(--color-header-hover);
-      border-radius: var(--radius-sm);
-      padding: 4px 6px;
-      margin: -4px -6px;
-    }
-    .user-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: var(--radius-full);
-      flex-shrink: 0;
-    }
-    .user-avatar--img {
-      object-fit: cover;
-      display: block;
-    }
-    .user-avatar--initials {
-      background: var(--color-primary-muted);
-      color: var(--color-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: var(--text-caption);
-      font-weight: 600;
-    }
-    .user-name {
-      font-size: var(--text-body-sm);
-      font-weight: 500;
-      color: var(--color-header-text);
-    }
-    .user-chevron {
-      width: 16px;
-      height: 16px;
-      color: var(--color-header-text);
-    }
-    .user-menu {
-      position: absolute;
-      inset-block-start: calc(100% + 4px);
-      inset-inline-end: 0;
-      min-width: 180px;
-      background: var(--color-bg-elevated);
-      border: 1px solid var(--color-border-light);
-      border-radius: var(--radius-md);
-      box-shadow: var(--shadow-md);
-      padding: 4px;
-      z-index: 20;
-    }
-    .user-menu__item {
-      display: block;
-      width: 100%;
-      padding: 8px 12px;
-      text-align: start;
-      border: none;
-      background: none;
-      font-size: var(--text-body-sm);
-      color: var(--color-text);
-      text-decoration: none;
-      cursor: pointer;
-      border-radius: var(--radius-sm);
-    }
-    .user-menu__item:hover {
-      background: var(--color-bg-hover);
-    }
-    .user-menu__item--danger {
-      color: var(--color-danger, #b91c1c);
-    }
-  `]
+  styleUrl: './header.component.scss',
 })
 export class HeaderComponent {
   constructor(

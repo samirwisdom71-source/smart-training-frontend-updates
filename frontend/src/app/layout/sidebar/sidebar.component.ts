@@ -1,5 +1,7 @@
-import { Component, inject, computed, output, input, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, effect, inject, computed, output, input, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../core/auth/auth.service';
 import { SIDEBAR_GROUPS } from './sidebar-nav.model';
@@ -10,7 +12,12 @@ import { TooltipDirective } from '../../shared/tooltip/tooltip.directive';
   standalone: true,
   imports: [RouterLink, RouterLinkActive, TranslateModule, TooltipDirective],
   template: `
-    <aside class="sidebar-inner" [class.drawer-open]="drawerOpen()" aria-label="Main navigation">
+    <aside
+      class="sidebar-inner"
+      [class.sidebar-inner--collapsed]="collapsed()"
+      [class.drawer-open]="drawerOpen()"
+      aria-label="Main navigation"
+    >
       @if (drawerOpen()) {
         <button
           type="button"
@@ -22,7 +29,23 @@ import { TooltipDirective } from '../../shared/tooltip/tooltip.directive';
           &times;
         </button>
       }
-      <div class="sidebar-top">
+      <div class="sidebar-brand-row">
+        @if (!collapsed()) {
+          <a
+            routerLink="/dashboard"
+            class="sidebar-brand"
+            (click)="onNavClick()"
+          >
+            <img
+              class="sidebar-brand__logo"
+              src="/assets/images/logo4.png"
+              width="44"
+              height="44"
+              alt=""
+            />
+            <span class="sidebar-brand__text">{{ 'app.shortTitle' | translate }}</span>
+          </a>
+        }
         <button
           type="button"
           class="collapse-toggle"
@@ -30,16 +53,42 @@ import { TooltipDirective } from '../../shared/tooltip/tooltip.directive';
           [attr.aria-label]="(collapsed() ? 'common.expandSidebar' : 'common.collapseSidebar') | translate"
           [appTooltip]="(collapsed() ? 'common.expandSidebar' : 'common.collapseSidebar') | translate"
         >
-          <span class="collapse-icon" [class.collapse-icon--collapsed]="collapsed()" aria-hidden="true"></span>
+          <svg
+            class="collapse-toggle__icon"
+            [class.collapse-toggle__icon--collapsed]="collapsed()"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              fill="currentColor"
+              d="M15 22.75H9C3.57 22.75 1.25 20.43 1.25 15V9C1.25 3.57 3.57 1.25 9 1.25H15C20.43 1.25 22.75 3.57 22.75 9V15C22.75 20.43 20.43 22.75 15 22.75ZM9 2.75C4.39 2.75 2.75 4.39 2.75 9V15C2.75 19.61 4.39 21.25 9 21.25H15C19.61 21.25 21.25 19.61 21.25 15V9C21.25 4.39 19.61 2.75 15 2.75H9Z"
+            />
+            <path
+              fill="currentColor"
+              d="M10.7399 16.2802C10.5499 16.2802 10.3599 16.2102 10.2099 16.0602C9.91993 15.7702 9.91993 15.2902 10.2099 15.0002L13.2099 12.0002L10.2099 9.00016C9.91993 8.71016 9.91993 8.23016 10.2099 7.94016C10.4999 7.65016 10.9799 7.65016 11.2699 7.94016L14.7999 11.4702C15.0899 11.7602 15.0899 12.2402 14.7999 12.5302L11.2699 16.0602C11.1199 16.2102 10.9299 16.2802 10.7399 16.2802Z"
+            />
+          </svg>
         </button>
       </div>
       <nav class="nav" aria-label="Primary">
         @for (group of navGroups(); track group.id) {
-          <div class="nav-group">
+          <div
+            class="nav-section"
+            [class.nav-section--open]="
+              !collapsed() && group.items.length > 1 && isGroupOpen(group.id)
+            "
+          >
+            <div class="nav-group">
             <button
               type="button"
               class="nav-group-trigger"
               [class.nav-link--collapsed]="collapsed()"
+              [attr.aria-expanded]="
+                group.items.length > 1 ? isGroupOpen(group.id) : undefined
+              "
               (click)="onGroupClick(group)"
               [appTooltip]="group.labelKey | translate"
               [tooltipDisabled]="!collapsed()"
@@ -47,9 +96,18 @@ import { TooltipDirective } from '../../shared/tooltip/tooltip.directive';
               <span class="nav-icon" aria-hidden="true">
                 @switch (group.icon) {
                   @case ('dashboard') {
-                    <svg class="icon-svg" viewBox="0 0 24 24">
-                      <path d="M3 13h8V3H3v10Zm10 8h8V11h-8v10ZM3 21h8v-6H3v6Zm10-18v6h8V3h-8Z" fill="currentColor"/>
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg"  class="icon-svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+<g clip-path="url(#clip0_4418_7634)">
+<path d="M17.79 22.7402H6.21C3.47 22.7402 1.25 20.5102 1.25 17.7702V10.3602C1.25 9.00021 2.09 7.29021 3.17 6.45021L8.56 2.25021C10.18 0.990208 12.77 0.930208 14.45 2.11021L20.63 6.44021C21.82 7.27021 22.75 9.05021 22.75 10.5002V17.7802C22.75 20.5102 20.53 22.7402 17.79 22.7402ZM9.48 3.43021L4.09 7.63021C3.38 8.19021 2.75 9.46021 2.75 10.3602V17.7702C2.75 19.6802 4.3 21.2402 6.21 21.2402H17.79C19.7 21.2402 21.25 19.6902 21.25 17.7802V10.5002C21.25 9.54021 20.56 8.21021 19.77 7.67021L13.59 3.34021C12.45 2.54021 10.57 2.58021 9.48 3.43021Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M7.49994 17.2495C7.30994 17.2495 7.11994 17.1795 6.96994 17.0295C6.67994 16.7395 6.67994 16.2595 6.96994 15.9695L10.1699 12.7695C10.3299 12.6095 10.5399 12.5295 10.7699 12.5495C10.9899 12.5695 11.1899 12.6895 11.3199 12.8795L12.4099 14.5195L15.9599 10.9695C16.2499 10.6795 16.7299 10.6795 17.0199 10.9695C17.3099 11.2595 17.3099 11.7395 17.0199 12.0295L12.8199 16.2295C12.6599 16.3895 12.4499 16.4695 12.2199 16.4495C11.9999 16.4295 11.7999 16.3095 11.6699 16.1195L10.5799 14.4795L8.02994 17.0295C7.87994 17.1795 7.68994 17.2495 7.49994 17.2495Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M16.5 14.25C16.09 14.25 15.75 13.91 15.75 13.5V12.25H14.5C14.09 12.25 13.75 11.91 13.75 11.5C13.75 11.09 14.09 10.75 14.5 10.75H16.5C16.91 10.75 17.25 11.09 17.25 11.5V13.5C17.25 13.91 16.91 14.25 16.5 14.25Z" fill="white" style="fill: var(--fillg);"/>
+</g>
+<defs>
+<clipPath id="clip0_4418_7634">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
+</svg>
                   }
                   @case ('organization') {
                     <svg class="icon-svg" viewBox="0 0 24 24">
@@ -91,7 +149,10 @@ import { TooltipDirective } from '../../shared/tooltip/tooltip.directive';
                     [class.nav-group-chevron--open]="isGroupOpen(group.id)"
                     aria-hidden="true"
                   >
-                    ▸
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+<path d="M12 22.75C6.07 22.75 1.25 17.93 1.25 12C1.25 6.07 6.07 1.25 12 1.25C17.93 1.25 22.75 6.07 22.75 12C22.75 17.93 17.93 22.75 12 22.75ZM12 2.75C6.9 2.75 2.75 6.9 2.75 12C2.75 17.1 6.9 21.25 12 21.25C17.1 21.25 21.25 17.1 21.25 12C21.25 6.9 17.1 2.75 12 2.75Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M10.7399 16.2802C10.5499 16.2802 10.3599 16.2102 10.2099 16.0602C9.91993 15.7702 9.91993 15.2902 10.2099 15.0002L13.2099 12.0002L10.2099 9.00016C9.91993 8.71016 9.91993 8.23016 10.2099 7.94016C10.4999 7.65016 10.9799 7.65016 11.2699 7.94016L14.7999 11.4702C15.0899 11.7602 15.0899 12.2402 14.7999 12.5302L11.2699 16.0602C11.1199 16.2102 10.9299 16.2802 10.7399 16.2802Z" fill="white" style="fill: var(--fillg);"/>
+</svg>
                   </span>
                 }
               }
@@ -108,9 +169,18 @@ import { TooltipDirective } from '../../shared/tooltip/tooltip.directive';
                     <span class="nav-child-icon" aria-hidden="true">
                       @switch (item.icon) {
                         @case ('dashboard') {
-                          <svg class="icon-svg" viewBox="0 0 24 24">
-                            <path d="M3 13h8V3H3v10Zm10 8h8V11h-8v10Z" fill="currentColor"/>
-                          </svg>
+                          <svg  class="icon-svg" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+<g clip-path="url(#clip0_4418_7634)">
+<path d="M17.79 22.7402H6.21C3.47 22.7402 1.25 20.5102 1.25 17.7702V10.3602C1.25 9.00021 2.09 7.29021 3.17 6.45021L8.56 2.25021C10.18 0.990208 12.77 0.930208 14.45 2.11021L20.63 6.44021C21.82 7.27021 22.75 9.05021 22.75 10.5002V17.7802C22.75 20.5102 20.53 22.7402 17.79 22.7402ZM9.48 3.43021L4.09 7.63021C3.38 8.19021 2.75 9.46021 2.75 10.3602V17.7702C2.75 19.6802 4.3 21.2402 6.21 21.2402H17.79C19.7 21.2402 21.25 19.6902 21.25 17.7802V10.5002C21.25 9.54021 20.56 8.21021 19.77 7.67021L13.59 3.34021C12.45 2.54021 10.57 2.58021 9.48 3.43021Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M7.49994 17.2495C7.30994 17.2495 7.11994 17.1795 6.96994 17.0295C6.67994 16.7395 6.67994 16.2595 6.96994 15.9695L10.1699 12.7695C10.3299 12.6095 10.5399 12.5295 10.7699 12.5495C10.9899 12.5695 11.1899 12.6895 11.3199 12.8795L12.4099 14.5195L15.9599 10.9695C16.2499 10.6795 16.7299 10.6795 17.0199 10.9695C17.3099 11.2595 17.3099 11.7395 17.0199 12.0295L12.8199 16.2295C12.6599 16.3895 12.4499 16.4695 12.2199 16.4495C11.9999 16.4295 11.7999 16.3095 11.6699 16.1195L10.5799 14.4795L8.02994 17.0295C7.87994 17.1795 7.68994 17.2495 7.49994 17.2495Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M16.5 14.25C16.09 14.25 15.75 13.91 15.75 13.5V12.25H14.5C14.09 12.25 13.75 11.91 13.75 11.5C13.75 11.09 14.09 10.75 14.5 10.75H16.5C16.91 10.75 17.25 11.09 17.25 11.5V13.5C17.25 13.91 16.91 14.25 16.5 14.25Z" fill="white" style="fill: var(--fillg);"/>
+</g>
+<defs>
+<clipPath id="clip0_4418_7634">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
+</svg>
                         }
                         @case ('employees') {
                           <svg class="icon-svg" viewBox="0 0 24 24">
@@ -196,9 +266,19 @@ import { TooltipDirective } from '../../shared/tooltip/tooltip.directive';
                           </svg>
                         }
                         @case ('reports') {
-                          <svg class="icon-svg" viewBox="0 0 24 24">
-                            <path d="M5 19V9m7 10V5m7 14v-7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-                          </svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" class="icon-svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+<g clip-path="url(#clip0_4418_7623)">
+<path d="M22 22.75H2C1.59 22.75 1.25 22.41 1.25 22C1.25 21.59 1.59 21.25 2 21.25H22C22.41 21.25 22.75 21.59 22.75 22C22.75 22.41 22.41 22.75 22 22.75Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M14.25 22.75H9.75C9.34 22.75 9 22.41 9 22V4C9 2.28 9.95 1.25 11.55 1.25H12.45C14.05 1.25 15 2.28 15 4V22C15 22.41 14.66 22.75 14.25 22.75ZM10.5 21.25H13.5V4C13.5 2.85 12.96 2.75 12.45 2.75H11.55C11.04 2.75 10.5 2.85 10.5 4V21.25Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M7 22.75H3C2.59 22.75 2.25 22.41 2.25 22V10C2.25 8.28 3.13 7.25 4.6 7.25H5.4C6.87 7.25 7.75 8.28 7.75 10V22C7.75 22.41 7.41 22.75 7 22.75ZM3.75 21.25H6.25V10C6.25 8.75 5.7 8.75 5.4 8.75H4.6C4.3 8.75 3.75 8.75 3.75 10V21.25Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M21 22.75H17C16.59 22.75 16.25 22.41 16.25 22V15C16.25 13.28 17.13 12.25 18.6 12.25H19.4C20.87 12.25 21.75 13.28 21.75 15V22C21.75 22.41 21.41 22.75 21 22.75ZM17.75 21.25H20.25V15C20.25 13.75 19.7 13.75 19.4 13.75H18.6C18.3 13.75 17.75 13.75 17.75 15V21.25Z" fill="white" style="fill: var(--fillg);"/>
+</g>
+<defs>
+<clipPath id="clip0_4418_7623">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
+</svg>
                         }
                         @case ('impact') {
                           <svg class="icon-svg" viewBox="0 0 24 24">
@@ -269,245 +349,13 @@ import { TooltipDirective } from '../../shared/tooltip/tooltip.directive';
                 }
               </div>
             }
+            </div>
           </div>
         }
       </nav>
     </aside>
   `,
-  styles: [`
-    .sidebar-inner {
-      height: 100%;
-      width: 100%;
-      padding: var(--space-lg) var(--space-md);
-      display: flex;
-      flex-direction: column;
-      font-family: var(--font-sidebar);
-      background: var(--color-bg-sidebar);
-      position: relative;
-      overflow: hidden;
-      box-sizing: border-box;
-      border-inline-end: 1px solid var(--color-sidebar-border);
-      box-shadow: 4px 0 24px rgba(15, 23, 42, 0.06);
-    }
-    .sidebar-close {
-      position: absolute;
-      top: var(--space-sm);
-      inset-inline-end: var(--space-sm);
-      width: 32px;
-      height: 32px;
-      border: none;
-      background: var(--color-bg-hover);
-      color: var(--color-sidebar-text);
-      font-size: 1.5rem;
-      line-height: 1;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .sidebar-close:hover { background: var(--color-border-light); }
-    .sidebar-top {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      margin-bottom: var(--space-xl);
-      padding-inline: var(--space-sm);
-    }
-    .collapse-toggle {
-      width: 32px;
-      height: 32px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--color-border);
-      background: var(--color-bg-subtle);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      padding: 0;
-      color: var(--color-sidebar-text);
-    }
-    .collapse-toggle:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.22);
-    }
-    .collapse-icon {
-      width: 14px;
-      height: 14px;
-      border-radius: 999px;
-      border: 2px solid currentColor;
-      border-inline-end-width: 0;
-      border-block-start-width: 0;
-      transform: rotate(45deg);
-      transition: transform 0.2s ease;
-    }
-    .collapse-icon--collapsed {
-      transform: rotate(-135deg);
-    }
-    .nav {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex: 1;
-      min-height: 0;
-      overflow-y: auto;
-      padding-inline-end: 4px;
-      scrollbar-width: thin;
-      scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-    }
-    .nav::-webkit-scrollbar {
-      width: 6px;
-    }
-    .nav::-webkit-scrollbar-track {
-      margin-block: 3px;
-      margin-inline: 1px;
-      background: var(--scrollbar-track-gradient);
-      background-color: var(--scrollbar-track);
-      border-radius: var(--radius-full);
-      box-shadow:
-        inset 0 1px 0 var(--scrollbar-track-inset-highlight),
-        inset 0 -1px 0 var(--scrollbar-track-inset-shadow),
-        inset 0 0 0 1px var(--scrollbar-track-edge);
-    }
-    .nav::-webkit-scrollbar-thumb {
-      background: linear-gradient(
-        180deg,
-        var(--scrollbar-thumb) 0%,
-        color-mix(in srgb, var(--scrollbar-thumb) 85%, var(--gulf-green-900) 15%) 100%
-      );
-      border-radius: var(--radius-full);
-      border: 1px solid var(--scrollbar-thumb-ring);
-      box-shadow: 0 1px 2px rgba(15, 61, 46, 0.12);
-    }
-    .nav::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(
-        180deg,
-        var(--scrollbar-thumb-hover) 0%,
-        color-mix(in srgb, var(--scrollbar-thumb-hover) 88%, var(--gulf-gold-dark) 12%) 100%
-      );
-      box-shadow: 0 1px 3px rgba(200, 164, 93, 0.28);
-    }
-    .nav::-webkit-scrollbar-thumb:active {
-      background: linear-gradient(
-        180deg,
-        var(--scrollbar-thumb-active) 0%,
-        color-mix(in srgb, var(--scrollbar-thumb-active) 80%, var(--gulf-green-900) 20%) 100%
-      );
-    }
-    .nav-group {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .nav-group-trigger {
-      width: 100%;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      color: var(--color-sidebar-text);
-      text-align: start;
-      padding: var(--space-xs) var(--space-md);
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-      font-size: 1rem;
-      font-weight: 600;
-    }
-    .nav-group-trigger:hover {
-      background: var(--color-sidebar-hover);
-      color: var(--color-sidebar-text);
-    }
-    .nav-group-items {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      margin-inline-start: var(--space-lg);
-    }
-    .nav-link {
-      color: var(--color-sidebar-text-muted);
-      text-decoration: none;
-      padding: var(--space-xs) var(--space-md);
-      border-radius: var(--radius-sm);
-      font-size: 0.9375rem;
-      font-weight: 500;
-      transition: background 0.2s ease, color 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: var(--space-xs);
-      position: relative;
-    }
-    .nav-link--child {
-      padding-inline-start: 0;
-    }
-    .nav-link:hover {
-      background: var(--color-sidebar-hover);
-      color: var(--color-sidebar-text);
-    }
-    .nav-link.active {
-      background: var(--color-sidebar-active);
-      color: var(--color-sidebar-text);
-      font-weight: 600;
-    }
-    .nav-link.active::before {
-      content: '';
-      position: absolute;
-      inset-block: 6px;
-      inset-inline-end: 6px;
-      width: 3px;
-      border-radius: 999px;
-      background: var(--color-sidebar-indicator);
-    }
-    .nav-link--collapsed {
-      justify-content: center;
-      padding-inline: var(--space-sm);
-    }
-    .nav-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 999px;
-      background: var(--color-sidebar-icon-bg);
-      color: var(--color-sidebar-text);
-      flex-shrink: 0;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.95rem;
-    }
-    .nav-group-trigger:hover .nav-icon {
-      background: var(--color-sidebar-icon-bg-hover);
-      color: var(--color-sidebar-text);
-    }
-    .nav-child-icon {
-      width: 20px;
-      height: 20px;
-      border-radius: 999px;
-      background: transparent;
-      color: var(--color-sidebar-text-muted);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.875rem;
-    }
-    .nav-link:hover .nav-child-icon,
-    .nav-link.active .nav-child-icon {
-      color: var(--color-sidebar-text);
-    }
-    .nav-group-chevron {
-      margin-inline-start: auto;
-      font-size: 0.75rem;
-      color: var(--color-sidebar-text-muted);
-      opacity: 0.9;
-      transform: rotate(0deg);
-      transition: transform 0.15s ease;
-    }
-    .nav-group-chevron--open {
-      transform: rotate(90deg); /* السهم لتحت لما الجروب يبقى مفتوح */
-    }
-    .nav-label {
-      white-space: nowrap;
-    }
-  `]
+  styleUrl: './sidebar.component.scss',
 })
 export class SidebarComponent {
   private readonly router = inject(Router);
@@ -518,17 +366,29 @@ export class SidebarComponent {
   closeDrawer = output<void>();
   collapsedChange = output<boolean>();
 
-  private readonly internalCollapsed = signal(false);
   private readonly openGroups = signal<Record<string, boolean>>({});
+
+  constructor() {
+    this.router.events
+      .pipe(
+        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => this.syncOpenGroupFromUrl());
+    this.syncOpenGroupFromUrl();
+
+    effect(() => {
+      this.navGroups();
+      this.syncOpenGroupFromUrl();
+    });
+  }
 
   onNavClick(): void {
     if (this.drawerOpen()) this.closeDrawer.emit();
   }
 
   toggleCollapsed(): void {
-    const next = !this.collapsed();
-    this.internalCollapsed.set(next);
-    this.collapsedChange.emit(next);
+    this.collapsedChange.emit(!this.collapsed());
   }
 
   readonly visibleItems = computed(() => {
@@ -558,9 +418,27 @@ export class SidebarComponent {
 
   toggleGroup(id: string): void {
     const current = this.openGroups();
-    this.openGroups.set({
-      ...current,
-      [id]: !current[id],
-    });
+    if (current[id]) {
+      this.openGroups.set({});
+      return;
+    }
+    this.openGroups.set({ [id]: true });
+  }
+
+  /** Keep the section that contains the current route expanded (accordion: single open). */
+  private syncOpenGroupFromUrl(): void {
+    const url = this.router.url.split('?')[0];
+    for (const g of this.navGroups()) {
+      if (g.items.length <= 1) continue;
+      const hit = g.items.some(
+        item =>
+          url === item.route ||
+          (item.route.length > 1 && url.startsWith(`${item.route}/`)),
+      );
+      if (hit) {
+        this.openGroups.set({ [g.id]: true });
+        return;
+      }
+    }
   }
 }

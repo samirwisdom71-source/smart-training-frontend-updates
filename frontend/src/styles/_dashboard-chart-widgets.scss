@@ -1,0 +1,290 @@
+/**
+ * Dashboard chart & content panels — Gulf glass shell + flex layout so charts fill the card.
+ * (KPI tiles use their own hover-only treatment in dashboard-kpi-card.component.scss.)
+ */
+
+.dashboard-widget {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  border-radius: 18px;
+  padding: var(--space-md);
+  color: var(--color-text);
+
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.94) 0%,
+    color-mix(in srgb, var(--color-bg-elevated) 90%, var(--gulf-emerald) 10%) 100%
+  );
+  border: 1px solid color-mix(in srgb, var(--gulf-gold) 18%, var(--color-border-light));
+  box-shadow:
+    0 8px 28px rgba(15, 61, 46, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.15, 0.52, 1),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.dashboard-widget:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--gulf-gold) 32%, var(--color-border-light));
+  box-shadow:
+    0 18px 44px rgba(15, 61, 46, 0.11),
+    0 0 0 1px color-mix(in srgb, var(--gulf-gold) 20%, transparent),
+    0 0 32px rgba(200, 164, 93, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+/* Panels that contain charts: column stack; height follows content (no flex stretch) */
+.dashboard-widget:has(app-dashboard-line-chart),
+.dashboard-widget:has(app-dashboard-bar-chart),
+.dashboard-widget:has(app-dashboard-doughnut-chart) {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dashboard-widget:has(app-dashboard-line-chart) app-dashboard-line-chart,
+.dashboard-widget:has(app-dashboard-bar-chart) app-dashboard-bar-chart,
+.dashboard-widget:has(app-dashboard-doughnut-chart) app-dashboard-doughnut-chart {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-widget .chart-widget-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+  margin-bottom: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-border-light);
+  flex-wrap: wrap;
+}
+
+.dashboard-widget .chart-header__title {
+  font-size: var(--text-h2);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-widget .chart-type-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 40px;
+  width: 40px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 0.22s ease,
+    background 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.dashboard-widget .chart-type-toggle:hover {
+  background: color-mix(in srgb, var(--gulf-gold) 12%, var(--color-bg-hover));
+  border-color: var(--gulf-gold);
+  color: var(--gulf-green-900);
+  box-shadow: 0 0 16px rgba(200, 164, 93, 0.2);
+}
+
+.dashboard-widget .chart-type-toggle:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* Chart sits directly in the card body — fixed plot height; host fills box (fixes ECharts 0-height) */
+.dashboard-widget .chart-wrap {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  width: 100%;
+  height: 240px;
+  min-height: 240px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  display: block;
+  overflow: hidden;
+  /* ECharts cartesian coords break under document RTL; chart panel stays LTR */
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.dashboard-widget .chart-wrap .echarts-host {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Doughnut / pie / polar: extra vertical space for bottom legend */
+.dashboard-widget app-dashboard-doughnut-chart .chart-wrap {
+  max-width: none;
+  margin-inline: 0;
+  height: 280px;
+  min-height: 280px;
+}
+
+.dashboard-widget app-dashboard-doughnut-chart .chart-wrap--cartesian {
+  height: 240px;
+  min-height: 240px;
+}
+
+.dashboard-widget .widget-title {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  font-size: var(--text-h2);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 var(--space-sm);
+  letter-spacing: -0.02em;
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.dashboard-widget .widget-summary,
+.dashboard-widget .completion-text {
+  position: relative;
+  z-index: 1;
+  color: var(--color-text-secondary);
+}
+
+.dashboard-widget .widget-empty {
+  position: relative;
+  z-index: 1;
+  color: var(--color-text-muted);
+}
+
+.dashboard-widget .top-list,
+.dashboard-widget .program-list,
+.dashboard-widget .task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-widget .top-list__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) 0;
+  font-size: var(--text-body-sm);
+}
+
+.dashboard-widget .completion-block {
+  position: relative;
+  z-index: 1;
+  margin-bottom: var(--space-md);
+}
+
+.dashboard-widget .completion-bar-wrap {
+  height: 10px;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: var(--space-sm);
+  border: 1px solid var(--color-border-light);
+}
+
+.dashboard-widget .completion-bar {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--gulf-emerald),
+    color-mix(in srgb, var(--gulf-gold) 45%, var(--gulf-emerald))
+  );
+  border-radius: var(--radius-full);
+  transition: width 0.4s ease;
+}
+
+.dashboard-widget .top-list__item,
+.dashboard-widget .program-list__item,
+.dashboard-widget .task-list__item {
+  border-block-end: 1px solid var(--color-border-light);
+  color: var(--color-text);
+}
+
+.dashboard-widget .top-list__label,
+.dashboard-widget .program-list__title {
+  color: var(--color-text);
+}
+
+.dashboard-widget .top-list__value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: var(--text-body-sm);
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-bg-subtle));
+  color: var(--color-primary);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 22%, transparent);
+}
+
+.dashboard-widget .widget-link,
+.dashboard-widget .task-list__link {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  flex-shrink: 0;
+  margin-top: var(--space-xs);
+  font-size: var(--text-body-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.dashboard-widget .widget-link:hover,
+.dashboard-widget .task-list__link:hover {
+  color: var(--gulf-gold-dark);
+  text-decoration: underline;
+}
+
+.dashboard-widget .program-list__date {
+  color: var(--color-text-secondary);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-light);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-widget {
+    transition: box-shadow 0.2s ease;
+  }
+
+  .dashboard-widget:hover {
+    transform: none;
+  }
+}

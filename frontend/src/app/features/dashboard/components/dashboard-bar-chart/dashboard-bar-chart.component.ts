@@ -10,33 +10,22 @@ import {
   effect
 } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
-import { Chart, ChartConfiguration, registerables } from 'chart.js';
-
-Chart.register(...registerables);
+import * as echarts from 'echarts';
+import type { ECharts, EChartsOption } from 'echarts';
+import {
+  CHART_COLORS,
+  PALETTE,
+  buildBarVerticalOption,
+  buildBarHorizontalOption,
+  buildLineSimpleOption,
+  buildRadarOption,
+  buildPolarAreaRoseOption,
+  buildDoughnutOption,
+  buildPieOption
+} from '../../utils/dashboard-echarts.options';
+import { getChartHostPixelSize, scheduleEChartsResize } from '../../utils/dashboard-echarts-host';
 
 export type DashboardChartType = 'bar' | 'line' | 'doughnut' | 'pie' | 'radar' | 'polarArea';
-
-const CHART_COLORS = {
-  primary: '#0a4d52',
-  primaryLight: '#0d6b72',
-  accent: '#b8860b',
-  success: '#047857',
-  warning: '#b45309',
-  info: '#0369a1',
-  coral: '#c2410c',
-  muted: 'rgba(148, 163, 184, 0.6)',
-  grid: 'rgba(226, 232, 240, 0.8)'
-};
-
-const PALETTE = [
-  CHART_COLORS.primary,
-  CHART_COLORS.accent,
-  CHART_COLORS.success,
-  CHART_COLORS.info,
-  CHART_COLORS.coral,
-  '#5b21b6',
-  '#64748b'
-];
 
 @Component({
   selector: 'app-dashboard-bar-chart',
@@ -71,61 +60,40 @@ const PALETTE = [
         }
       </div>
     }
-    <div class="chart-wrap">
-      <canvas #canvas></canvas>
+    <div class="chart-wrap" dir="ltr">
+      <div class="echarts-host" #chartHost></div>
     </div>
   `,
   styles: [`
-    .chart-widget-header {
+    :host {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: var(--space-md);
-      margin-bottom: var(--space-md);
-      flex-wrap: wrap;
-    }
-    .chart-header__title {
-      font-size: var(--text-h2);
-      font-weight: 600;
-      color: var(--color-text);
-      margin: 0;
-      flex: 1;
-      min-width: 0;
-    }
-    .chart-header__spacer { flex: 1; }
-    .chart-type-toggle {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      height: 36px;
-      width: 36px;
-      padding: 0;
-      border: 1px solid var(--color-border);
-      background: var(--color-bg-elevated);
-      color: var(--color-text);
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
-      transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
-    }
-    .chart-type-toggle:hover { background: var(--color-bg-hover); border-color: var(--color-border-strong, var(--color-border)); }
-    .chart-type-toggle:active { transform: translateY(1px); }
-    .toggle-icon { opacity: 0.85; }
-    .chart-wrap {
-      position: relative;
-      height: 280px;
+      flex-direction: column;
       width: 100%;
     }
-    .chart-wrap canvas {
-      max-height: 280px;
+    .chart-widget-header { flex-shrink: 0; }
+    .chart-header__spacer { flex: 1; }
+    .toggle-icon { opacity: 0.92; }
+    .chart-wrap {
+      position: relative;
+      flex: 0 0 auto;
+      width: 100%;
+      height: 240px;
+      min-height: 240px;
+      overflow: hidden;
+    }
+    .echarts-host {
+      position: absolute;
+      inset: 0;
+      width: auto;
+      height: auto;
     }
   `]
 })
 export class DashboardBarChartComponent implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartHost') chartHostRef!: ElementRef<HTMLDivElement>;
+  private chart: ECharts | null = null;
+  private resizeObserver: ResizeObserver | null = null;
 
-  private chart: Chart | null = null;
   readonly chartType = signal<DashboardChartType>('bar');
 
   allowedTypes = input<readonly DashboardChartType[]>(['bar', 'line', 'radar']);
@@ -145,8 +113,10 @@ export class DashboardBarChartComponent implements OnInit, AfterViewInit, OnDest
     });
     effect(() => {
       this.chartType();
-      if (this.canvasRef?.nativeElement && this.data()?.length) {
-        this.buildChart();
+      this.indexAxis();
+      this.data();
+      if (this.chartHostRef?.nativeElement) {
+        this.renderChart();
       }
     });
   }
@@ -173,235 +143,83 @@ export class DashboardBarChartComponent implements OnInit, AfterViewInit, OnDest
   }
 
   ngAfterViewInit(): void {
-    this.buildChart();
+    this.initResizeObserver();
+    this.renderChart();
   }
 
   ngOnDestroy(): void {
-    this.chart?.destroy();
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
+    this.chart?.dispose();
     this.chart = null;
   }
 
-  private buildChart(): void {
-    const data = this.data();
+  private initResizeObserver(): void {
+    const el = this.chartHostRef?.nativeElement;
+    if (!el || this.resizeObserver) return;
+    this.resizeObserver = new ResizeObserver(() => {
+      this.chart?.resize();
+    });
+    this.resizeObserver.observe(el);
+  }
+
+  private ensureChart(): void {
+    const el = this.chartHostRef?.nativeElement;
+    if (!el) return;
+    const { width, height } = getChartHostPixelSize(el);
+    if (!this.chart) {
+      this.chart = echarts.init(el, undefined, {
+        renderer: 'canvas',
+        width,
+        height
+      });
+    }
+  }
+
+  private renderChart(): void {
+    const raw = this.data();
     const color = this.color();
     const type = this.chartType();
     const types = this.allowedTypes();
-    if (!this.canvasRef?.nativeElement || !data?.length || !types.includes(type)) return;
+    const el = this.chartHostRef?.nativeElement;
+    if (!el || !raw?.length || !types.includes(type)) return;
 
-    this.chart?.destroy();
-    this.chart = null;
+    this.ensureChart();
+    if (!this.chart) return;
 
-    const labels = data.map(d => d.label);
-    const values = data.map(d => d.value);
+    const labels = raw.map(d => d.label);
+    const values = raw.map(d => d.value);
     const palette = PALETTE.slice(0, Math.max(values.length, 1));
 
-    if (type === 'bar') {
-      const indexAxis = this.indexAxis();
-      const config: ChartConfiguration<'bar'> = {
-        type: 'bar',
-        data: {
-          labels,
-          datasets: [{
-            label: '',
-            data: values,
-            backgroundColor: (ctx) => {
-              const chart = ctx.chart;
-              const area = chart.chartArea;
-              if (!area) return color + '40';
-              const g = chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
-              g.addColorStop(0, color + '66');
-              g.addColorStop(1, color + '14');
-              return g;
-            },
-            borderColor: color,
-            borderWidth: 2,
-            borderRadius: 10,
-            borderSkipped: false
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          indexAxis,
-          plugins: {
-            legend: { display: false },
-            tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.95)', padding: 12, titleFont: { size: 13 }, bodyFont: { size: 13 } }
-          },
-          scales: {
-            x: indexAxis === 'x'
-              ? { grid: { display: false }, ticks: { font: { size: 12 }, color: CHART_COLORS.muted, maxRotation: 45 } }
-              : { beginAtZero: true, grid: { color: CHART_COLORS.grid }, ticks: { font: { size: 11 }, color: CHART_COLORS.muted } },
-            y: indexAxis === 'x'
-              ? { beginAtZero: true, grid: { color: CHART_COLORS.grid }, ticks: { font: { size: 11 }, color: CHART_COLORS.muted } }
-              : { grid: { display: false }, ticks: { font: { size: 12 }, color: CHART_COLORS.muted } }
-          }
-        }
-      };
-      this.chart = new Chart(this.canvasRef.nativeElement, config);
-      return;
+    let option: EChartsOption;
+
+    switch (type) {
+      case 'bar':
+        option =
+          this.indexAxis() === 'y'
+            ? buildBarHorizontalOption(labels, values, color)
+            : buildBarVerticalOption(labels, values, color);
+        break;
+      case 'line':
+        option = buildLineSimpleOption(labels, values, color);
+        break;
+      case 'radar':
+        option = buildRadarOption(labels, values, color);
+        break;
+      case 'polarArea':
+        option = buildPolarAreaRoseOption(labels, values, palette);
+        break;
+      case 'doughnut':
+        option = buildDoughnutOption(labels, values, palette, 48, 72);
+        break;
+      case 'pie':
+        option = buildPieOption(labels, values, palette);
+        break;
+      default:
+        option = buildBarVerticalOption(labels, values, color);
     }
 
-    if (type === 'line') {
-      const config: ChartConfiguration<'line'> = {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            label: '',
-            data: values,
-            borderColor: color,
-            backgroundColor: color + '18',
-            fill: true,
-            tension: 0.45,
-            cubicInterpolationMode: 'monotone',
-            pointRadius: 4,
-            pointBackgroundColor: color,
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.95)', padding: 12 } },
-          scales: {
-            x: { grid: { display: false }, ticks: { font: { size: 12 }, color: CHART_COLORS.muted } },
-            y: { beginAtZero: true, grid: { color: CHART_COLORS.grid }, ticks: { font: { size: 11 }, color: CHART_COLORS.muted } }
-          }
-        }
-      };
-      this.chart = new Chart(this.canvasRef.nativeElement, config);
-      return;
-    }
-
-    if (type === 'radar') {
-      const config: ChartConfiguration<'radar'> = {
-        type: 'radar',
-        data: {
-          labels,
-          datasets: [{
-            label: '',
-            data: values,
-            borderColor: color,
-            backgroundColor: color + '33',
-            borderWidth: 2,
-            pointRadius: 3,
-            pointBackgroundColor: color,
-            pointBorderColor: '#ffffff',
-            pointHoverBackgroundColor: '#ffffff',
-            pointHoverBorderColor: color
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            r: {
-              beginAtZero: true,
-              grid: { color: CHART_COLORS.grid },
-              angleLines: { color: CHART_COLORS.grid },
-              pointLabels: { font: { size: 11 }, color: CHART_COLORS.muted },
-              ticks: {
-                backdropColor: 'transparent',
-                color: CHART_COLORS.muted,
-                font: { size: 10 }
-              }
-            }
-          },
-          plugins: {
-            legend: { display: false },
-            tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.95)', padding: 12 }
-          }
-        }
-      };
-      this.chart = new Chart(this.canvasRef.nativeElement, config);
-      return;
-    }
-
-    if (type === 'polarArea') {
-      const config: ChartConfiguration<'polarArea'> = {
-        type: 'polarArea',
-        data: {
-          labels,
-          datasets: [{
-            data: values,
-            backgroundColor: palette.map(c => (c.length === 7 ? `${c}b3` : c)),
-            borderColor: 'rgba(255, 255, 255, 0.92)',
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            r: {
-              beginAtZero: true,
-              grid: { color: CHART_COLORS.grid },
-              ticks: { backdropColor: 'transparent', color: CHART_COLORS.muted }
-            }
-          },
-          plugins: {
-            legend: { position: 'bottom', labels: { font: { size: 12 }, color: CHART_COLORS.muted, padding: 16 } },
-            tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.95)', padding: 12 }
-          }
-        }
-      };
-      this.chart = new Chart(this.canvasRef.nativeElement, config);
-      return;
-    }
-
-    if (type === 'doughnut') {
-      const config: ChartConfiguration<'doughnut'> = {
-        type: 'doughnut',
-        data: {
-          labels,
-          datasets: [{
-            data: values,
-            backgroundColor: palette,
-            borderColor: '#fff',
-            borderWidth: 2,
-            hoverOffset: 6,
-            borderRadius: 6,
-            spacing: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '72%',
-          plugins: {
-            legend: { position: 'bottom', labels: { font: { size: 12 }, color: CHART_COLORS.muted, padding: 16 } },
-            tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.95)', padding: 12 }
-          }
-        }
-      };
-      this.chart = new Chart(this.canvasRef.nativeElement, config);
-      return;
-    }
-
-    if (type === 'pie') {
-      const config: ChartConfiguration<'pie'> = {
-        type: 'pie',
-        data: {
-          labels,
-          datasets: [{
-            data: values,
-            backgroundColor: palette,
-            borderColor: '#fff',
-            borderWidth: 2,
-            hoverOffset: 4
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { font: { size: 12 }, color: CHART_COLORS.muted, padding: 16 } },
-            tooltip: { backgroundColor: 'rgba(30, 41, 59, 0.95)', padding: 12 }
-          }
-        }
-      };
-      this.chart = new Chart(this.canvasRef.nativeElement, config);
-    }
+    this.chart.setOption(option, { notMerge: true });
+    scheduleEChartsResize(this.chart, el);
   }
 }

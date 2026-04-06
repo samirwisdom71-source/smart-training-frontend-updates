@@ -25,7 +25,12 @@ export interface BreadcrumbItem {
   `,
   styles: [`
     .page-shell { padding: var(--space-lg); max-width: var(--content-max-width); margin: 0 auto; }
-    .page-shell.page-shell--full-width { max-width: none; width: 100%; margin: 0; }
+    .page-shell.page-shell--full-width {
+      max-width: none;
+      width: 100%;
+      margin: 0;
+      padding: var(--space-sm) 0 var(--space-xl);
+    }
     .page-shell__header { margin-bottom: var(--space-md); }
     .page-shell__title {
       margin: 0;

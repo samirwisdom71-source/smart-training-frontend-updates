@@ -85,11 +85,18 @@ import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
     }
     .bell-btn:hover { background: var(--color-border-light, #f1f5f9); color: var(--color-text, #0f172a); }
     :host-context(app-header) .bell-btn {
-      color: var(--color-header-text-muted);
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 22%, var(--color-border-light));
+      background: color-mix(in srgb, var(--color-bg-elevated) 90%, var(--gulf-green-800) 6%);
+      color: var(--gulf-green-800);
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.75) inset;
     }
     :host-context(app-header) .bell-btn:hover {
-      background: var(--color-header-hover);
-      color: var(--color-header-text);
+      background: color-mix(in srgb, var(--gulf-gold) 12%, #ffffff);
+      border-color: color-mix(in srgb, var(--gulf-gold) 42%, var(--color-border-light));
+      color: var(--gulf-green-900);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 0 0 1px color-mix(in srgb, var(--gulf-gold) 15%, transparent);
     }
     .bell-icon { width: 22px; height: 22px; }
     .badge {
@@ -104,8 +111,10 @@ import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
       line-height: 18px;
       text-align: center;
       color: #fff;
-      background: #ef4444;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
       border-radius: 9px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 2px 6px rgba(185, 28, 28, 0.35);
     }
     .dropdown {
       position: absolute;
@@ -113,10 +122,19 @@ import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
       inset-inline-end: 0;
       width: 360px;
       max-height: 420px;
-      background: var(--color-bg-elevated);
-      border: 1px solid var(--color-border-light);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-lg);
+      background: linear-gradient(
+        175deg,
+        rgba(255, 255, 255, 0.98) 0%,
+        color-mix(in srgb, #f6faf8 96%, var(--gulf-green-800) 4%) 100%
+      );
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 28%, var(--color-border-light));
+      border-radius: 14px;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 20px 48px rgba(12, 47, 37, 0.12),
+        0 8px 24px rgba(200, 164, 93, 0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       display: flex;
       flex-direction: column;
       z-index: 1000;
