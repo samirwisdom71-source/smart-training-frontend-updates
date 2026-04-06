@@ -52,6 +52,7 @@ import { ToastContainerComponent } from '../../core/toast/toast-container.compon
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+      height: 100vh;
       background: var(--color-bg);
     }
     .layout-body {
@@ -105,7 +106,8 @@ import { ToastContainerComponent } from '../../core/toast/toast-container.compon
       box-shadow: none;
       transition: width 0.32s cubic-bezier(0.4, 0, 0.2, 1);
       position: sticky;
-      // top: var(--header-height);
+      top: var(--header-height);
+      align-self: flex-start;
       height: calc(100vh - var(--header-height));
       display: flex;
     }
@@ -115,9 +117,9 @@ import { ToastContainerComponent } from '../../core/toast/toast-container.compon
     .main {
       flex: 1;
       min-width: 0;
+      min-height: 0;
       padding: var(--space-md) var(--space-lg);
       overflow: auto;
-
     }
     @media (min-width: 769px) and (max-width: 1100px) {
       .sidebar:not(.sidebar--collapsed) {
@@ -131,7 +133,7 @@ import { ToastContainerComponent } from '../../core/toast/toast-container.compon
       }
       .sidebar {
         position: fixed;
-        // top: var(--header-height);
+        top: var(--header-height);
         bottom: 0;
         inset-inline-start: 0;
         width: min(var(--sidebar-width-expanded), 88vw);
