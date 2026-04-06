@@ -739,6 +739,8 @@
     "ouFromEmployeeHint": "Organizational unit is set from the selected employee; you can change it if needed."
   },
   "impact": {
+    "hubTitle": "Impact measurement",
+    "hubSubtitle": "Unified analytics linking evaluations, post-training reports, and impact scores — data-led enterprise decisions.",
     "totalRecords": "Total records",
     "avgProductivity": "Avg. productivity score",
     "avgPerformance": "Avg. performance improvement",
