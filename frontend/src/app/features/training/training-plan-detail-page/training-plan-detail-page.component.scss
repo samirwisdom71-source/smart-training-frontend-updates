@@ -1,0 +1,13 @@
+.plan-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-lg); padding: var(--space-md); }
+.plan-meta { display: flex; flex-wrap: wrap; gap: var(--space-md); align-items: center; }
+.plan-actions { display: flex; gap: var(--space-sm); }
+.plan-summary { font-size: var(--text-body-sm); color: var(--color-text-secondary); margin-bottom: var(--space-lg); }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); }
+.section-title { font-size: var(--text-h2); margin: 0; }
+.table-loading { padding: var(--space-md) 0; }
+.cell-actions { text-align: end; }
+.modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; padding: var(--space-lg); }
+.modal-drawer { max-width: 440px; width: 100%; max-height: 90vh; overflow: auto; }
+.modal-drawer__title { font-size: var(--text-h1); font-weight: 600; margin: 0 0 var(--space-md); }
+.modal-drawer form .form-group { margin-bottom: var(--space-md); }
+.modal-drawer__actions { display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-lg); }

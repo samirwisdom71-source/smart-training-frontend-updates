@@ -1,0 +1,240 @@
+<app-page-shell [title]="'attendance.title' | translate" [breadcrumbs]="breadcrumbs()">
+  <div filters class="att-shell-filters">
+    @if (backProgramId(); as pid) {
+      <div class="att-back">
+        <a [routerLink]="['/programs', pid]" class="ds-btn ds-btn--ghost ds-btn--sm back-btn">
+          <svg class="back-btn__icon" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          {{ 'common.back' | translate }}
+        </a>
+      </div>
+    }
+    <section class="att-card att-card--filters" aria-labelledby="att-filters-heading">
+      <div class="att-card__head">
+        <h2 id="att-filters-heading" class="att-card__title">{{ 'attendance.selectionTitle' | translate }}</h2>
+        <p class="att-card__subtitle">{{ 'attendance.selectProgramAndSession' | translate }}</p>
+      </div>
+      <div class="att-filters-grid">
+        <div class="ds-filterfield att-field">
+          <div class="ds-filterfield__label">{{ 'programs.program' | translate }}</div>
+          <select
+            class="ds-input filter-select att-field__control"
+            [(ngModel)]="selectedProgramId"
+            (ngModelChange)="onProgramChange()"
+          >
+            <option [ngValue]="null">{{ 'attendance.selectProgram' | translate }}</option>
+            @for (p of programOptions(); track p.id) {
+              <option [ngValue]="p.id">{{ getLocalizedText(p.titleAr, p.titleEn) }}</option>
+            }
+          </select>
+        </div>
+        <div class="ds-filterfield att-field">
+          <div class="ds-filterfield__label">{{ 'attendance.selectSession' | translate }}</div>
+          <select
+            class="ds-input filter-select att-field__control"
+            [(ngModel)]="selectedSessionId"
+            (ngModelChange)="onSessionChange()"
+            [disabled]="!selectedProgramId"
+          >
+            <option [ngValue]="null">{{ 'attendance.selectSession' | translate }}</option>
+            @for (s of sessions(); track s.id) {
+              <option [ngValue]="s.id">
+                {{ getLocalizedText(s.titleAr, s.titleEn) }} ({{ s.startDateTime | date: 'short' }})
+              </option>
+            }
+          </select>
+        </div>
+      </div>
+      @if (selectedProgramId) {
+        <div class="att-program-file" role="group" [attr.aria-label]="'attendance.programAttachment' | translate">
+          <div class="att-program-file__label">{{ 'attendance.programAttachment' | translate }}</div>
+          <p class="att-program-file__hint">{{ 'attendance.attachmentUploadHint' | translate }}</p>
+          <div class="att-session-attachment att-program-file__actions">
+            @if (programAttendancePath(); as filePath) {
+              <button
+                type="button"
+                class="ds-btn ds-btn--ghost ds-btn--sm"
+                (click)="downloadAttachment(filePath)"
+              >
+                {{ 'certificates.attachment' | translate }}
+              </button>
+            } @else {
+              <span class="att-context__text">—</span>
+            }
+            @if (canManage()) {
+              <label class="ds-btn ds-btn--secondary ds-btn--sm" [class.ds-btn--disabled]="uploadingProgram()">
+                <input
+                  type="file"
+                  accept="application/pdf,image/jpeg,image/png"
+                  (change)="onProgramAttendanceUploadSelected($event)"
+                  style="display: none"
+                />
+                {{ uploadingProgram() ? ('common.loading' | translate) : ('common.upload' | translate) }}
+              </label>
+            }
+          </div>
+        </div>
+      }
+      @if (uploadError() && selectedProgramId) {
+        <div class="att-panel att-panel--message att-panel--warn att-program-file__error">
+          <p class="att-panel__message">{{ uploadError() }}</p>
+        </div>
+      }
+    </section>
+  </div>
+
+  @if (selectedSessionId) {
+    <section class="att-stats" [attr.aria-label]="'attendance.sessionSummaryStats' | translate">
+      <div class="att-stats__header">
+        <h3 class="att-stats__title">{{ 'attendance.sessionSummary' | translate }}</h3>
+      </div>
+      <div class="att-stats__grid att-stats__grid--session">
+        <div class="att-stat att-stat--neutral">
+          <span class="att-stat__label">{{ 'attendance.sessionParticipants' | translate }}</span>
+          <span class="att-stat__value">{{ sessionStats().participants }}</span>
+        </div>
+        <div class="att-stat att-stat--present">
+          <span class="att-stat__label">{{ 'attendance.presentCount' | translate }}</span>
+          <span class="att-stat__value">{{ sessionStats().presentCount }}</span>
+        </div>
+        <div class="att-stat att-stat--absent">
+          <span class="att-stat__label">{{ 'attendance.absentCount' | translate }}</span>
+          <span class="att-stat__value">{{ sessionStats().absentCount }}</span>
+        </div>
+        <div class="att-stat att-stat--late">
+          <span class="att-stat__label">{{ 'attendance.lateCount' | translate }}</span>
+          <span class="att-stat__value">{{ sessionStats().lateCount }}</span>
+        </div>
+      </div>
+    </section>
+    @if (programLabel() && sessionLabel()) {
+      <div class="att-context" role="status">
+        <div class="att-context__row">
+          <span class="att-context__badge">{{ 'programs.program' | translate }}</span>
+          <span class="att-context__text">{{ programLabel() }}</span>
+        </div>
+        <div class="att-context__row att-context__row--accent">
+          <span class="att-context__badge att-context__badge--accent">{{ 'attendance.selectSession' | translate }}</span>
+          <span class="att-context__text">{{ sessionLabel() }}</span>
+          @if (selectedSessionStart(); as start) {
+            <time class="att-context__time" [attr.datetime]="start">{{ start | date: 'medium' }}</time>
+          }
+        </div>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="att-panel att-panel--loading">
+        <div class="ds-skeleton att-skeleton-line"></div>
+        <div class="ds-skeleton att-skeleton-line att-skeleton-line--short"></div>
+      </div>
+    } @else if (error()) {
+      <div class="att-panel att-panel--message att-panel--error">
+        <p class="att-panel__message">{{ error() }}</p>
+        <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="loadSession()">
+          {{ 'empty.tryAgain' | translate }}
+        </button>
+      </div>
+    } @else {
+      @if (canManage()) {
+        <div class="att-toolbar">
+          <div class="att-toolbar__main">
+            <label class="att-toolbar__label" for="att-bulk-status">{{ 'attendance.status' | translate }}</label>
+            <select id="att-bulk-status" class="ds-input att-toolbar__select" [(ngModel)]="bulkStatus">
+              <option value="Present">{{ 'attendance.present' | translate }}</option>
+              <option value="Absent">{{ 'attendance.absent' | translate }}</option>
+              <option value="Late">{{ 'attendance.late' | translate }}</option>
+              <option value="Excused">{{ 'attendance.excused' | translate }}</option>
+              <option value="Unknown">{{ 'attendance.unknown' | translate }}</option>
+            </select>
+            <button
+              type="button"
+              class="ds-btn ds-btn--secondary ds-btn--sm"
+              [disabled]="!records().length"
+              (click)="applyBulkToAll()"
+            >
+              {{ 'attendance.applyBulkToAll' | translate }}
+            </button>
+            <button
+              type="button"
+              class="ds-btn ds-btn--primary ds-btn--sm"
+              [disabled]="saving() || !records().length"
+              (click)="saveAttendance()"
+            >
+              {{ 'attendance.saveAttendance' | translate }}
+            </button>
+          </div>
+          @if (saveSuccess()) {
+            <p class="att-toolbar__success">{{ 'attendance.saveSuccess' | translate }}</p>
+          }
+        </div>
+      }
+
+      @if (!records().length) {
+        <div class="att-panel att-panel--empty">
+          <div class="att-empty-icon" aria-hidden="true">📋</div>
+          <p class="att-panel__empty-title">{{ 'attendance.noRecords' | translate }}</p>
+        </div>
+      } @else {
+        <section class="att-roster" aria-labelledby="att-roster-heading">
+          <div class="att-roster__head">
+            <h3 id="att-roster-heading" class="att-roster__title">{{ 'attendance.rosterTitle' | translate }}</h3>
+            <span class="att-roster__count">{{ records().length }}</span>
+          </div>
+          <div class="ds-table-wrap att-table-wrap">
+            <table class="ds-table att-table">
+              <thead>
+                <tr>
+                  <th class="att-th att-th--employee">{{ 'table.employee' | translate }}</th>
+                  <th class="att-th att-th--status">{{ 'attendance.status' | translate }}</th>
+                  <th class="att-th att-th--narrow">{{ 'attendance.percent' | translate }}</th>
+                  @if (canManage()) {
+                    <th class="att-th att-th--action att-th--end">{{ 'attendance.columnSetStatus' | translate }}</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of records(); track r.id) {
+                  <tr class="att-tr">
+                    <td class="att-td att-td--employee">
+                      <span class="att-employee-name">{{ getLocalizedText(r.employeeNameAr, r.employeeNameEn) }}</span>
+                    </td>
+                    <td class="att-td">
+                      <span class="att-status" [ngClass]="'att-status--' + attendanceStatusModifier(r.attendanceStatus)">
+                        {{ attendanceStatusKey(r.attendanceStatus) | translate }}
+                      </span>
+                    </td>
+                    <td class="att-td att-td--muted att-td--narrow">
+                      {{ r.attendancePercent != null ? (r.attendancePercent | number: '1.0-0') : '—' }}
+                    </td>
+                    @if (canManage()) {
+                      <td class="cell-actions att-td att-td--end">
+                        <select
+                          class="ds-input ds-input--sm att-row-select"
+                          [ngModel]="r.attendanceStatus"
+                          (ngModelChange)="patchRecordStatus(r.id, $event)"
+                        >
+                          <option value="Present">{{ 'attendance.present' | translate }}</option>
+                          <option value="Absent">{{ 'attendance.absent' | translate }}</option>
+                          <option value="Late">{{ 'attendance.late' | translate }}</option>
+                          <option value="Excused">{{ 'attendance.excused' | translate }}</option>
+                          <option value="Unknown">{{ 'attendance.unknown' | translate }}</option>
+                        </select>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+    }
+  } @else {
+    <div class="att-panel att-panel--empty att-panel--idle">
+      <div class="att-empty-icon" aria-hidden="true">🗓️</div>
+      <p class="att-panel__empty-title">{{ 'attendance.selectProgramAndSession' | translate }}</p>
+    </div>
+  }
+</app-page-shell>

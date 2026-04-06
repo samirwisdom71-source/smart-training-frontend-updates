@@ -1,0 +1,48 @@
+@use 'variables' as *;
+@use 'design-system' as *;
+
+// Global base
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--line-height-normal);
+}
+
+// RTL — first-class Arabic
+[dir='rtl'] {
+  text-align: right;
+
+  body,
+  .page-title,
+  .nav-link,
+  .stat-label,
+  .card-title,
+  .dropdown-title,
+  .ds-stat__label,
+  .ds-stat__value {
+    font-family: var(--font-arabic);
+  }
+}
+
+// Legacy aliases (used by existing components)
+.app-card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border-light);
+  padding: var(--space-lg);
+}
+
+.btn-primary {
+  @extend .ds-btn;
+  @extend .ds-btn--primary;
+}

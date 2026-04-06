@@ -1,0 +1,294 @@
+<app-page-shell [title]="'nav.impact' | translate" [breadcrumbs]="breadcrumbs()">
+  <div class="impact-page">
+    @if (summary(); as s) {
+      <div class="impact-kpis" role="group" [attr.aria-label]="'nav.impact' | translate" [attr.aria-busy]="loading()">
+        <div class="impact-kpi impact-kpi--indigo" tabindex="0">
+          <div class="impact-kpi__accent" aria-hidden="true"></div>
+          <div class="impact-kpi__body">
+            <div class="impact-kpi__meta">
+              <span class="impact-kpi__label">{{ 'impact.comparedRows' | translate }}</span>
+            </div>
+            <div class="impact-kpi__value">{{ s.totalRows }}</div>
+          </div>
+        </div>
+
+        <div class="impact-kpi impact-kpi--teal" tabindex="0">
+          <div class="impact-kpi__accent" aria-hidden="true"></div>
+          <div class="impact-kpi__body">
+            <div class="impact-kpi__meta">
+              <span class="impact-kpi__label">{{ 'impact.coveredEmployees' | translate }}</span>
+            </div>
+            <div class="impact-kpi__value">{{ s.totalEmployees }}</div>
+          </div>
+        </div>
+
+        <div class="impact-kpi impact-kpi--amber" tabindex="0">
+          <div class="impact-kpi__accent" aria-hidden="true"></div>
+          <div class="impact-kpi__body">
+            <div class="impact-kpi__meta">
+              <span class="impact-kpi__label">{{ 'impact.coveredPrograms' | translate }}</span>
+            </div>
+            <div class="impact-kpi__value">{{ s.totalPrograms }}</div>
+          </div>
+        </div>
+
+        <div class="impact-kpi impact-kpi--violet" tabindex="0">
+          <div class="impact-kpi__accent" aria-hidden="true"></div>
+          <div class="impact-kpi__body">
+            <div class="impact-kpi__meta">
+              <span class="impact-kpi__label">{{ 'impact.evaluationAverage' | translate }}</span>
+            </div>
+            <div class="impact-kpi__value">{{ s.averageEvaluationScore != null ? (s.averageEvaluationScore | number:'1.1-1') : '—' }}</div>
+          </div>
+        </div>
+
+        <div class="impact-kpi impact-kpi--rose" tabindex="0">
+          <div class="impact-kpi__accent" aria-hidden="true"></div>
+          <div class="impact-kpi__body">
+            <div class="impact-kpi__meta">
+              <span class="impact-kpi__label">{{ 'impact.reportCurrentAverage' | translate }}</span>
+            </div>
+            <div class="impact-kpi__value">{{ s.averageReportCurrentLevel != null ? (s.averageReportCurrentLevel | number:'1.1-1') : '—' }}</div>
+          </div>
+        </div>
+
+        <div class="impact-kpi impact-kpi--sky" tabindex="0">
+          <div class="impact-kpi__accent" aria-hidden="true"></div>
+          <div class="impact-kpi__body">
+            <div class="impact-kpi__meta">
+              <span class="impact-kpi__label">{{ 'impact.impactAverage' | translate }}</span>
+            </div>
+            <div class="impact-kpi__value">{{ s.averageImpactScore != null ? (s.averageImpactScore | number:'1.1-1') : '—' }}</div>
+          </div>
+        </div>
+      </div>
+    } @else if (loading()) {
+      <div class="impact-kpis impact-kpis--skeleton" role="status" aria-live="polite" [attr.aria-label]="'common.loading' | translate">
+        @for (sk of [1, 2, 3, 4, 5, 6]; track sk) {
+          <div class="impact-kpi impact-kpi--skeleton">
+            <div class="impact-kpi__body">
+              <div class="impact-kpi__skeleton-line impact-kpi__skeleton-line--short"></div>
+              <div class="impact-kpi__skeleton-line impact-kpi__skeleton-line--value"></div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="impact-filters ds-filterbar">
+      <div class="ds-filterbar__controls">
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'programs.program' | translate }}</div>
+          <select class="ds-input ds-filterfield__control" [(ngModel)]="selectedProgramId" (ngModelChange)="onProgramChange()">
+            <option [ngValue]="null">{{ 'common.all' | translate }}</option>
+            @for (p of programOptions(); track p.id) {
+              <option [ngValue]="p.id">{{ localizedProgramTitle(p.id, p.titleEn) }}</option>
+            }
+          </select>
+        </div>
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'employees.employee' | translate }}</div>
+          <select class="ds-input ds-filterfield__control" [(ngModel)]="selectedEmployeeId" (ngModelChange)="onEmployeeChange()">
+            <option [ngValue]="null">{{ 'common.all' | translate }}</option>
+            @for (e of employeeOptions(); track e.id) {
+              <option [ngValue]="e.id">{{ localizedEmployeeName(e.id, e.fullNameEn) }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="ds-filterbar__actions">
+        <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm impact-clear-btn" (click)="clearFilters()" [disabled]="!selectedProgramId && !selectedEmployeeId">
+          <span class="impact-clear-icon" aria-hidden="true">×</span>
+          <span class="impact-clear-label">{{ 'common.clear' | translate }}</span>
+        </button>
+        <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm impact-refresh-btn" (click)="loadComparison()" [disabled]="loading()">
+          <span class="impact-refresh-icon" aria-hidden="true">⟳</span>
+          <span class="impact-refresh-label">{{ 'common.refresh' | translate }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="impact-content">
+      @if (error()) {
+        <div class="ds-error-state"><p>{{ error() }}</p></div>
+      }
+
+      @if (summary(); as s) {
+        <div class="impact-charts">
+          <section class="impact-chart-disclosure" [class.impact-chart-disclosure--open]="chartsExpanded()">
+            <button
+              type="button"
+              class="impact-chart-disclosure__trigger"
+              (click)="toggleCharts()"
+              [attr.aria-expanded]="chartsExpanded()"
+              aria-controls="impact-charts-expanded-content"
+              [attr.aria-label]="(chartsExpanded() ? ('common.collapse' | translate) : ('common.expand' | translate)) + ' — ' + ('impact.chartsToggleTitle' | translate)"
+            >
+              <span class="impact-chart-disclosure__chevron" aria-hidden="true"></span>
+              <span class="impact-chart-disclosure__text">
+                <span class="impact-chart-disclosure__title">{{ 'impact.chartsToggleTitle' | translate }}</span>
+                <span class="impact-chart-disclosure__hint">{{ 'impact.chartsToggleHint' | translate }}</span>
+              </span>
+            </button>
+            @if (chartsExpanded()) {
+              <div id="impact-charts-expanded-content" class="impact-charts-expanded">
+                <div class="impact-meta-grid impact-meta-grid--in-charts">
+                  <div class="impact-meta-card">
+                    <div class="impact-meta-card__label">{{ 'impact.withEvaluations' | translate }}</div>
+                    <div class="impact-meta-card__value">{{ s.withEvaluationCount }}</div>
+                  </div>
+                  <div class="impact-meta-card">
+                    <div class="impact-meta-card__label">{{ 'impact.withPostTrainingReports' | translate }}</div>
+                    <div class="impact-meta-card__value">{{ s.withPostTrainingReportCount }}</div>
+                  </div>
+                  <div class="impact-meta-card">
+                    <div class="impact-meta-card__label">{{ 'impact.withImpactMeasurements' | translate }}</div>
+                    <div class="impact-meta-card__value">{{ s.withImpactCount }}</div>
+                  </div>
+                  <div class="impact-meta-card">
+                    <div class="impact-meta-card__label">{{ 'impact.reportImprovement' | translate }}</div>
+                    <div class="impact-meta-card__value">{{ s.averageReportImprovementDelta != null ? (s.averageReportImprovementDelta | number:'1.1-1') : '—' }}</div>
+                  </div>
+                  <div class="impact-meta-card">
+                    <div class="impact-meta-card__label">{{ 'impact.impactVsEvaluationDelta' | translate }}</div>
+                    <div class="impact-meta-card__value">{{ s.averageImpactVsEvaluationDelta != null ? (s.averageImpactVsEvaluationDelta | number:'1.1-1') : '—' }}</div>
+                  </div>
+                </div>
+                @if (rows().length) {
+                  <div class="impact-charts__panels">
+                    <div class="impact-chart-disclosure__panel impact-chart-disclosure__panel--split">
+                      <div class="impact-chart-inline-head">
+                        <h3 class="impact-chart-inline-head__title">{{ 'impact.overviewChart' | translate }}</h3>
+                        <p class="impact-chart-inline-head__hint">{{ 'impact.overviewChartHint' | translate }}</p>
+                      </div>
+                      <div class="impact-chart-card__canvas">
+                        <canvas #comparisonChart></canvas>
+                      </div>
+                    </div>
+                    <div class="impact-chart-disclosure__panel impact-chart-disclosure__panel--split">
+                      <div class="impact-chart-inline-head">
+                        <h3 class="impact-chart-inline-head__title">{{ 'impact.deltaChart' | translate }}</h3>
+                        <p class="impact-chart-inline-head__hint">{{ 'impact.deltaChartHint' | translate }}</p>
+                      </div>
+                      <div class="impact-chart-card__canvas">
+                        <canvas #deltaChart></canvas>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </section>
+        </div>
+      }
+
+      <section class="impact-comparison-cards" aria-labelledby="impact-employee-cards-title">
+        <div class="impact-comparison-cards__intro">
+          <h2 id="impact-employee-cards-title" class="impact-comparison-cards__title">{{ 'impact.employeeBreakdown' | translate }}</h2>
+        </div>
+        <div class="impact-comparison-cards__grid" role="list">
+          @for (row of rows(); track row.trainingProgramId + row.employeeId; let tone = $index) {
+            <article
+              class="impact-employee-card"
+              [class.impact-employee-card--t0]="tone % 6 === 0"
+              [class.impact-employee-card--t1]="tone % 6 === 1"
+              [class.impact-employee-card--t2]="tone % 6 === 2"
+              [class.impact-employee-card--t3]="tone % 6 === 3"
+              [class.impact-employee-card--t4]="tone % 6 === 4"
+              [class.impact-employee-card--t5]="tone % 6 === 5"
+              role="listitem"
+            >
+              <header class="impact-employee-card__header">
+                <div class="impact-employee-card__avatar" aria-hidden="true">{{ employeeCardInitial(row) }}</div>
+                <div class="impact-employee-card__identity">
+                  <h3 class="impact-employee-card__name">{{ localizedEmployeeName(row.employeeId, row.employeeNameEn) }}</h3>
+                  <p class="impact-employee-card__program">
+                    <span class="impact-employee-card__program-label">{{ 'programs.program' | translate }}</span>
+                    {{ localizedProgramTitle(row.trainingProgramId, row.programTitleEn) }}
+                  </p>
+                </div>
+              </header>
+
+              <div class="impact-employee-card__metrics" role="group" [attr.aria-label]="'impact.overviewChart' | translate">
+                <div class="impact-employee-card__metric impact-employee-card__metric--eval">
+                  <span class="impact-employee-card__metric-label">{{ 'impact.evaluationAverage' | translate }}</span>
+                  <span class="impact-employee-card__metric-value">{{ row.evaluationAverageScore != null ? (row.evaluationAverageScore | number:'1.1-1') : '—' }}</span>
+                  <span class="impact-employee-card__metric-meta">{{ row.evaluationSubmittedAt ? (row.evaluationSubmittedAt | date:'short') : '—' }}</span>
+                </div>
+                <div class="impact-employee-card__metric impact-employee-card__metric--report">
+                  <span class="impact-employee-card__metric-label">{{ 'impact.reportCurrentAverage' | translate }}</span>
+                  <span class="impact-employee-card__metric-value">{{ row.reportCurrentAverageLevel != null ? (row.reportCurrentAverageLevel | number:'1.1-1') : '—' }}</span>
+                  <span class="impact-employee-card__metric-meta">
+                    @if (row.postTrainingReportStatus) {
+                      {{ reportStatusKey(row.postTrainingReportStatus) | translate }}
+                    } @else {
+                      —
+                    }
+                  </span>
+                </div>
+                <div class="impact-employee-card__metric impact-employee-card__metric--impact">
+                  <span class="impact-employee-card__metric-label">{{ 'impact.impactAverage' | translate }}</span>
+                  <span class="impact-employee-card__metric-value">{{ row.impactAverageScore != null ? (row.impactAverageScore | number:'1.1-1') : '—' }}</span>
+                  <span class="impact-employee-card__metric-meta">{{ row.impactMeasuredAt ? (row.impactMeasuredAt | date:'short') : '—' }}</span>
+                </div>
+              </div>
+
+              <div class="impact-employee-card__deltas" role="group" [attr.aria-label]="'impact.deltaChart' | translate">
+                <div class="impact-employee-card__delta">
+                  <span class="impact-employee-card__delta-label">{{ 'impact.reportImprovement' | translate }}</span>
+                  <span class="impact-employee-card__delta-value">{{ row.reportImprovementDelta != null ? (row.reportImprovementDelta | number:'1.1-1') : '—' }}</span>
+                </div>
+                <div class="impact-employee-card__delta impact-employee-card__delta--secondary">
+                  <span class="impact-employee-card__delta-label">{{ 'impact.impactVsEvaluationDelta' | translate }}</span>
+                  <span class="impact-employee-card__delta-value">{{ impactVsEvaluationDelta(row) != null ? (impactVsEvaluationDelta(row)! | number:'1.1-1') : '—' }}</span>
+                </div>
+              </div>
+
+              <div class="impact-employee-card__notes">
+                <div class="impact-employee-card__note">
+                  <span class="impact-employee-card__note-label">{{ 'evaluation.comments' | translate }}</span>
+                  <p class="impact-employee-card__note-body">{{ row.evaluationComments?.trim() || '—' }}</p>
+                </div>
+                <div class="impact-employee-card__note">
+                  <span class="impact-employee-card__note-label">{{ 'postTrainingReports.title' | translate }}</span>
+                  <p class="impact-employee-card__note-body">{{ row.postTrainingReportNotes?.trim() || '—' }}</p>
+                </div>
+              </div>
+
+              @if (row.reportDetails.length) {
+                <div class="impact-employee-card__details">
+                  <h4 class="impact-employee-card__details-title">{{ 'impact.reportDetails' | translate }}</h4>
+                  <div class="impact-detail-list">
+                    @for (detail of row.reportDetails; track detail.competencyId) {
+                      <div class="impact-detail-item">
+                        <div class="impact-detail-item__title">{{ detail.competencyNameEn }}</div>
+                        <div class="impact-detail-item__meta">{{ detail.competencyCode }}</div>
+                        <div class="impact-detail-item__levels">
+                          <span>{{ 'impact.previousLevel' | translate }}: {{ detailLevelLabel(detail.previousLevelCode, detail.previousLevelNumber) }}</span>
+                          <span>{{ 'impact.newLevel' | translate }}: {{ detailLevelLabel(detail.currentLevelCode, detail.currentLevelNumber) }}</span>
+                        </div>
+                        <div class="impact-detail-item__comment">
+                          {{ detail.currentComment?.trim() || '—' }}
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </article>
+          } @empty {
+            @if (!loading() && !error()) {
+              <div class="impact-comparison-cards__empty impact-empty">
+                <p class="ds-empty__title">{{ 'impact.noComparisonData' | translate }}</p>
+              </div>
+            } @else if (loading()) {
+              <div class="impact-comparison-cards__empty" role="status" aria-live="polite">
+                <p class="impact-comparison-cards__loading-text">{{ 'common.loading' | translate }}</p>
+              </div>
+            }
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+</app-page-shell>

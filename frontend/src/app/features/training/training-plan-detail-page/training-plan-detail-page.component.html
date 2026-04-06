@@ -1,0 +1,148 @@
+<app-page-shell [title]="plan()?.titleEn ?? ('nav.trainingPlan' | translate)" [breadcrumbs]="breadcrumbs()">
+  @if (loading()) {
+    <div class="table-loading"><div class="ds-skeleton" style="height: 120px;"></div></div>
+  } @else if (error()) {
+    <div class="ds-error-state">
+      <p class="ds-error-state__title">{{ error() }}</p>
+      <a routerLink="/training-plans" class="ds-btn ds-btn--secondary ds-btn--sm">{{ 'common.back' | translate }}</a>
+    </div>
+  } @else if (plan()) {
+    @let p = plan()!;
+    <div class="plan-header ds-card">
+      <div class="plan-meta">
+        <span>{{ 'trainingPlans.year' | translate }}: {{ p.year }}</span>
+        <span>{{ 'table.organization' | translate }}: {{ p.organizationNameEn }}</span>
+        <span class="ds-badge" [ngClass]="p.status === 'Approved' ? 'ds-badge--success' : p.status === 'Submitted' ? 'ds-badge--info' : 'ds-badge--neutral'">{{ p.status }}</span>
+      </div>
+      @if (p.status === 'Draft' || p.status === 'Rejected') {
+        @if (canSubmit()) {
+          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="submitPlan()">{{ 'common.submit' | translate }}</button>
+        }
+      }
+      @if (p.status === 'Submitted' && canApprove()) {
+        <div class="plan-actions">
+          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="approvePlan()">{{ 'status.approved' | translate }}</button>
+          <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="rejectPlan()">{{ 'status.rejected' | translate }}</button>
+        </div>
+      }
+    </div>
+    <div class="plan-summary">
+      <span>{{ 'trainingPlans.itemsCount' | translate }}: {{ p.items.length }}</span>
+      <span>{{ 'trainingPlans.totalCost' | translate }}: {{ totalCost() | number:'1.0-2' }}</span>
+    </div>
+    <div class="section-header">
+      <h2 class="section-title">{{ 'trainingPlans.items' | translate }}</h2>
+      @if (canEdit() && (p.status === 'Draft' || p.status === 'Rejected')) {
+        <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openAddItem()">{{ 'common.add' | translate }} {{ 'trainingPlans.item' | translate }}</button>
+      }
+    </div>
+    @if (!p.items.length) {
+      <div class="ds-empty">
+        <p class="ds-empty__title">{{ 'trainingPlans.noItems' | translate }}</p>
+        @if (canEdit() && (p.status === 'Draft' || p.status === 'Rejected')) {
+          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openAddItem()">{{ 'common.add' | translate }}</button>
+        }
+      </div>
+    } @else {
+      <div class="ds-table-wrap">
+        <table class="ds-table">
+          <thead>
+            <tr>
+              <th>{{ 'trainingPlans.itemTitle' | translate }}</th>
+              <th>{{ 'trainingPlans.targetAudience' | translate }}</th>
+              <th>{{ 'trainingPlans.plannedCount' | translate }}</th>
+              <th>{{ 'trainingPlans.estimatedCost' | translate }}</th>
+              <th>{{ 'table.status' | translate }}</th>
+              @if (canEdit()) {
+                <th></th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of p.items; track item.id) {
+              <tr>
+                <td>{{ item.titleEn }}</td>
+                <td>{{ item.targetAudience ?? '—' }}</td>
+                <td>{{ item.plannedParticipantCount ?? '—' }}</td>
+                <td>{{ item.estimatedCost != null ? (item.estimatedCost | number:'1.0-2') : '—' }}</td>
+                <td><span class="ds-badge ds-badge--neutral">{{ item.status }}</span></td>
+                @if (canEdit() && (p.status === 'Draft' || p.status === 'Rejected')) {
+                  <td class="cell-actions">
+                    <button
+                      type="button"
+                      class="ds-btn ds-btn--ghost ds-btn--icon"
+                      (click)="openEditItem(item)"
+                      [attr.aria-label]="'common.edit' | translate"
+                      [title]="'common.edit' | translate"
+                    >
+                      <svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                        <path d="M13.5 6.5 16 4l3 3-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
+                      (click)="removeItem(item)"
+                      [attr.aria-label]="'common.delete' | translate"
+                      [title]="'common.delete' | translate"
+                    >
+                      <svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M6 7h12M10 10v7M14 10v7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        <path d="M9 4h6l1 2H8l1-2Zm-1 3-1 11h10l-1-11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+  <app-confirm-dialog
+    *ngIf="showConfirm()"
+    [title]="'dialog.confirmDelete' | translate"
+    [message]="deleteConfirmMessage()"
+    [confirmLabel]="'common.delete' | translate"
+    [cancelLabel]="'common.cancel' | translate"
+    (confirm)="doDelete()"
+    (cancel)="cancelDelete()"
+  />
+</app-page-shell>
+
+@if (showItemModal()) {
+  <div class="modal-overlay" (click)="closeItemModal()">
+    <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
+      <h3 class="modal-drawer__title">{{ editingItem() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'trainingPlans.item' | translate }}</h3>
+      @if (modalError()) { <p class="ds-field-error">{{ modalError() }}</p> }
+      <form (ngSubmit)="saveItem()">
+        <div class="form-group">
+          <label class="ds-label">{{ 'trainingPlans.itemTitleEn' | translate }}</label>
+          <input type="text" class="ds-input" [(ngModel)]="itemForm.titleEn" name="titleEn" />
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'trainingPlans.itemTitleAr' | translate }}</label>
+          <input type="text" class="ds-input" [(ngModel)]="itemForm.titleAr" name="titleAr" />
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'trainingPlans.targetAudience' | translate }}</label>
+          <input type="text" class="ds-input" [(ngModel)]="itemForm.targetAudience" name="targetAudience" />
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'trainingPlans.plannedCount' | translate }}</label>
+          <input type="number" class="ds-input" [(ngModel)]="itemForm.plannedParticipantCount" name="plannedParticipantCount" min="0" />
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'trainingPlans.estimatedCost' | translate }}</label>
+          <input type="number" class="ds-input" step="0.01" [(ngModel)]="itemForm.estimatedCost" name="estimatedCost" min="0" />
+        </div>
+        <div class="modal-drawer__actions">
+          <button type="button" class="ds-btn ds-btn--secondary" (click)="closeItemModal()">{{ 'common.cancel' | translate }}</button>
+          <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

@@ -1,0 +1,226 @@
+<app-page-shell [title]="'postTrainingReports.review' | translate" [breadcrumbs]="breadcrumbs()">
+  @if (loading()) {
+    <div class="ptr-review ptr-review--loading">
+      <div class="ptr-skeleton-hero ds-skeleton"></div>
+      <div class="ptr-skeleton-line ds-skeleton"></div>
+      <div class="ptr-skeleton-line ds-skeleton ptr-skeleton-line--short"></div>
+      <div class="ptr-skeleton-block ds-skeleton"></div>
+    </div>
+  } @else if (error()) {
+    <div class="ptr-review ptr-review--error ds-error-state">
+      <p class="ptr-review--error__text">{{ error() }}</p>
+      <a routerLink="/post-training-reports" class="ds-btn ds-btn--secondary">{{ 'common.back' | translate }}</a>
+    </div>
+  } @else if (report()) {
+    <div class="report-card ds-card ptr-review">
+      @let r = report()!;
+      <header class="ptr-hero">
+        <div class="ptr-hero__main">
+          <p class="ptr-hero__label">{{ 'programs.program' | translate }}</p>
+          <h2 class="ptr-hero__title">{{ r.programTitleEn }}</h2>
+          <div class="ptr-hero__chips">
+            <span class="ptr-chip">
+              <span class="ptr-chip__k">{{ 'table.employee' | translate }}</span>
+              <span class="ptr-chip__v">{{ r.employeeNameEn }}</span>
+            </span>
+            @if (r.submittedAt) {
+              <span class="ptr-chip">
+                <span class="ptr-chip__k">{{ 'postTrainingReports.submittedAt' | translate }}</span>
+                <span class="ptr-chip__v">{{ r.submittedAt | date: 'short' }}</span>
+              </span>
+            }
+          </div>
+        </div>
+        <span [class]="'ptr-badge ptr-badge--' + r.status.toLowerCase()">
+          {{ ('postTrainingReports.status.' + r.status) | translate }}
+        </span>
+      </header>
+
+      <section class="ptr-section ptr-section--attachment">
+        <h3 class="ptr-section__title">{{ 'postTrainingReports.attachment' | translate }}</h3>
+        <div class="ptr-attachment-row">
+          @if (r.attachmentFilePath) {
+            <button type="button" class="ptr-attachment-link" (click)="downloadReportAttachment(r)">
+              {{ r.attachmentOriginalFileName || ('postTrainingReports.downloadAttachment' | translate) }}
+            </button>
+          } @else {
+            <span class="ptr-attachment-empty">{{ 'postTrainingReports.noAttachment' | translate }}</span>
+          }
+          @if (canReview()) {
+            <div class="ptr-attachment-admin">
+              <input
+                #adminFileInput
+                type="file"
+                class="visually-hidden"
+                accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                (change)="onAdminAttachmentSelected($event)"
+              />
+              <button
+                type="button"
+                class="ds-btn ds-btn--secondary ds-btn--sm"
+                [disabled]="attachmentBusy()"
+                (click)="adminFileInput.click()"
+              >
+                {{ attachmentBusy() ? ('common.loading' | translate) : ('postTrainingReports.uploadAttachment' | translate) }}
+              </button>
+              @if (r.attachmentFilePath) {
+                <button
+                  type="button"
+                  class="ds-btn ds-btn--ghost ds-btn--sm"
+                  [disabled]="attachmentBusy()"
+                  (click)="removeAdminAttachment()"
+                >
+                  {{ 'postTrainingReports.removeAttachment' | translate }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </section>
+
+      @if (submitError()) {
+        <div class="ptr-alert ptr-alert--error" role="alert">
+          {{ submitError() }}
+        </div>
+      }
+
+      @if (canEditDraft() && r.status === 'Draft') {
+        <div class="ptr-body ptr-body--edit">
+          <section class="ptr-section">
+            <h3 class="ptr-section__title">{{ 'postTrainingReports.followUpAssessment' | translate }}</h3>
+            @if (r.previousAssessmentCycleNameEn) {
+              <p class="ptr-section__hint">
+                {{ 'postTrainingReports.previousAssessment' | translate }}: {{ r.previousAssessmentCycleNameEn }}
+              </p>
+            }
+            <div class="ptr-table-wrap">
+              <table class="ds-table ptr-table">
+                <thead>
+                  <tr>
+                    <th>{{ 'table.code' | translate }}</th>
+                    <th>{{ 'table.nameEn' | translate }}</th>
+                    <th>{{ 'postTrainingReports.previousLevel' | translate }}</th>
+                    <th>{{ 'postTrainingReports.newLevel' | translate }}</th>
+                    <th>{{ 'postTrainingReports.notes' | translate }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (detail of r.details; track detail.id) {
+                    <tr>
+                      <td>{{ detail.competencyCode }}</td>
+                      <td>{{ detail.competencyNameEn }}</td>
+                      <td>{{ detail.previousLevelCode ? (detail.previousLevelCode + ' (' + detail.previousLevelNumber + ')') : '—' }}</td>
+                      <td>
+                        <select class="ds-input" [(ngModel)]="draftLevels[detail.competencyId]" name="currentLevel-{{ detail.id }}">
+                          <option [ngValue]="null">—</option>
+                          @for (lvl of detail.proficiencyLevelOptions; track lvl.id) {
+                            <option [ngValue]="lvl.id">{{ lvl.code }} ({{ lvl.levelNumber }})</option>
+                          }
+                        </select>
+                      </td>
+                      <td>
+                        <textarea class="ds-textarea" rows="2" [(ngModel)]="draftComments[detail.competencyId]" name="currentComment-{{ detail.id }}"></textarea>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </section>
+          <section class="ptr-section">
+            <h3 class="ptr-section__title">{{ 'postTrainingReports.generalNotes' | translate }}</h3>
+            <textarea class="ds-textarea ptr-textarea" rows="4" [(ngModel)]="draftNotes"></textarea>
+          </section>
+        </div>
+        <footer class="ptr-footer ptr-footer--actions">
+          <a routerLink="/post-training-reports" class="ds-btn ds-btn--secondary">{{ 'common.back' | translate }}</a>
+          <div class="ptr-footer__primary">
+            <button type="button" class="ds-btn ds-btn--secondary" [disabled]="saving()" (click)="saveDraftEdits()">
+              {{ saving() ? ('common.loading' | translate) : ('postTrainingReports.saveDraft' | translate) }}
+            </button>
+            <button type="button" class="ds-btn ds-btn--primary" [disabled]="saving()" (click)="submitReport()">
+              {{ saving() ? ('common.loading' | translate) : ('postTrainingReports.submitReport' | translate) }}
+            </button>
+          </div>
+        </footer>
+      } @else {
+        <div class="ptr-body">
+          <section class="ptr-section ptr-section--read">
+            <h3 class="ptr-section__title">{{ 'postTrainingReports.followUpAssessment' | translate }}</h3>
+            @if (r.previousAssessmentCycleNameEn) {
+              <p class="ptr-section__hint">
+                {{ 'postTrainingReports.previousAssessment' | translate }}: {{ r.previousAssessmentCycleNameEn }}
+              </p>
+            }
+            <div class="ptr-table-wrap">
+              <table class="ds-table ptr-table">
+                <thead>
+                  <tr>
+                    <th>{{ 'table.code' | translate }}</th>
+                    <th>{{ 'table.nameEn' | translate }}</th>
+                    <th>{{ 'postTrainingReports.previousLevel' | translate }}</th>
+                    <th>{{ 'postTrainingReports.newLevel' | translate }}</th>
+                    <th>{{ 'postTrainingReports.notes' | translate }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (detail of r.details; track detail.id) {
+                    <tr>
+                      <td>{{ detail.competencyCode }}</td>
+                      <td>{{ detail.competencyNameEn }}</td>
+                      <td>{{ detail.previousLevelCode ? (detail.previousLevelCode + ' (' + detail.previousLevelNumber + ')') : '—' }}</td>
+                      <td>{{ detail.currentLevelCode ? (detail.currentLevelCode + ' (' + detail.currentLevelNumber + ')') : '—' }}</td>
+                      <td>{{ detail.currentComment?.trim() || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </section>
+          @if (r.notes?.trim()) {
+            <section class="ptr-section ptr-section--read">
+              <h3 class="ptr-section__title">{{ 'postTrainingReports.generalNotes' | translate }}</h3>
+              <div class="ptr-prose">
+                <p class="report-text">{{ r.notes }}</p>
+              </div>
+            </section>
+          }
+          @if (r.managerComment?.trim()) {
+            <section class="ptr-section ptr-section--read ptr-section--manager">
+              <h3 class="ptr-section__title">{{ 'postTrainingReports.managerComment' | translate }}</h3>
+              <div class="ptr-prose">
+                <p class="report-text">{{ r.managerComment }}</p>
+              </div>
+            </section>
+          }
+        </div>
+
+        @if (canReview() && r.status === 'Submitted') {
+          <div class="ptr-review-panel">
+            <h3 class="ptr-review-panel__title">{{ 'postTrainingReports.addManagerComment' | translate }}</h3>
+            <p class="ptr-review-panel__hint">{{ 'postTrainingReports.managerCommentPlaceholder' | translate }}</p>
+            @if (reviewError()) {
+              <div class="ptr-alert ptr-alert--error" role="alert">{{ reviewError() }}</div>
+            }
+            <textarea
+              class="ds-textarea ptr-textarea"
+              [(ngModel)]="managerComment"
+              rows="4"
+              [attr.placeholder]="'postTrainingReports.managerCommentPlaceholder' | translate"
+            ></textarea>
+            <div class="ptr-footer ptr-footer--actions ptr-footer--inline">
+              <a routerLink="/post-training-reports" class="ds-btn ds-btn--secondary">{{ 'common.cancel' | translate }}</a>
+              <button type="button" class="ds-btn ds-btn--primary" [disabled]="saving()" (click)="submitReview()">
+                {{ saving() ? ('common.loading' | translate) : ('postTrainingReports.submitReview' | translate) }}
+              </button>
+            </div>
+          </div>
+        } @else {
+          <footer class="ptr-footer ptr-footer--solo">
+            <a routerLink="/post-training-reports" class="ds-btn ds-btn--secondary">{{ 'common.back' | translate }}</a>
+          </footer>
+        }
+      }
+    </div>
+  }
+</app-page-shell>

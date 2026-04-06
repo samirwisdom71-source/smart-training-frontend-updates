@@ -1,0 +1,79 @@
+<app-page-shell [title]="'evaluation.summary' | translate" [breadcrumbs]="breadcrumbs()">
+  @if (programId()) {
+    <p class="program-name">{{ 'evaluation.program' | translate }}: {{ programTitle() }}</p>
+    @if (loading()) {
+      <div class="table-loading"><div class="ds-skeleton" style="height: 80px;"></div></div>
+    } @else if (error()) {
+      <div class="ds-error-state"><p>{{ error() }}</p></div>
+    } @else if (summary()) {
+      @let s = summary()!;
+      <div class="summary-card ds-card">
+        <h3>{{ 'evaluation.summary' | translate }}</h3>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span class="summary-label">{{ 'evaluation.avgContentScore' | translate }}</span>
+            <span class="summary-value">{{ s.avgContentScore | number:'1.1-1' }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">{{ 'evaluation.avgTrainerScore' | translate }}</span>
+            <span class="summary-value">{{ s.avgTrainerScore | number:'1.1-1' }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">{{ 'evaluation.avgOrganizationScore' | translate }}</span>
+            <span class="summary-value">{{ s.avgOrganizationScore | number:'1.1-1' }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">{{ 'evaluation.avgUsefulnessScore' | translate }}</span>
+            <span class="summary-value">{{ s.avgUsefulnessScore | number:'1.1-1' }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">{{ 'evaluation.totalResponses' | translate }}</span>
+            <span class="summary-value">{{ s.totalResponses }}</span>
+          </div>
+        </div>
+      </div>
+      @if (evaluations().length) {
+        <h3 class="section-title">{{ 'evaluation.responses' | translate }}</h3>
+        <div class="ds-table-wrap">
+          <table class="ds-table">
+            <thead>
+              <tr>
+                <th>{{ 'table.employee' | translate }}</th>
+                <th>{{ 'evaluation.contentScore' | translate }}</th>
+                <th>{{ 'evaluation.trainerScore' | translate }}</th>
+                <th>{{ 'evaluation.organizationScore' | translate }}</th>
+                <th>{{ 'evaluation.usefulnessScore' | translate }}</th>
+                <th>{{ 'evaluation.comments' | translate }}</th>
+                <th>{{ 'evaluation.attachment' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (e of evaluations(); track e.employeeNameEn + e.contentScore) {
+                <tr>
+                  <td>{{ e.employeeNameEn }}</td>
+                  <td>{{ e.contentScore }}</td>
+                  <td>{{ e.trainerScore }}</td>
+                  <td>{{ e.organizationScore }}</td>
+                  <td>{{ e.usefulnessScore }}</td>
+                  <td>{{ e.comments ?? '—' }}</td>
+                  <td>
+                    @if (e.filePath) {
+                      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="openAttachment(e.filePath)">
+                        {{ e.fileName || ('common.viewAll' | translate) }}
+                      </button>
+                    } @else {
+                      —
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+      <a [routerLink]="['/programs', programId()]" class="ds-btn ds-btn--secondary ds-btn--sm">{{ 'common.back' | translate }}</a>
+    }
+  } @else {
+    <div class="ds-error-state"><p>{{ 'evaluation.programRequired' | translate }}</p></div>
+  }
+</app-page-shell>

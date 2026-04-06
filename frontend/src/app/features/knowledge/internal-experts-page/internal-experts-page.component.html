@@ -1,0 +1,173 @@
+<app-page-shell [title]="'nav.internalExperts' | translate" [breadcrumbs]="breadcrumbs()">
+  <div class="ds-filterbar">
+    <div class="ds-filterbar__controls">
+      <div class="ds-filterfield">
+        <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
+        <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (keyup.enter)="load()" />
+      </div>
+      <div class="ds-filterfield">
+        <div class="ds-filterfield__label">{{ 'table.status' | translate }}</div>
+        <select class="ds-input filter-status ds-filterfield__control" [(ngModel)]="isActive" (change)="load()">
+          <option [ngValue]="null">{{ 'common.all' | translate }}</option>
+          <option [ngValue]="true">{{ 'status.active' | translate }}</option>
+          <option [ngValue]="false">{{ 'status.inactive' | translate }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="ds-filterbar__actions">
+      @if (canCreate()) {
+        <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openAddModal()">{{ 'common.add' | translate }}</button>
+      }
+      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'common.refresh' | translate }}</button>
+    </div>
+  </div>
+  @if (loading()) {
+    <div class="table-loading"><div class="ds-skeleton" style="height: 120px;"></div></div>
+  } @else if (error()) {
+    <div class="ds-error-state"><p>{{ error() }}</p></div>
+  } @else {
+    <div class="ds-table-wrap">
+      <table class="ds-table">
+        <thead>
+          <tr>
+            <th>{{ 'employees.employee' | translate }}</th>
+            <th>{{ 'knowledge.areaOfExpertise' | translate }}</th>
+            <th>{{ 'competency.competency' | translate }}</th>
+            <th>{{ 'table.organizationalUnit' | translate }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.id) {
+            <tr>
+              <td>{{ expertName(item) }}</td>
+              <td>{{ area(item) }}</td>
+              <td>{{ competencyDisplay(item) }}</td>
+              <td>{{ localizedOuName(item) }}</td>
+              <td class="cell-actions">
+                @if (canEdit()) {
+                  <button
+                    type="button"
+                    class="ds-btn ds-btn--ghost ds-btn--icon"
+                    (click)="openEditModal(item)"
+                    [attr.aria-label]="'common.edit' | translate"
+                    [title]="'common.edit' | translate"
+                  >
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                      <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                      <path d="M13.5 6.5 16 4l3 3-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                }
+                @if (canDelete()) {
+                  <button
+                    type="button"
+                    class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
+                    (click)="confirmDelete(item)"
+                    [attr.aria-label]="'common.delete' | translate"
+                    [title]="'common.delete' | translate"
+                  >
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                      <path d="M6 19V7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                      <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M4 7h16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (!items().length) { <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p> }
+  }
+  @if (showConfirm()) {
+    <app-confirm-dialog
+      [title]="'dialog.confirmDelete' | translate"
+      [message]="deleteConfirmMessage()"
+      [confirmLabel]="'common.delete' | translate"
+      [cancelLabel]="'common.cancel' | translate"
+      (confirm)="doDelete()"
+      (cancel)="cancelDelete()"
+    />
+  }
+
+  @if (showAddModal()) {
+    <div class="modal-overlay" (click)="closeAddModal()">
+      <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
+        <h3 class="modal-drawer__title">{{ (editingId() ? 'knowledge.editInternalExpert' : 'knowledge.addInternalExpert') | translate }}</h3>
+        @if (modalError()) {
+          <p class="ds-field-error">{{ modalError() }}</p>
+        }
+        <form (ngSubmit)="saveExpert()">
+          <div class="form-group">
+            <label class="ds-label" for="ie-employee">{{ 'knowledge.selectEmployeeRequired' | translate }}</label>
+            @if (loadingModalData()) {
+              <p class="modal-hint">{{ 'common.loading' | translate }}</p>
+            } @else {
+              <select id="ie-employee" class="ds-input" name="employeeId" [(ngModel)]="expertForm.employeeId" (ngModelChange)="onEmployeeSelected()">
+                <option [ngValue]="null">—</option>
+                @for (e of employeeOptions(); track e.id) {
+                  <option [ngValue]="e.id">{{ employeeLabel(e) }}</option>
+                }
+              </select>
+            }
+          </div>
+          <div class="form-group">
+            <div class="ds-label">{{ 'knowledge.selectCompetencies' | translate }}</div>
+            @if (loadingModalData()) {
+              <p class="modal-hint">{{ 'common.loading' | translate }}</p>
+            } @else {
+              <div class="ie-comp-checkboxes">
+                @for (c of competencyOptions(); track c.id) {
+                  <label class="ie-comp-checkboxes__row ds-label ds-label--inline">
+                    <input
+                      type="checkbox"
+                      [checked]="isCompetencyChecked(c.id)"
+                      (change)="toggleCompetency(c.id, $any($event.target).checked)"
+                    />
+                    {{ getLocalizedText(c.nameAr, c.nameEn) }}
+                  </label>
+                }
+              </div>
+            }
+          </div>
+          <div class="form-group">
+            <label class="ds-label" for="ie-ou">{{ 'table.organizationalUnit' | translate }}</label>
+            <p class="modal-hint modal-hint--muted">{{ 'knowledge.ouFromEmployeeHint' | translate }}</p>
+            <select id="ie-ou" class="ds-input" name="organizationalUnitId" [(ngModel)]="expertForm.organizationalUnitId" [disabled]="loadingModalData()">
+              <option [ngValue]="null">—</option>
+              @for (o of ouOptions(); track o.id) {
+                <option [ngValue]="o.id">{{ getLocalizedText(o.nameAr, o.nameEn) }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="ds-label" for="ie-area-en">{{ 'knowledge.areaOfExpertiseEn' | translate }}</label>
+            <input id="ie-area-en" type="text" class="ds-input" name="areaEn" [(ngModel)]="expertForm.areaOfExpertiseEn" />
+          </div>
+          <div class="form-group">
+            <label class="ds-label" for="ie-area-ar">{{ 'knowledge.areaOfExpertiseAr' | translate }}</label>
+            <input id="ie-area-ar" type="text" class="ds-input" name="areaAr" [(ngModel)]="expertForm.areaOfExpertiseAr" />
+          </div>
+          <div class="form-group">
+            <label class="ds-label" for="ie-notes">{{ 'table.notes' | translate }}</label>
+            <textarea id="ie-notes" class="ds-textarea" name="notes" rows="3" [(ngModel)]="expertForm.notes"></textarea>
+          </div>
+          @if (editingId()) {
+            <div class="form-group form-group--checkbox">
+              <label class="ds-label ds-label--inline">
+                <input type="checkbox" name="expertIsActive" [(ngModel)]="expertForm.isActive" />
+                {{ 'knowledge.assetIsActive' | translate }}
+              </label>
+            </div>
+          }
+          <div class="modal-drawer__actions">
+            <button type="button" class="ds-btn ds-btn--secondary" (click)="closeAddModal()">{{ 'common.cancel' | translate }}</button>
+            <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving() || loadingModalData()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</app-page-shell>

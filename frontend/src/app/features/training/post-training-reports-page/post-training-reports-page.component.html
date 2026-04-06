@@ -1,0 +1,191 @@
+<app-page-shell [title]="'postTrainingReports.title' | translate" [breadcrumbs]="breadcrumbs()">
+  <div filters>
+    <div class="ds-filterbar">
+      <div class="ds-filterbar__controls">
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'programs.program' | translate }}</div>
+          <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="programIdFilter" (ngModelChange)="onFilterChange()">
+            <option [ngValue]="null">{{ 'common.all' | translate }}</option>
+            @for (p of visibleProgramOptions(); track p.id) { <option [ngValue]="p.id">{{ getLocalizedText(p.titleAr, p.titleEn) }}</option> }
+          </select>
+        </div>
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'table.employee' | translate }}</div>
+          @if (isPrivilegedUser()) {
+            <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="employeeIdFilter" (ngModelChange)="onFilterChange()">
+              <option [ngValue]="null">{{ 'common.all' | translate }}</option>
+              @for (e of employeeOptions(); track e.id) { <option [ngValue]="e.id">{{ getLocalizedText(e.fullNameAr, e.fullNameEn) }}</option> }
+            </select>
+          } @else {
+            <div class="ds-input ds-filterfield__control filter-display">{{ currentEmployeeName() }}</div>
+          }
+        </div>
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'table.status' | translate }}</div>
+          <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+            <option [ngValue]="null">{{ 'common.all' | translate }}</option>
+            <option value="Draft">{{ 'postTrainingReports.status.Draft' | translate }}</option>
+            <option value="Submitted">{{ 'postTrainingReports.status.Submitted' | translate }}</option>
+            <option value="Reviewed">{{ 'postTrainingReports.status.Reviewed' | translate }}</option>
+            <option value="Archived">{{ 'postTrainingReports.status.Archived' | translate }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="ds-filterbar__actions">
+        @if (canExecute()) {
+          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openNewModal()">
+            {{ 'postTrainingReports.newReport' | translate }}
+          </button>
+        }
+        <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
+          {{ 'common.clearFilters' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+  @if (loading()) { <div class="table-loading"><div class="ds-skeleton" style="height: 48px;"></div></div> }
+  @else if (error()) {
+    <div class="ds-error-state"><p>{{ error() }}</p><button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button></div>
+  }
+  @else if (!data()?.items?.length) {
+    <div class="ds-empty ptr-empty">
+      <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p>
+      <p class="ptr-empty__hint">{{ 'postTrainingReports.emptyHint' | translate }}</p>
+      @if (canExecute()) {
+        <button type="button" class="ds-btn ds-btn--primary ds-btn--sm ptr-empty__cta" (click)="openNewModal()">
+          {{ 'postTrainingReports.newReport' | translate }}
+        </button>
+      }
+    </div>
+  }
+  @else {
+    <div class="ds-table-wrap">
+      <table class="ds-table">
+        <thead>
+          <tr>
+            <th>{{ 'programs.program' | translate }}</th>
+            <th>{{ 'table.employee' | translate }}</th>
+            <th>{{ 'table.status' | translate }}</th>
+            <th>{{ 'postTrainingReports.submittedAt' | translate }}</th>
+            <th>{{ 'postTrainingReports.attachment' | translate }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of data()!.items; track row.id) {
+            <tr>
+              <td>{{ localizedProgramTitle(row.trainingProgramId, row.programTitleEn) }}</td>
+              <td>{{ localizedEmployeeName(row.employeeId, row.employeeNameEn) }}</td>
+              <td><span class="ds-badge" [ngClass]="statusBadgeClass(row.status)">{{ ('postTrainingReports.status.' + row.status) | translate }}</span></td>
+              <td>{{ row.submittedAt ? (row.submittedAt | date:'short') : '—' }}</td>
+              <td>
+                @if (row.attachmentFilePath) {
+                  <button
+                    type="button"
+                    class="ptr-list-attachment-link"
+                    (click)="downloadRowAttachment(row)"
+                  >
+                    {{ row.attachmentOriginalFileName || ('postTrainingReports.downloadAttachment' | translate) }}
+                  </button>
+                } @else {
+                  <span class="ptr-list-attachment-empty">—</span>
+                }
+              </td>
+              <td class="cell-actions">
+                <a
+                  [routerLink]="['/post-training-reports', 'review', row.id]"
+                  class="ds-btn ds-btn--ghost ds-btn--icon"
+                  [attr.aria-label]="'common.details' | translate"
+                  [title]="'common.details' | translate"
+                >
+                  <svg class="icon-svg" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                    <path d="m16 16 3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                  </svg>
+                </a>
+                @if ((row.status === 'Submitted' || row.status === 'Reviewed') && canAnalyze()) {
+                  <button
+                    type="button"
+                    class="ds-btn ds-btn--ghost ds-btn--icon"
+                    (click)="archive(row)"
+                    [attr.aria-label]="'postTrainingReports.archive' | translate"
+                    [title]="'postTrainingReports.archive' | translate"
+                  >
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                      <path d="M3 6h18v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                      <path d="M4 6v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                      <path d="M12 11v6M9 14h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
+      <span class="pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
+      <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
+    </div>
+  }
+</app-page-shell>
+
+@if (showNewModal()) {
+  <div class="modal-overlay" (click)="closeNewModal()">
+    <div class="modal-drawer modal-drawer--wide ds-card" (click)="$event.stopPropagation()">
+      <h3 class="modal-drawer__title">{{ 'postTrainingReports.newReport' | translate }}</h3>
+      @if (newModalError) {
+        <p class="ds-field-error">{{ newModalError }}</p>
+      }
+      <div class="ptr-form-grid">
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'programs.program' | translate }}</div>
+          <select class="ds-input filter-select" [(ngModel)]="newProgramId">
+            <option [ngValue]="null">{{ 'attendance.selectProgram' | translate }}</option>
+            @for (p of visibleProgramOptions(); track p.id) {
+              <option [ngValue]="p.id">{{ getLocalizedText(p.titleAr, p.titleEn) }}</option>
+            }
+          </select>
+        </div>
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'table.employee' | translate }}</div>
+          @if (isPrivilegedUser()) {
+            <select class="ds-input filter-select" [(ngModel)]="newEmployeeId">
+              <option [ngValue]="null">{{ 'evaluation.selectEmployee' | translate }}</option>
+              @for (e of employeeOptions(); track e.id) {
+                <option [ngValue]="e.id">{{ getLocalizedText(e.fullNameAr, e.fullNameEn) }}</option>
+              }
+            </select>
+          } @else {
+            <div class="ds-input filter-display">{{ currentEmployeeName() }}</div>
+          }
+        </div>
+        <div class="ds-filterfield ptr-form-full">
+          <div class="ds-filterfield__label">{{ 'postTrainingReports.notes' | translate }}</div>
+          <textarea class="ds-textarea" rows="3" [(ngModel)]="newNotes"></textarea>
+        </div>
+      </div>
+      <div class="modal-drawer__actions">
+        <button type="button" class="ds-btn ds-btn--secondary" [disabled]="savingNew()" (click)="closeNewModal()">
+          {{ 'common.cancel' | translate }}
+        </button>
+        <button type="button" class="ds-btn ds-btn--primary" [disabled]="savingNew()" (click)="submitNewReport()">
+          {{ savingNew() ? ('common.loading' | translate) : ('postTrainingReports.saveDraft' | translate) }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showArchiveConfirm()) {
+  <app-confirm-dialog
+    [title]="'postTrainingReports.archive' | translate"
+    [message]="'postTrainingReports.confirmArchive' | translate"
+    [confirmLabel]="'postTrainingReports.archive' | translate"
+    [cancelLabel]="'common.cancel' | translate"
+    (confirm)="doArchive()"
+    (cancel)="cancelArchiveConfirm()"
+  />
+}

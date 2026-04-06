@@ -1,0 +1,100 @@
+.filter-row { display: flex; gap: var(--space-md); align-items: center; flex-wrap: wrap; }
+.filter-select { max-width: 220px; }
+.filter-display {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+}
+.table-loading { padding: var(--space-md) 0; }
+.cell-actions { text-align: end; }
+.pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); }
+.pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
+
+.ds-filterbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.ptr-empty__hint {
+  margin: var(--space-sm) auto 0;
+  max-width: 36rem;
+  font-size: var(--text-body-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.ptr-empty__cta {
+  margin-top: var(--space-md);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+}
+
+.modal-drawer {
+  max-width: 400px;
+  width: 100%;
+  padding: var(--space-lg);
+}
+
+.modal-drawer--wide {
+  max-width: min(560px, 100%);
+}
+
+.modal-drawer__title {
+  font-size: var(--text-h1);
+  font-weight: 600;
+  margin: 0 0 var(--space-md);
+}
+
+.modal-drawer__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+.ptr-form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.ptr-form-full {
+  width: 100%;
+}
+
+.ptr-list-attachment-link {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-body-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-align: start;
+  word-break: break-word;
+}
+
+.ptr-list-attachment-link:hover {
+  color: var(--color-primary-hover, var(--color-primary));
+}
+
+.ptr-list-attachment-empty {
+  color: var(--color-text-secondary);
+}

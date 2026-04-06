@@ -1,0 +1,76 @@
+import { Routes } from '@angular/router';
+import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
+import { authGuard } from './core/guards/auth.guard';
+import { permissionGuard } from './core/guards/permission.guard';
+
+export const routes: Routes = [
+  { path: 'home', loadComponent: () => import('./features/landing/landing.component').then(m => m.LandingComponent) },
+  { path: 'login', loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent) },
+  { path: 'forgot-password', loadComponent: () => import('./features/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent) },
+  { path: 'reset-password/:token', loadComponent: () => import('./features/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
+  {
+    path: '',
+    component: MainLayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', data: { permissions: ['dashboard:view'] }, canActivate: [permissionGuard], loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
+      { path: 'organization', data: { permissions: ['organization:view'], titleKey: 'nav.organization', breadcrumbKey: 'nav.organization' }, canActivate: [permissionGuard], loadComponent: () => import('./features/organization/organization-page/organization-page.component').then(m => m.OrganizationPageComponent) },
+      { path: 'jobs', data: { permissions: ['job:view'], titleKey: 'nav.jobs', breadcrumbKey: 'nav.jobs' }, canActivate: [permissionGuard], loadComponent: () => import('./features/jobs/jobs-page/jobs-page.component').then(m => m.JobsPageComponent) },
+      { path: 'positions', data: { permissions: ['position:view'], titleKey: 'nav.positions', breadcrumbKey: 'nav.positions' }, canActivate: [permissionGuard], loadComponent: () => import('./features/positions/positions-page/positions-page.component').then(m => m.PositionsPageComponent) },
+      { path: 'employees', data: { permissions: ['employee:view'], titleKey: 'nav.employees', breadcrumbKey: 'nav.employees' }, canActivate: [permissionGuard], loadComponent: () => import('./features/employees/employees-page/employees-page.component').then(m => m.EmployeesPageComponent) },
+      {
+        path: 'competency',
+        canActivate: [permissionGuard],
+        data: { permissions: ['competency:view'], titleKey: 'nav.competency', breadcrumbKey: 'nav.competency' },
+        loadComponent: () => import('./features/competency/competency-shell-page/competency-shell-page.component').then(m => m.CompetencyShellPageComponent),
+        children: [
+          { path: '', redirectTo: 'frameworks', pathMatch: 'full' },
+          { path: 'frameworks', loadComponent: () => import('./features/competency/competency-frameworks-page/competency-frameworks-page.component').then(m => m.CompetencyFrameworksPageComponent) },
+          { path: 'types', loadComponent: () => import('./features/competency/competency-types-page/competency-types-page.component').then(m => m.CompetencyTypesPageComponent) },
+          { path: 'competencies', loadComponent: () => import('./features/competency/competencies-page/competencies-page.component').then(m => m.CompetenciesPageComponent) },
+          { path: 'proficiency-levels', loadComponent: () => import('./features/competency/proficiency-levels-page/proficiency-levels-page.component').then(m => m.ProficiencyLevelsPageComponent) },
+          { path: 'job-mappings', loadComponent: () => import('./features/competency/job-competency-mappings-page/job-competency-mappings-page.component').then(m => m.JobCompetencyMappingsPageComponent) },
+        ]
+      },
+      { path: 'assessments/cycles', data: { permissions: ['assessment-cycle:view'], titleKey: 'assessments.cyclesTitle', breadcrumbKey: 'assessments.cyclesTitle' }, canActivate: [permissionGuard], loadComponent: () => import('./features/assessments/assessment-cycles-page/assessment-cycles-page.component').then(m => m.AssessmentCyclesPageComponent) },
+      { path: 'assessments/my', data: { permissions: ['assessment:view', 'assessment:execute'], titleKey: 'assessments.myTitle', breadcrumbKey: 'assessments.myTitle' }, canActivate: [permissionGuard], loadComponent: () => import('./features/assessments/my-assessments-page/my-assessments-page.component').then(m => m.MyAssessmentsPageComponent) },
+      { path: 'assessments/my/:id', data: { permissions: ['assessment:view', 'assessment:execute'], titleKey: 'assessments.selfTitle', breadcrumbKey: 'assessments.selfTitle' }, canActivate: [permissionGuard], loadComponent: () => import('./features/assessments/self-assessment-page/self-assessment-page.component').then(m => m.SelfAssessmentPageComponent) },
+      { path: 'assessments/manager', data: { permissions: ['assessment:review'], titleKey: 'assessments.managerTitle', breadcrumbKey: 'assessments.managerTitle' }, canActivate: [permissionGuard], loadComponent: () => import('./features/assessments/manager-assessments-page/manager-assessments-page.component').then(m => m.ManagerAssessmentsPageComponent) },
+      { path: 'assessments/manager/:id', data: { permissions: ['assessment:review'], titleKey: 'assessments.managerReviewTitle', breadcrumbKey: 'assessments.managerReviewTitle' }, canActivate: [permissionGuard], loadComponent: () => import('./features/assessments/manager-review-page/manager-review-page.component').then(m => m.ManagerReviewPageComponent) },
+      { path: 'assessments/results', data: { permissions: ['assessment:view'], titleKey: 'assessments.resultsTitle', breadcrumbKey: 'assessments.resultsTitle' }, canActivate: [permissionGuard], loadComponent: () => import('./features/assessments/assessment-results-page/assessment-results-page.component').then(m => m.AssessmentResultsPageComponent) },
+      { path: 'assessments/gaps', data: { permissions: ['gap-analysis:view'], titleKey: 'assessments.gapsTitle', breadcrumbKey: 'assessments.gapsTitle' }, canActivate: [permissionGuard], loadComponent: () => import('./features/assessments/gap-analysis-page/gap-analysis-page.component').then(m => m.GapAnalysisPageComponent) },
+      { path: 'training-needs', data: { permissions: ['training-need:view'], titleKey: 'nav.trainingNeeds', breadcrumbKey: 'nav.trainingNeeds' }, canActivate: [permissionGuard], loadComponent: () => import('./features/training/training-needs-page/training-needs-page.component').then(m => m.TrainingNeedsPageComponent) },
+      { path: 'training-plans', data: { permissions: ['training-plan:view'], titleKey: 'nav.trainingPlan', breadcrumbKey: 'nav.trainingPlan' }, canActivate: [permissionGuard], loadComponent: () => import('./features/training/training-plans-page/training-plans-page.component').then(m => m.TrainingPlansPageComponent) },
+      { path: 'training-plans/:id', data: { permissions: ['training-plan:view'], titleKey: 'nav.trainingPlan', breadcrumbKey: 'nav.trainingPlan' }, canActivate: [permissionGuard], loadComponent: () => import('./features/training/training-plan-detail-page/training-plan-detail-page.component').then(m => m.TrainingPlanDetailPageComponent) },
+      { path: 'programs', data: { permissions: ['training-program:view', 'course:view', 'session:view'], titleKey: 'nav.programs', breadcrumbKey: 'nav.programs' }, canActivate: [permissionGuard], loadComponent: () => import('./features/training/training-programs-page/training-programs-page.component').then(m => m.TrainingProgramsPageComponent) },
+      { path: 'programs/:id', data: { permissions: ['training-program:view', 'course:view', 'session:view'], titleKey: 'nav.programs', breadcrumbKey: 'nav.programs' }, canActivate: [permissionGuard], loadComponent: () => import('./features/training/program-detail-page/program-detail-page.component').then(m => m.ProgramDetailPageComponent) },
+      { path: 'programs/:id/evaluation', data: { permissions: ['evaluation:execute', 'evaluation:view'], titleKey: 'evaluation.submitEvaluation', breadcrumbKey: 'evaluation.submitEvaluation' }, canActivate: [permissionGuard], loadComponent: () => import('./features/training/program-evaluation-page/program-evaluation-page.component').then(m => m.ProgramEvaluationPageComponent) },
+      { path: 'programs/:id/evaluations', data: { permissions: ['evaluation:view', 'evaluation:analyze'], titleKey: 'evaluation.summary', breadcrumbKey: 'evaluation.summary' }, canActivate: [permissionGuard], loadComponent: () => import('./features/training/program-evaluation-summary-page/program-evaluation-summary-page.component').then(m => m.ProgramEvaluationSummaryPageComponent) },
+      { path: 'enrollments', data: { permissions: ['enrollment:view'], titleKey: 'nav.enrollments', breadcrumbKey: 'nav.enrollments' }, canActivate: [permissionGuard], loadComponent: () => import('./features/training/enrollments-page/enrollments-page.component').then(m => m.EnrollmentsPageComponent) },
+      { path: 'attendance', data: { permissions: ['attendance:view'], titleKey: 'attendance.title', breadcrumbKey: 'attendance.title' }, canActivate: [permissionGuard], loadComponent: () => import('./features/training/attendance-page/attendance-page.component').then(m => m.AttendancePageComponent) },
+      { path: 'certificates', data: { permissions: ['certificate:view'], titleKey: 'certificates.title', breadcrumbKey: 'certificates.title' }, canActivate: [permissionGuard], loadComponent: () => import('./features/training/certificates-page/certificates-page.component').then(m => m.CertificatesPageComponent) },
+      { path: 'post-training-reports', data: { permissions: ['evaluation:view', 'evaluation:execute'], titleKey: 'postTrainingReports.title', breadcrumbKey: 'postTrainingReports.title' }, canActivate: [permissionGuard], loadComponent: () => import('./features/training/post-training-reports-page/post-training-reports-page.component').then(m => m.PostTrainingReportsPageComponent) },
+      { path: 'post-training-reports/review/:id', data: { permissions: ['evaluation:view', 'evaluation:execute'], titleKey: 'postTrainingReports.review', breadcrumbKey: 'postTrainingReports.review' }, canActivate: [permissionGuard], loadComponent: () => import('./features/training/post-training-report-review-page/post-training-report-review-page.component').then(m => m.PostTrainingReportReviewPageComponent) },
+      { path: 'reports', redirectTo: 'reports/training', pathMatch: 'full' },
+      { path: 'reports/training', data: { permissions: ['report:view'], titleKey: 'reports.training', breadcrumbKey: 'reports.training' }, canActivate: [permissionGuard], loadComponent: () => import('./features/reports/reports-training-page/reports-training-page.component').then(m => m.ReportsTrainingPageComponent) },
+      { path: 'reports/competency', data: { permissions: ['report:view'], titleKey: 'reports.competency', breadcrumbKey: 'reports.competency' }, canActivate: [permissionGuard], loadComponent: () => import('./features/reports/reports-competency-page/reports-competency-page.component').then(m => m.ReportsCompetencyPageComponent) },
+      { path: 'reports/certifications', data: { permissions: ['report:view'], titleKey: 'reports.certifications', breadcrumbKey: 'reports.certifications' }, canActivate: [permissionGuard], loadComponent: () => import('./features/reports/reports-certifications-page/reports-certifications-page.component').then(m => m.ReportsCertificationsPageComponent) },
+      { path: 'knowledge/library', data: { permissions: ['knowledge:view'], titleKey: 'nav.knowledgeLibrary', breadcrumbKey: 'nav.knowledgeLibrary' }, canActivate: [permissionGuard], loadComponent: () => import('./features/knowledge/knowledge-library-page/knowledge-library-page.component').then(m => m.KnowledgeLibraryPageComponent) },
+      { path: 'knowledge/transfer', data: { permissions: ['knowledge:view'], titleKey: 'nav.knowledgeTransfer', breadcrumbKey: 'nav.knowledgeTransfer' }, canActivate: [permissionGuard], loadComponent: () => import('./features/knowledge/knowledge-transfer-page/knowledge-transfer-page.component').then(m => m.KnowledgeTransferPageComponent) },
+      { path: 'knowledge/internal-experts', data: { permissions: ['internal-expert:view'], titleKey: 'nav.internalExperts', breadcrumbKey: 'nav.internalExperts' }, canActivate: [permissionGuard], loadComponent: () => import('./features/knowledge/internal-experts-page/internal-experts-page.component').then(m => m.InternalExpertsPageComponent) },
+      { path: 'impact', data: { permissions: ['impact:view'], titleKey: 'nav.impact', breadcrumbKey: 'nav.impact' }, canActivate: [permissionGuard], loadComponent: () => import('./features/impact/impact-page/impact-page.component').then(m => m.ImpactPageComponent) },
+      { path: 'my-subordinates', data: { permissions: ['assessment:review'], titleKey: 'nav.mySubordinates', breadcrumbKey: 'nav.mySubordinates' }, canActivate: [permissionGuard], loadComponent: () => import('./features/employees/my-subordinates-page/my-subordinates-page.component').then(m => m.MySubordinatesPageComponent) },
+      { path: 'users', data: { permissions: ['user:view'] }, canActivate: [permissionGuard], loadComponent: () => import('./features/users/users-page/users-page.component').then(m => m.UsersPageComponent) },
+      { path: 'roles', data: { permissions: ['role:view'] }, canActivate: [permissionGuard], loadComponent: () => import('./features/roles/roles-page/roles-page.component').then(m => m.RolesPageComponent) },
+      { path: 'notifications', data: { permissions: ['notification:view'] }, canActivate: [permissionGuard], loadComponent: () => import('./features/notifications/notifications-page/notifications-page.component').then(m => m.NotificationsPageComponent) },
+      { path: 'audit', data: { permissions: ['audit:view'], titleKey: 'audit.title', breadcrumbKey: 'audit.title' }, canActivate: [permissionGuard], loadComponent: () => import('./features/audit/audit-logs-page/audit-logs-page.component').then(m => m.AuditLogsPageComponent) },
+      { path: 'recycle-bin', data: { permissions: ['audit:view'], titleKey: 'recycleBin.title', breadcrumbKey: 'recycleBin.title' }, canActivate: [permissionGuard], loadComponent: () => import('./features/recycle-bin/recycle-bin-page/recycle-bin-page.component').then(m => m.RecycleBinPageComponent) },
+      { path: 'settings', data: { permissions: ['settings:view', 'settings:manage'], titleKey: 'nav.settings', breadcrumbKey: 'nav.settings' }, canActivate: [permissionGuard], loadComponent: () => import('./features/settings/settings-page/settings-page.component').then(m => m.SettingsPageComponent) },
+      { path: 'profile', loadComponent: () => import('./features/profile/profile-page/profile-page.component').then(m => m.ProfilePageComponent) },
+      { path: 'profile/edit', loadComponent: () => import('./features/profile/profile-edit/profile-edit.component').then(m => m.ProfileEditComponent) },
+      { path: 'profile/change-password', loadComponent: () => import('./features/profile/change-password/change-password.component').then(m => m.ChangePasswordComponent) },
+    ]
+  },
+  { path: '**', redirectTo: 'home' }
+];

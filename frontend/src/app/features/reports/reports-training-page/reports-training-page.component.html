@@ -1,0 +1,241 @@
+<app-page-shell [title]="'reports.training' | translate" [breadcrumbs]="breadcrumbs()">
+  <div dir="rtl">
+  <nav class="report-tabs" aria-label="Report types">
+    <a routerLink="/reports/training" class="report-tabs__link" routerLinkActive="report-tabs__link--active">{{ 'reports.training' | translate }}</a>
+    <a routerLink="/reports/competency" class="report-tabs__link" routerLinkActive="report-tabs__link--active">{{ 'reports.competency' | translate }}</a>
+    <a routerLink="/reports/certifications" class="report-tabs__link" routerLinkActive="report-tabs__link--active">{{ 'reports.certifications' | translate }}</a>
+  </nav>
+  <div class="ds-filterbar">
+    <div class="ds-filterbar__controls">
+      <div class="ds-filterfield">
+        <div class="ds-filterfield__label">{{ 'audit.fromDate' | translate }}</div>
+        <input
+          type="date"
+          class="ds-input ds-filterfield__control"
+          [(ngModel)]="filterFromDate"
+          [max]="filterToDate || null"
+          (change)="onFromDateChange()"
+        />
+      </div>
+      <div class="ds-filterfield">
+        <div class="ds-filterfield__label">{{ 'audit.toDate' | translate }}</div>
+        <input
+          type="date"
+          class="ds-input ds-filterfield__control"
+          [(ngModel)]="filterToDate"
+          [min]="filterFromDate || null"
+          (change)="onToDateChange()"
+        />
+      </div>
+    </div>
+    <div class="ds-filterbar__actions">
+      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
+        {{ 'common.clearFilters' | translate }}
+      </button>
+      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm filter-refresh-btn" (click)="load()">
+        <span class="filter-refresh-icon" aria-hidden="true">⟳</span>
+        <span class="filter-refresh-label">{{ 'common.refresh' | translate }}</span>
+      </button>
+    </div>
+  </div>
+  @if (loading()) {
+    <div class="table-loading"><div class="ds-skeleton" style="height: 120px;"></div></div>
+  } @else if (error()) {
+    <div class="ds-error-state"><p>{{ error() }}</p></div>
+  } @else {
+    <section class="report-section">
+      <h3 class="report-section__title">{{ 'reports.trainingCoverage' | translate }}</h3>
+      <div class="report-export-actions" *appShowIfPermission="PermissionCodes.report.export">
+        <button type="button" class="export-icon-btn export-icon-btn--pdf" [attr.aria-label]="'reports.exportPdf' | translate" [title]="'reports.exportPdf' | translate" (click)="exportCoveragePdf()">
+          <svg class="export-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 3h7l3 3v15H7V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M12 10v7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M9.5 14.5 12 17l2.5-2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 20h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span class="visually-hidden">PDF</span>
+        </button>
+        <button type="button" class="export-icon-btn export-icon-btn--excel" [attr.aria-label]="'reports.exportExcel' | translate" [title]="'reports.exportExcel' | translate" (click)="exportCoverageExcel()">
+          <svg class="export-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 3h7l3 3v15H7V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M10 12l4 6M14 12l-4 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M5 8h2v10H5" fill="currentColor" opacity="0.15"/>
+          </svg>
+          <span class="visually-hidden">Excel</span>
+        </button>
+      </div>
+      <div class="ds-table-wrap">
+        <table class="ds-table">
+          <caption class="visually-hidden">{{ 'reports.trainingCoverage' | translate }}</caption>
+          <thead>
+            <tr>
+              <th scope="col">{{ 'table.organization' | translate }}</th>
+              <th scope="col">{{ 'table.organizationalUnit' | translate }}</th>
+              <th scope="col">{{ 'table.job' | translate }}</th>
+              <th scope="col">{{ 'reports.totalEmployees' | translate }}</th>
+              <th scope="col">{{ 'reports.withTraining' | translate }}</th>
+              <th scope="col">{{ 'reports.coveragePercent' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of coverageRows(); track r.organizationName + (r.organizationalUnitName ?? '') + (r.jobTitle ?? '')) {
+              <tr>
+                <td>{{ r.organizationName }}</td>
+                <td>{{ localizedCoverageOuName(r) }}</td>
+                <td>{{ r.jobTitle ?? '—' }}</td>
+                <td>{{ r.totalEmployees }}</td>
+                <td>{{ r.employeesWithTraining }}</td>
+                <td>{{ r.coveragePercent }}%</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (!coverageRows().length) { <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p> }
+    </section>
+    <section class="report-section">
+      <h3 class="report-section__title">{{ 'reports.trainingParticipation' | translate }}</h3>
+      <div class="report-export-actions" *appShowIfPermission="PermissionCodes.report.export">
+        <button type="button" class="export-icon-btn export-icon-btn--pdf" [attr.aria-label]="'reports.exportPdf' | translate" [title]="'reports.exportPdf' | translate" (click)="exportParticipationPdf()">
+          <svg class="export-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 3h7l3 3v15H7V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M12 10v7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M9.5 14.5 12 17l2.5-2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 20h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span class="visually-hidden">PDF</span>
+        </button>
+        <button type="button" class="export-icon-btn export-icon-btn--excel" [attr.aria-label]="'reports.exportExcel' | translate" [title]="'reports.exportExcel' | translate" (click)="exportParticipationExcel()">
+          <svg class="export-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 3h7l3 3v15H7V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M10 12l4 6M14 12l-4 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M5 8h2v10H5" fill="currentColor" opacity="0.15"/>
+          </svg>
+          <span class="visually-hidden">Excel</span>
+        </button>
+      </div>
+      <div class="ds-table-wrap">
+        <table class="ds-table">
+          <thead>
+            <tr>
+              <th scope="col">{{ 'programs.program' | translate }}</th>
+              <th scope="col">{{ 'reports.totalEnrolled' | translate }}</th>
+              <th scope="col">{{ 'reports.completed' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of participationRows(); track r.programTitle + (r.startDate ?? '')) {
+              <tr>
+                <td>{{ r.programTitle }}</td>
+                <td>{{ r.totalEnrolled }}</td>
+                <td>{{ r.completed }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="report-section">
+      <h3 class="report-section__title">{{ 'reports.trainingCosts' | translate }}</h3>
+      <div class="report-export-actions" *appShowIfPermission="PermissionCodes.report.export">
+        <button type="button" class="export-icon-btn export-icon-btn--pdf" [attr.aria-label]="'reports.exportPdf' | translate" [title]="'reports.exportPdf' | translate" (click)="exportCostsPdf()">
+          <svg class="export-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 3h7l3 3v15H7V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M12 10v7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M9.5 14.5 12 17l2.5-2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 20h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span class="visually-hidden">PDF</span>
+        </button>
+        <button type="button" class="export-icon-btn export-icon-btn--excel" [attr.aria-label]="'reports.exportExcel' | translate" [title]="'reports.exportExcel' | translate" (click)="exportCostsExcel()">
+          <svg class="export-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 3h7l3 3v15H7V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M10 12l4 6M14 12l-4 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M5 8h2v10H5" fill="currentColor" opacity="0.15"/>
+          </svg>
+          <span class="visually-hidden">Excel</span>
+        </button>
+      </div>
+      <div class="ds-table-wrap">
+        <table class="ds-table">
+          <thead>
+            <tr>
+              <th scope="col">{{ 'trainingPlans.plan' | translate }}</th>
+              <th scope="col">{{ 'reports.year' | translate }}</th>
+              <th scope="col">{{ 'table.organization' | translate }}</th>
+              <th scope="col">{{ 'reports.budget' | translate }}</th>
+              <th scope="col">{{ 'reports.spent' | translate }}</th>
+              <th scope="col">{{ 'table.status' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of costsRows(); track r.planTitle + r.year + (r.organizationName ?? '')) {
+              <tr>
+                <td>{{ r.planTitle }}</td>
+                <td>{{ r.year }}</td>
+                <td>{{ r.organizationName }}</td>
+                <td>{{ r.budget != null ? (r.budget | number) : '—' }}</td>
+                <td>{{ r.spentOrEstimated != null ? (r.spentOrEstimated | number) : '—' }}</td>
+                <td>{{ r.status }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (!costsRows().length) { <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p> }
+    </section>
+    <section class="report-section">
+      <h3 class="report-section__title">{{ 'reports.programEffectiveness' | translate }}</h3>
+      <div class="report-export-actions" *appShowIfPermission="PermissionCodes.report.export">
+        <button type="button" class="export-icon-btn export-icon-btn--pdf" [attr.aria-label]="'reports.exportPdf' | translate" [title]="'reports.exportPdf' | translate" (click)="exportEffectivenessPdf()">
+          <svg class="export-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 3h7l3 3v15H7V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M12 10v7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M9.5 14.5 12 17l2.5-2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 20h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span class="visually-hidden">PDF</span>
+        </button>
+        <button type="button" class="export-icon-btn export-icon-btn--excel" [attr.aria-label]="'reports.exportExcel' | translate" [title]="'reports.exportExcel' | translate" (click)="exportEffectivenessExcel()">
+          <svg class="export-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 3h7l3 3v15H7V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M10 12l4 6M14 12l-4 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M5 8h2v10H5" fill="currentColor" opacity="0.15"/>
+          </svg>
+          <span class="visually-hidden">Excel</span>
+        </button>
+      </div>
+      <div class="ds-table-wrap">
+        <table class="ds-table">
+          <thead>
+            <tr>
+              <th scope="col">{{ 'programs.program' | translate }}</th>
+              <th scope="col">{{ 'reports.enrolledCount' | translate }}</th>
+              <th scope="col">{{ 'reports.completedCount' | translate }}</th>
+              <th scope="col">{{ 'reports.avgScore' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of effectivenessRows(); track r.programTitle) {
+              <tr>
+                <td>{{ r.programTitle }}</td>
+                <td>{{ r.enrolledCount }}</td>
+                <td>{{ r.completedCount }}</td>
+                <td>{{ r.averageEvaluationScore != null ? (r.averageEvaluationScore | number:'1.1-1') : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+  </div>
+</app-page-shell>

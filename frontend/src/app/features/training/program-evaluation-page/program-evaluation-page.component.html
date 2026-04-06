@@ -1,0 +1,182 @@
+<app-page-shell [title]="'evaluation.submitEvaluation' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true">
+  @if (programId(); as pid) {
+    <div class="eval-page">
+      @if (success()) {
+        <div class="eval-success" role="status">
+          <div class="eval-success__banner">
+            <span class="eval-success__icon" aria-hidden="true">✓</span>
+            <p class="eval-success__title">
+              @if (submittedCount() > 1) {
+                {{ 'evaluation.bulkSubmitSuccess' | translate: { count: submittedCount() } }}
+              } @else {
+                {{ 'evaluation.submitSuccess' | translate }}
+              }
+            </p>
+          </div>
+          <div class="eval-success__body">
+            <p class="eval-success__program">
+              <a [routerLink]="['/programs', pid]" class="eval-success__program-link">{{ programTitle() }}</a>
+            </p>
+            <div class="eval-success__actions">
+              <a [routerLink]="['/programs', pid]" class="ds-btn ds-btn--sm eval-success__btn back-btn">
+                <svg class="back-btn__icon" viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                {{ 'common.back' | translate }}
+              </a>
+            </div>
+          </div>
+        </div>
+      } @else if (loadingData()) {
+        <div class="eval-loading">{{ 'common.loading' | translate }}</div>
+      } @else {
+        <header class="eval-hero" aria-labelledby="eval-hero-title">
+          <div class="eval-hero__banner">
+            <p id="eval-hero-title" class="eval-hero__eyebrow">{{ 'evaluation.program' | translate }}</p>
+            <p class="eval-hero__title">{{ programTitle() }}</p>
+          </div>
+        </header>
+
+        <form (ngSubmit)="submit()" class="eval-form" novalidate>
+          @if (error()) {
+            <p class="eval-form__alert ds-field-error" role="alert">{{ error() }}</p>
+          }
+
+          <div class="eval-form__layout">
+            <div class="eval-form__column eval-form__column--main">
+              <div class="eval-form__section">
+                <div class="eval-form__section-head">
+                  <h2 class="eval-form__section-title">{{ 'evaluation.selectParticipants' | translate }}</h2>
+                  <span class="eval-form__accent" aria-hidden="true"></span>
+                </div>
+                <div class="eval-participants form-group eval-form__field">
+                  @if (eligibleParticipants().length) {
+                    <label class="eval-participants__select-all ds-label">
+                      <input
+                        type="checkbox"
+                        class="eval-participants__cb"
+                        [checked]="allEligibleSelected()"
+                        (change)="onSelectAllChange($any($event.target).checked)"
+                      />
+                      <span>{{ 'evaluation.selectAll' | translate }}</span>
+                    </label>
+                  }
+                  <ul class="eval-participants__list" role="list">
+                    @for (p of participants(); track p.id) {
+                      <li class="eval-participants__row">
+                        <label
+                          class="eval-participants__label"
+                          [class.eval-participants__label--disabled]="p.alreadyEvaluated"
+                        >
+                          <input
+                            type="checkbox"
+                            class="eval-participants__cb"
+                            [checked]="isSelected(p.id)"
+                            [disabled]="p.alreadyEvaluated"
+                            (change)="toggleParticipant(p.id, $any($event.target).checked)"
+                          />
+                          <span class="eval-participants__name">{{ p.name }}</span>
+                          @if (p.alreadyEvaluated) {
+                            <span class="eval-participants__badge">{{ 'evaluation.alreadyEvaluated' | translate }}</span>
+                          }
+                        </label>
+                      </li>
+                    }
+                  </ul>
+                  @if (!participants().length) {
+                    <p class="eval-participants__empty">{{ 'evaluation.noEligibleParticipants' | translate }}</p>
+                  } @else if (!eligibleParticipants().length) {
+                    <p class="eval-participants__empty">{{ 'evaluation.allAlreadyEvaluated' | translate }}</p>
+                  }
+                </div>
+              </div>
+
+              <div class="eval-form__section">
+                <div class="eval-form__section-head">
+                  <h2 class="eval-form__section-title">{{ 'evaluation.comments' | translate }}</h2>
+                  <span class="eval-form__accent" aria-hidden="true"></span>
+                </div>
+                <div class="form-group eval-form__field">
+                  <label class="ds-label" for="eval-comments">{{ 'evaluation.comments' | translate }}</label>
+                  <textarea id="eval-comments" class="ds-textarea eval-form__textarea" [(ngModel)]="form.comments" name="comments" rows="6"></textarea>
+                </div>
+                <div class="form-group eval-form__field">
+                  <label class="ds-label" for="eval-file">{{ 'evaluation.attachment' | translate }}</label>
+                  <input
+                    #evalFileInput
+                    id="eval-file"
+                    type="file"
+                    class="ds-input"
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.png,.jpg,.jpeg,.gif,.webp"
+                    (change)="onFileSelected($event)"
+                  />
+                  <small class="ds-field-hint">{{ 'evaluation.attachmentUploadHint' | translate }}</small>
+                  @if (selectedFile(); as file) {
+                    <div class="eval-form__file-meta">
+                      <span>{{ 'knowledge.selectedFile' | translate }}: {{ file.name }}</span>
+                      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearSelectedFile(evalFileInput)">
+                        {{ 'common.clear' | translate }}
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="eval-form__column eval-form__column--scores">
+              <div class="eval-form__section eval-form__section--scores">
+                <div class="eval-form__section-head">
+                  <h2 class="eval-form__section-title">{{ 'evaluation.ratingCriteria' | translate }}</h2>
+                  <span class="eval-form__accent" aria-hidden="true"></span>
+                </div>
+                <div class="eval-scores" role="group" [attr.aria-label]="'evaluation.ratingCriteria' | translate">
+                  <div class="eval-score-field form-group">
+                    <label class="eval-score-field__label" for="score-content">{{ 'evaluation.contentScore' | translate }}</label>
+                    <input id="score-content" type="number" class="ds-input eval-score-field__input" min="1" max="5" [(ngModel)]="form.contentScore" name="contentScore" />
+                  </div>
+                  <div class="eval-score-field form-group">
+                    <label class="eval-score-field__label" for="score-trainer">{{ 'evaluation.trainerScore' | translate }}</label>
+                    <input id="score-trainer" type="number" class="ds-input eval-score-field__input" min="1" max="5" [(ngModel)]="form.trainerScore" name="trainerScore" />
+                  </div>
+                  <div class="eval-score-field form-group">
+                    <label class="eval-score-field__label" for="score-org">{{ 'evaluation.organizationScore' | translate }}</label>
+                    <input id="score-org" type="number" class="ds-input eval-score-field__input" min="1" max="5" [(ngModel)]="form.organizationScore" name="organizationScore" />
+                  </div>
+                  <div class="eval-score-field form-group">
+                    <label class="eval-score-field__label" for="score-use">{{ 'evaluation.usefulnessScore' | translate }}</label>
+                    <input id="score-use" type="number" class="ds-input eval-score-field__input" min="1" max="5" [(ngModel)]="form.usefulnessScore" name="usefulnessScore" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="eval-form__actions">
+            <a [routerLink]="['/programs', pid]" class="ds-btn ds-btn--secondary ds-btn--sm eval-form__btn-cancel back-btn">
+              <svg class="back-btn__icon" viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              {{ 'common.back' | translate }}
+            </a>
+            @if (canSubmit()) {
+              <button
+                type="submit"
+                class="ds-btn ds-btn--sm eval-form__submit"
+                [disabled]="saving() || !selectedIds().length || !eligibleParticipants().length"
+              >
+                {{ saving() ? ('common.loading' | translate) : ('common.submit' | translate) }}
+              </button>
+            }
+          </div>
+        </form>
+      }
+    </div>
+  } @else {
+    <div class="eval-page eval-page--error">
+      <div class="ds-error-state eval-error">
+        <p class="eval-error__text">{{ 'evaluation.programRequired' | translate }}</p>
+        <a routerLink="/programs" class="ds-btn ds-btn--secondary ds-btn--sm">{{ 'common.back' | translate }}</a>
+      </div>
+    </div>
+  }
+</app-page-shell>

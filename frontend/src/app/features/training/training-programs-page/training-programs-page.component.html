@@ -1,0 +1,364 @@
+<app-page-shell [title]="'nav.programs' | translate" [breadcrumbs]="breadcrumbs()">
+  <div class="actions-row" actions>
+    @if (canCreate()) {
+      <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }} {{ 'programs.program' | translate }}</button>
+    }
+  </div>
+  <div filters>
+    <div class="ds-filterbar">
+      <div class="ds-filterbar__controls">
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
+          <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (ngModelChange)="onFilterChange()" />
+        </div>
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'table.status' | translate }}</div>
+          <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+            <option [ngValue]="null">{{ 'common.all' | translate }}</option>
+            <option value="Planned">{{ 'status.planned' | translate }}</option>
+            <option value="Draft">{{ 'status.draft' | translate }}</option>
+            <option value="Published">{{ 'status.published' | translate }}</option>
+            <option value="Completed">{{ 'status.completed' | translate }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="ds-filterbar__actions">
+        <div class="programs-view-toggle">
+          <button
+            type="button"
+            class="ds-btn ds-btn--ghost ds-btn--sm"
+            [class.programs-view-toggle__btn--active]="viewMode() === 'table'"
+            (click)="setViewMode('table')"
+          >
+            {{ 'programs.viewTable' | translate }}
+          </button>
+          <button
+            type="button"
+            class="ds-btn ds-btn--ghost ds-btn--sm"
+            [class.programs-view-toggle__btn--active]="viewMode() === 'cards'"
+            (click)="setViewMode('cards')"
+          >
+            {{ 'programs.viewCards' | translate }}
+          </button>
+        </div>
+        <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
+          {{ 'common.clearFilters' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+  @if (loading()) {
+    <div class="table-loading"><div class="ds-skeleton" style="height: 48px;"></div></div>
+  } @else if (error()) {
+    <div class="ds-error-state">
+      <p class="ds-error-state__title">{{ error() }}</p>
+      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
+    </div>
+  } @else if (!data()?.items?.length) {
+    <div class="ds-empty">
+      <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p>
+      @if (canCreate()) {
+        <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }}</button>
+      }
+    </div>
+  } @else {
+    @if (viewMode() === 'table') {
+      <div class="ds-table-wrap">
+        <table class="ds-table">
+          <thead>
+            <tr>
+              <th>{{ 'programs.program' | translate }}</th>
+              <th>{{ 'programs.enrolledEmployees' | translate }}</th>
+              <th>{{ 'programs.approvedPrice' | translate }}</th>
+              <th>{{ 'programs.deliveryMode' | translate }}</th>
+              <th>{{ 'programs.executor' | translate }}</th>
+              <th>{{ 'table.status' | translate }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of data()!.items; track row.id) {
+              <tr>
+                <td class="programs-cell--primary">
+                  <div class="programs-title">{{ row.titleAr | localizedText:row.titleEn:row.titleEn }}</div>
+                </td>
+                <td class="programs-cell--enrollments">
+                  <a
+                    [routerLink]="['/enrollments']"
+                    [queryParams]="{ programId: row.id }"
+                    class="programs-enrollments-link"
+                    [attr.title]="'programs.enrolledEmployeesHint' | translate"
+                  >{{ row.activeEnrollmentCount ?? 0 }}</a>
+                </td>
+                <td>{{ row.approvedCost != null ? (row.approvedCost | number:'1.0-2') : '—' }}</td>
+                <td>{{ row.deliveryMode ? (('programs.deliveryModes.' + row.deliveryMode) | translate) : '—' }}</td>
+                <td>{{ row.executorType ? (('programs.executorTypes.' + row.executorType) | translate) : '—' }}</td>
+                <td>
+                  <span
+                    class="ds-badge program-status-badge"
+                    [class.program-status-badge--planned]="row.status === 'Planned'"
+                    [class.program-status-badge--draft]="row.status === 'Draft'"
+                    [class.program-status-badge--published]="row.status === 'Published'"
+                    [class.program-status-badge--completed]="row.status === 'Completed'"
+                  >
+                    {{ programStatusLabel(row.status) }}
+                  </span>
+                </td>
+                <td class="cell-actions">
+                  @if (canEdit()) {
+                    <button
+                      type="button"
+                      class="ds-btn ds-btn--ghost ds-btn--icon"
+                      (click)="openEdit(row)"
+                      [attr.aria-label]="'common.edit' | translate"
+                      [appTooltip]="'common.edit' | translate"
+                      tooltipPlacement="top"
+                    >
+                      ✏️
+                    </button>
+                  }
+                  <a
+                    [routerLink]="['/programs', row.id]"
+                    class="ds-btn ds-btn--ghost ds-btn--icon"
+                    [attr.aria-label]="'common.details' | translate"
+                    [appTooltip]="'common.details' | translate"
+                    tooltipPlacement="top"
+                  >
+                    🔍
+                  </a>
+                  <button
+                    type="button"
+                    class="ds-btn ds-btn--ghost ds-btn--icon"
+                    [disabled]="!row.scientificMaterialsPath"
+                    (click)="row.scientificMaterialsPath && openScientificMaterials(row.scientificMaterialsPath)"
+                    [attr.aria-label]="'programs.scientificMaterials' | translate"
+                    [appTooltip]="'programs.scientificMaterials' | translate"
+                    tooltipPlacement="top"
+                  >
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                      <path d="M7 3h7l3 3v15a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                      <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                      <path d="M8 13h8M8 16h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                      <path d="M8.2 11.2c.6-1 1.4-1.6 2.5-1.6 1.2 0 2 .7 2.3 1.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                  @if (canDelete()) {
+                    <button
+                      type="button"
+                      class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
+                      (click)="confirmDelete(row)"
+                      [attr.aria-label]="'common.delete' | translate"
+                      [appTooltip]="'common.delete' | translate"
+                      tooltipPlacement="top"
+                    >
+                      <svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M6 19V7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                        <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M4 7h16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                      </svg>
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="programs-cards">
+        @for (row of data()!.items; track row.id) {
+          <div class="program-card ds-card program-card--interactive">
+            <div class="program-card__body">
+              <a
+                [routerLink]="['/programs', row.id]"
+                class="program-card__body-link"
+                [attr.aria-label]="('common.details' | translate) + ' — ' + (row.titleAr | localizedText:row.titleEn:row.titleEn)"
+              ></a>
+              <div class="program-card__head">
+                <div class="program-card__title">{{ row.titleAr | localizedText:row.titleEn:row.titleEn }}</div>
+                <span
+                  class="ds-badge program-status-badge"
+                  [class.program-status-badge--planned]="row.status === 'Planned'"
+                  [class.program-status-badge--draft]="row.status === 'Draft'"
+                  [class.program-status-badge--published]="row.status === 'Published'"
+                  [class.program-status-badge--completed]="row.status === 'Completed'"
+                >
+                  {{ programStatusLabel(row.status) }}
+                </span>
+              </div>
+              <div class="program-card__meta">
+                <div class="program-card__meta-item">
+                  <div class="program-card__meta-label">{{ 'programs.dates' | translate }}</div>
+                  <div class="program-card__meta-value">{{ row.startDate ? (row.startDate | date:'mediumDate') : '—' }} / {{ row.endDate ? (row.endDate | date:'mediumDate') : '—' }}</div>
+                </div>
+                <div class="program-card__meta-item">
+                  <div class="program-card__meta-label">{{ 'programs.enrolledEmployees' | translate }}</div>
+                  <div class="program-card__meta-value">
+                    <a
+                      [routerLink]="['/enrollments']"
+                      [queryParams]="{ programId: row.id }"
+                      class="programs-enrollments-link"
+                      [attr.title]="'programs.enrolledEmployeesHint' | translate"
+                    >{{ row.activeEnrollmentCount ?? 0 }}</a>
+                  </div>
+                </div>
+                <div class="program-card__meta-item">
+                  <div class="program-card__meta-label">{{ 'programs.approvedPrice' | translate }}</div>
+                  <div class="program-card__meta-value">{{ row.approvedCost != null ? (row.approvedCost | number:'1.0-2') : '—' }}</div>
+                </div>
+                <div class="program-card__meta-item">
+                  <div class="program-card__meta-label">{{ 'programs.deliveryMode' | translate }}</div>
+                  <div class="program-card__meta-value">{{ row.deliveryMode ? (('programs.deliveryModes.' + row.deliveryMode) | translate) : '—' }}</div>
+                </div>
+                <div class="program-card__meta-item">
+                  <div class="program-card__meta-label">{{ 'programs.executor' | translate }}</div>
+                  <div class="program-card__meta-value">{{ row.executorType ? (('programs.executorTypes.' + row.executorType) | translate) : '—' }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="program-card__actions">
+              @if (canEdit()) {
+                <button
+                  type="button"
+                  class="ds-btn ds-btn--ghost ds-btn--icon"
+                  (click)="openEdit(row)"
+                  [attr.aria-label]="'common.edit' | translate"
+                  [appTooltip]="'common.edit' | translate"
+                  tooltipPlacement="top"
+                >
+                  ✏️
+                </button>
+              }
+              <button
+                type="button"
+                class="ds-btn ds-btn--ghost ds-btn--icon"
+                [disabled]="!row.scientificMaterialsPath"
+                (click)="row.scientificMaterialsPath && openScientificMaterials(row.scientificMaterialsPath)"
+                [attr.aria-label]="'programs.scientificMaterials' | translate"
+                [appTooltip]="'programs.scientificMaterials' | translate"
+                tooltipPlacement="top"
+              >
+                <svg class="icon-svg" viewBox="0 0 24 24">
+                  <path d="M7 3h7l3 3v15a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                  <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                  <path d="M8 13h8M8 16h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                  <path d="M8.2 11.2c.6-1 1.4-1.6 2.5-1.6 1.2 0 2 .7 2.3 1.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+              </button>
+              @if (canDelete()) {
+                <button
+                  type="button"
+                  class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
+                  (click)="confirmDelete(row)"
+                  [attr.aria-label]="'common.delete' | translate"
+                  [appTooltip]="'common.delete' | translate"
+                  tooltipPlacement="top"
+                >
+                  <svg class="icon-svg" viewBox="0 0 24 24">
+                    <path d="M6 19V7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                    <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M4 7h16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                  </svg>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+    <div class="pagination">
+      <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
+      <span class="pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
+      <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
+    </div>
+  }
+  </app-page-shell>
+  @if (showConfirm()) {
+    <app-confirm-dialog
+      [title]="'dialog.confirmDelete' | translate"
+      [message]="deleteConfirmMessage()"
+      [confirmLabel]="'common.delete' | translate"
+      [cancelLabel]="'common.cancel' | translate"
+      (confirm)="doDelete()"
+      (cancel)="cancelDelete()"
+    />
+  }
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
+      <h3 class="modal-drawer__title">{{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'programs.program' | translate }}</h3>
+      @if (modalError()) { <p class="ds-field-error">{{ modalError() }}</p> }
+      <form (ngSubmit)="save()">
+        <div class="form-group">
+          <label class="ds-label">{{ 'table.organization' | translate }}</label>
+          <select class="ds-input" [(ngModel)]="form.organizationId" name="organizationId">
+            <option value="">—</option>
+            @for (o of orgOptions(); track o.id) {
+              <option [value]="o.id">{{ o.nameAr | localizedText:o.nameEn }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'table.code' | translate }}</label>
+          <input type="text" class="ds-input" [(ngModel)]="form.code" name="code" />
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'programs.titleEn' | translate }}</label>
+          <input type="text" class="ds-input" [(ngModel)]="form.titleEn" name="titleEn" />
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'programs.titleAr' | translate }}</label>
+          <input type="text" class="ds-input" [(ngModel)]="form.titleAr" name="titleAr" />
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'programs.deliveryMode' | translate }}</label>
+          <select class="ds-input" [(ngModel)]="form.deliveryMode" name="deliveryMode" (ngModelChange)="onProgramDeliveryModeChange()">
+            <option [ngValue]="null">—</option>
+            @for (mode of deliveryModeOptions; track mode) {
+              <option [ngValue]="mode">{{ ('programs.deliveryModes.' + mode) | translate }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'programs.executor' | translate }}</label>
+          <select class="ds-input" [(ngModel)]="form.executorType" name="executorType">
+            <option [ngValue]="null">—</option>
+            @for (t of executorTypeOptions; track t) {
+              <option [ngValue]="t">{{ ('programs.executorTypes.' + t) | translate }}</option>
+            }
+          </select>
+        </div>
+        @if (form.deliveryMode !== 'Online') {
+          <div class="form-group">
+            <label class="ds-label">{{ 'programs.location' | translate }}</label>
+            <select class="ds-input" [(ngModel)]="form.location" name="location">
+              @for (opt of programLocationScopeOptions; track opt) {
+                <option [ngValue]="opt">{{ ('programs.locationScope.' + opt) | translate }}</option>
+              }
+            </select>
+          </div>
+        }
+        @if (form.deliveryMode === 'Online' || form.deliveryMode === 'Hybrid') {
+          <div class="form-group">
+            <label class="ds-label">{{ 'programs.onlineLink' | translate }}</label>
+            <input type="url" class="ds-input" [(ngModel)]="form.onlineLink" name="onlineLink" autocomplete="url" />
+          </div>
+        }
+        <div class="form-group">
+          <label class="ds-label">{{ 'programs.programStartDate' | translate }}</label>
+          <input type="date" class="ds-input" [(ngModel)]="form.startDate" name="progStartDate" [max]="form.endDate || null" />
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'programs.programEndDate' | translate }}</label>
+          <input type="date" class="ds-input" [(ngModel)]="form.endDate" name="progEndDate" [min]="form.startDate || null" />
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'programs.capacity' | translate }}</label>
+          <input type="number" class="ds-input" [(ngModel)]="form.capacity" name="capacity" min="0" />
+        </div>
+        <div class="modal-drawer__actions">
+          <button type="button" class="ds-btn ds-btn--secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
+          <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

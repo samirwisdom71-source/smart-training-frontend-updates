@@ -1,0 +1,356 @@
+<app-page-shell [title]="'nav.trainingNeeds' | translate" [breadcrumbs]="breadcrumbs()">
+  <div class="actions-row" actions>
+    @if (canCreate()) {
+      <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }} {{ 'trainingNeeds.title' | translate }}</button>
+    }
+    @if (canGenerateFromGaps()) {
+      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="openGenerateFromGaps()">{{ 'trainingNeeds.generateFromGaps' | translate }}</button>
+    }
+    @if (canAssignToPlan()) {
+      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" [disabled]="selectedNeedIds().size === 0" (click)="openAssignModal()">
+        {{ 'trainingNeeds.assignToPlan' | translate }}
+      </button>
+    }
+  </div>
+  <div filters>
+    <div class="ds-filterbar">
+      <div class="ds-filterbar__controls">
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
+          <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (ngModelChange)="onSearchChange()" />
+        </div>
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'table.employee' | translate }}</div>
+          <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="employeeIdFilter" (ngModelChange)="onFilterChange()">
+            <option [ngValue]="null">{{ 'common.all' | translate }}</option>
+            @for (e of employeeOptions(); track e.id) {
+              <option [ngValue]="e.id">{{ getLocalizedText(e.fullNameAr, e.fullNameEn) }}</option>
+            }
+          </select>
+        </div>
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'table.job' | translate }}</div>
+          <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="jobIdFilter" (ngModelChange)="onFilterChange()">
+            <option [ngValue]="null">{{ 'common.all' | translate }}</option>
+            @for (j of jobOptions(); track j.id) {
+              <option [ngValue]="j.id">{{ getLocalizedText(j.titleAr, j.titleEn) }}</option>
+            }
+          </select>
+        </div>
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'table.organizationalUnit' | translate }}</div>
+          <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="organizationalUnitIdFilter" (ngModelChange)="onFilterChange()">
+            <option [ngValue]="null">{{ 'common.all' | translate }}</option>
+            @for (ou of ouOptions(); track ou.id) {
+              <option [ngValue]="ou.id">{{ getLocalizedText(ou.nameAr, ou.nameEn) }}</option>
+            }
+          </select>
+        </div>
+        <div class="ds-filterfield">
+          <div class="ds-filterfield__label">{{ 'table.status' | translate }}</div>
+          <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+            <option [ngValue]="null">{{ 'common.all' | translate }}</option>
+            <option value="Draft">{{ 'status.draft' | translate }}</option>
+            <option value="Submitted">{{ 'status.submitted' | translate }}</option>
+            <option value="Approved">{{ 'status.approved' | translate }}</option>
+            <option value="Rejected">{{ 'status.rejected' | translate }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="ds-filterbar__actions">
+        <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
+          {{ 'common.clearFilters' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="table-loading">
+      <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
+      <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
+      <div class="ds-skeleton" style="height: 48px;"></div>
+    </div>
+  } @else if (error()) {
+    <div class="ds-error-state">
+      <p class="ds-error-state__title">{{ error() }}</p>
+      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
+    </div>
+  } @else if (!data()?.items?.length) {
+    <div class="ds-empty">
+      <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p>
+      @if (canCreate()) {
+        <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }}</button>
+      }
+    </div>
+  } @else {
+    <div class="ds-table-wrap">
+      <table class="ds-table">
+        <thead>
+          <tr>
+            <th class="cell-check">
+              <input
+                type="checkbox"
+                [checked]="areAllRowsSelectedOnPage()"
+                (change)="toggleSelectAllOnPage($any($event.target).checked)"
+              />
+            </th>
+            <th>{{ 'table.title' | translate }}</th>
+            <th>{{ 'table.employee' | translate }}</th>
+            <th>{{ 'table.job' | translate }}</th>
+            <th>{{ 'table.status' | translate }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of data()!.items; track row.id) {
+            <tr>
+              <td class="cell-check">
+                <input type="checkbox" [checked]="selectedNeedIds().has(row.id)" (change)="toggleNeedSelection(row.id)" />
+              </td>
+              <td>{{ getLocalizedText(row.titleAr, row.titleEn) }}</td>
+              <td>{{ localizedTableEmployee(row) }}</td>
+              <td>{{ localizedTableJob(row) }}</td>
+              <td><span class="ds-badge" [ngClass]="statusBadgeClass(row.status)">{{ ('status.' + (row.status.charAt(0).toLowerCase() + row.status.slice(1))) | translate }}</span></td>
+              <td class="cell-actions">
+                @if (canEdit()) {
+                  @if (row.status === 'Draft' || row.status === 'Rejected') {
+                    <button
+                      type="button"
+                      class="ds-btn ds-btn--ghost ds-btn--icon"
+                      (click)="openEdit(row)"
+                      [attr.aria-label]="'common.edit' | translate"
+                      [title]="'common.edit' | translate"
+                    >
+                      <svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                        <path d="M13.5 6.5 16 4l3 3-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                    @if (row.status === 'Draft') {
+                      <button
+                        type="button"
+                        class="ds-btn ds-btn--ghost ds-btn--icon"
+                        (click)="submitNeed(row)"
+                        [attr.aria-label]="'common.submit' | translate"
+                        [title]="'common.submit' | translate"
+                      >
+                        <svg class="icon-svg" viewBox="0 0 24 24">
+                          <path d="M5 12h14M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </button>
+                    }
+                  }
+                  @if (row.status === 'Submitted') {
+                    <button
+                      type="button"
+                      class="ds-btn ds-btn--ghost ds-btn--icon"
+                      (click)="approveNeed(row)"
+                      [attr.aria-label]="'status.approved' | translate"
+                      [title]="'status.approved' | translate"
+                    >
+                      <svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
+                      (click)="rejectNeed(row)"
+                      [attr.aria-label]="'status.rejected' | translate"
+                      [title]="'status.rejected' | translate"
+                    >
+                      <svg class="icon-svg" viewBox="0 0 24 24">
+                        <path d="M6 6l12 12M18 6l-12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                      </svg>
+                    </button>
+                  }
+                }
+                @if (canDelete() && (row.status === 'Draft' || row.status === 'Rejected')) {
+                  <button
+                    type="button"
+                    class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
+                    (click)="confirmDelete(row)"
+                    [attr.aria-label]="'common.delete' | translate"
+                    [title]="'common.delete' | translate"
+                  >
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                      <path d="M6 19V7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                      <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M4 7h16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
+      <span class="pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
+      <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
+    </div>
+  }
+  </app-page-shell>
+
+  @if (showConfirm()) {
+    <app-confirm-dialog
+      [title]="'dialog.confirmDelete' | translate"
+      [message]="deleteConfirmMessage()"
+      [confirmLabel]="'common.delete' | translate"
+      [cancelLabel]="'common.cancel' | translate"
+      (confirm)="doDelete()"
+      (cancel)="cancelDelete()"
+    />
+  }
+
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
+      <h3 class="modal-drawer__title">{{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'trainingNeeds.title' | translate }}</h3>
+      @if (modalError()) {
+        <p class="ds-field-error">{{ modalError() }}</p>
+      }
+      <form (ngSubmit)="save()">
+        <div class="form-group">
+          <label class="ds-label">{{ 'trainingNeeds.titleEn' | translate }}</label>
+          <input type="text" class="ds-input" [(ngModel)]="form.titleEn" name="titleEn" />
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'trainingNeeds.titleAr' | translate }}</label>
+          <input type="text" class="ds-input" [(ngModel)]="form.titleAr" name="titleAr" />
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'table.organizationalUnit' | translate }}</label>
+          <select
+            class="ds-input"
+            [(ngModel)]="form.organizationalUnitId"
+            name="organizationalUnitId"
+            (ngModelChange)="onModalOrganizationalUnitChange($event)"
+          >
+            <option [ngValue]="null">—</option>
+            @for (ou of ouOptions(); track ou.id) {
+              <option [ngValue]="ou.id">{{ getLocalizedText(ou.nameAr, ou.nameEn) }}</option>
+            }
+          </select>
+        </div>
+        @if (form.organizationalUnitId && modalDepartmentOptions().length > 0) {
+          <div class="form-group department-picker">
+            <div class="ds-label">{{ 'trainingNeeds.departmentsInUnit' | translate }}</div>
+            <label class="department-picker__all">
+              <input
+                type="checkbox"
+                [checked]="modalAllDepartments()"
+                (change)="setModalAllDepartments($any($event.target).checked)"
+              />
+              {{ 'trainingNeeds.allDepartments' | translate }}
+            </label>
+            @if (!modalAllDepartments()) {
+              <div class="department-picker__list" role="group" [attr.aria-label]="'trainingNeeds.departmentsInUnit' | translate">
+                @for (dept of modalDepartmentOptions(); track dept.id) {
+                  <label class="department-picker__row">
+                    <input
+                      type="checkbox"
+                      [checked]="isModalDepartmentSelected(dept.id)"
+                      (change)="toggleModalDepartment(dept.id, $any($event.target).checked)"
+                    />
+                    <span class="department-picker__name">{{ getLocalizedText(dept.nameAr, dept.nameEn) }}</span>
+                  </label>
+                }
+              </div>
+              <p class="modal-hint">{{ 'trainingNeeds.selectDepartmentsHint' | translate }}</p>
+            }
+          </div>
+        }
+        <div class="form-group">
+          <label class="ds-label">{{ 'table.employee' | translate }}</label>
+          @if (loadingModalEmployees()) {
+            <p class="modal-hint">{{ 'common.loading' | translate }}</p>
+          } @else {
+            <select
+              class="ds-input"
+              [(ngModel)]="form.employeeId"
+              name="employeeId"
+              [disabled]="!form.organizationalUnitId"
+            >
+              <option [ngValue]="null">—</option>
+              @for (e of modalEmployeeOptions(); track e.id) {
+                <option [ngValue]="e.id">{{ getLocalizedText(e.fullNameAr, e.fullNameEn) }}</option>
+              }
+            </select>
+          }
+        </div>
+        <div class="form-group">
+          <label class="ds-label">{{ 'trainingNeeds.priority' | translate }}</label>
+          <select class="ds-input" [(ngModel)]="form.priority" name="priority">
+            @for (opt of priorityOptions; track opt.labelKey) {
+              <option [ngValue]="opt.value">{{ opt.labelKey | translate }}</option>
+            }
+          </select>
+        </div>
+        <div class="modal-drawer__actions">
+          <button type="button" class="ds-btn ds-btn--secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
+          <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showGenerateModal()) {
+  <div class="modal-overlay" (click)="closeGenerateModal()">
+    <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
+      <h3 class="modal-drawer__title">{{ 'trainingNeeds.generateFromGaps' | translate }}</h3>
+      @if (generateResult()) {
+        <p class="ds-field-success">{{ generateResult() }}</p>
+      }
+      @if (loadingGaps()) {
+        <p>{{ 'common.loading' | translate }}</p>
+      } @else if (gapsForGenerate().length === 0) {
+        <p>{{ 'trainingNeeds.noGaps' | translate }}</p>
+      } @else {
+        <p class="modal-hint">{{ 'trainingNeeds.selectGapsHint' | translate }}</p>
+        <div class="gaps-list">
+          @for (g of gapsForGenerate(); track g.id) {
+            <label class="gap-row">
+              <input type="checkbox" [checked]="selectedGapIds().has(g.id)" (change)="toggleGapSelection(g.id)" />
+              <span>{{ getLocalizedText(g.employeeNameAr, g.employeeNameEn) }} – {{ getLocalizedText(g.competencyNameAr, g.competencyNameEn) }} ({{ gapSeverityLabel(g.severity) }})</span>
+            </label>
+          }
+        </div>
+        <div class="modal-drawer__actions">
+          <button type="button" class="ds-btn ds-btn--secondary" (click)="closeGenerateModal()">{{ 'common.close' | translate }}</button>
+          <button type="button" class="ds-btn ds-btn--primary" [disabled]="saving()" (click)="runGenerateFromGaps()">{{ saving() ? ('common.loading' | translate) : ('trainingNeeds.generate' | translate) }}</button>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+@if (showAssignModal()) {
+  <div class="modal-overlay" (click)="closeAssignModal()">
+    <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
+      <h3 class="modal-drawer__title">{{ 'trainingNeeds.assignToPlan' | translate }}</h3>
+      @if (assignResult()) {
+        <p class="ds-field-success">{{ assignResult() }}</p>
+      }
+      <div class="form-group">
+        <label class="ds-label">{{ 'trainingPlans.plan' | translate }}</label>
+        <select class="ds-input" [(ngModel)]="selectedPlanId" name="selectedPlanId">
+          <option [ngValue]="null">—</option>
+          @for (p of planOptions(); track p.id) {
+            <option [ngValue]="p.id">{{ getLocalizedText(p.titleAr, p.titleEn) }} ({{ p.year }})</option>
+          }
+        </select>
+      </div>
+      <p class="modal-hint">{{ 'trainingNeeds.selectedNeedsCount' | translate:{ count: selectedNeedIds().size } }}</p>
+      <div class="modal-drawer__actions">
+        <button type="button" class="ds-btn ds-btn--secondary" (click)="closeAssignModal()">{{ 'common.cancel' | translate }}</button>
+        <button type="button" class="ds-btn ds-btn--primary" [disabled]="saving()" (click)="runAssignToPlan()">
+          {{ saving() ? ('common.loading' | translate) : ('trainingNeeds.assign' | translate) }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,166 @@
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { DecimalPipe } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
+import { ReportsApiService } from '../../../core/api/reports/reports-api.service';
+import { ShowIfPermissionDirective } from '../../../core/directives/show-if-permission.directive';
+import { PermissionCodes } from '../../../core/auth/permissions';
+import { LocaleService } from '../../../core/i18n/locale.service';
+import { forkJoin } from 'rxjs';
+import type { TrainingCoverageRow, TrainingParticipationRow, TrainingCostsRow, ProgramEffectivenessRow } from '../../../core/api/reports/reports-api.models';
+import type { ReportFilterParams } from '../../../core/api/reports/reports-api.models';
+
+@Component({
+  selector: 'app-reports-training-page',
+  standalone: true,
+  imports: [CommonModule, FormsModule, TranslateModule, DecimalPipe, RouterLink, RouterLinkActive, PageShellComponent, ShowIfPermissionDirective],
+  templateUrl: './reports-training-page.component.html',
+  styleUrls: ['./reports-training-page.component.scss'],
+})
+export class ReportsTrainingPageComponent implements OnInit {
+  private readonly reportsApi = inject(ReportsApiService);
+  private readonly translate = inject(TranslateService);
+  private readonly locale = inject(LocaleService);
+
+  protected readonly PermissionCodes = PermissionCodes;
+
+  readonly loading = signal(false);
+  readonly error = signal<string | null>(null);
+  readonly coverageRows = signal<TrainingCoverageRow[]>([]);
+  readonly participationRows = signal<TrainingParticipationRow[]>([]);
+  readonly costsRows = signal<TrainingCostsRow[]>([]);
+  readonly effectivenessRows = signal<ProgramEffectivenessRow[]>([]);
+  filterOrgId: string | null = null;
+  filterFromDate = '';
+  filterToDate = '';
+
+  breadcrumbs = computed(() => [{ label: this.translate.instant('nav.reports'), route: '/reports' }, { label: this.translate.instant('reports.training') }]);
+
+  ngOnInit(): void {
+    // Force Arabic + RTL for reports pages as requested.
+    this.locale.setLang('ar');
+    this.load();
+  }
+
+  onFromDateChange(): void {
+    // If user picks/enters a From date after To date, push To date forward.
+    if (this.filterFromDate && this.filterToDate && this.filterToDate < this.filterFromDate) {
+      this.filterToDate = this.filterFromDate;
+    }
+    this.load();
+  }
+
+  onToDateChange(): void {
+    // If user picks/enters a To date before From date, pull From date back.
+    if (this.filterFromDate && this.filterToDate && this.filterToDate < this.filterFromDate) {
+      this.filterFromDate = this.filterToDate;
+    }
+    this.load();
+  }
+
+  clearFilters(): void {
+    this.filterOrgId = null;
+    this.filterFromDate = '';
+    this.filterToDate = '';
+    this.load();
+  }
+
+  load(): void {
+    this.loading.set(true);
+    this.error.set(null);
+    const filter: any = {};
+    if (this.filterOrgId) filter.organizationId = this.filterOrgId;
+    if (this.filterFromDate) filter.fromDate = this.filterFromDate;
+    if (this.filterToDate) filter.toDate = this.filterToDate;
+
+    forkJoin({
+      coverage: this.reportsApi.getTrainingCoverage(filter),
+      participation: this.reportsApi.getTrainingParticipation(filter),
+      costs: this.reportsApi.getTrainingCosts(filter),
+      effectiveness: this.reportsApi.getProgramEffectiveness(filter),
+    }).subscribe({
+      next: (res) => {
+        this.loading.set(false);
+        if (res.coverage.success && res.coverage.data) this.coverageRows.set((res.coverage.data as any).rows ?? []);
+        if (res.participation.success && res.participation.data) this.participationRows.set((res.participation.data as any).rows ?? []);
+        if (res.costs.success && res.costs.data) this.costsRows.set((res.costs.data as any).rows ?? []);
+        if (res.effectiveness.success && res.effectiveness.data) this.effectivenessRows.set((res.effectiveness.data as any).rows ?? []);
+      },
+      error: () => { this.loading.set(false); this.error.set('Failed to load'); },
+    });
+  }
+
+  getCoverageExcelUrl(): string {
+    return this.reportsApi.getTrainingCoverageExcelUrl(this.currentFilter());
+  }
+
+  getParticipationExcelUrl(): string {
+    return this.reportsApi.getTrainingParticipationExcelUrl(this.currentFilter());
+  }
+
+  getCostsExcelUrl(): string {
+    return this.reportsApi.getTrainingCostsExcelUrl(this.currentFilter());
+  }
+
+  getEffectivenessExcelUrl(): string {
+    return this.reportsApi.getProgramEffectivenessExcelUrl(this.currentFilter());
+  }
+
+  getCoveragePdfUrl(): string {
+    return this.reportsApi.getTrainingCoveragePdfUrl(this.currentFilter());
+  }
+  getParticipationPdfUrl(): string {
+    return this.reportsApi.getTrainingParticipationPdfUrl(this.currentFilter());
+  }
+  getCostsPdfUrl(): string {
+    return this.reportsApi.getTrainingCostsPdfUrl(this.currentFilter());
+  }
+  getEffectivenessPdfUrl(): string {
+    return this.reportsApi.getProgramEffectivenessPdfUrl(this.currentFilter());
+  }
+
+  exportCoveragePdf(): void {
+    this.reportsApi.downloadReport(this.getCoveragePdfUrl(), 'training-coverage.pdf');
+  }
+  exportCoverageExcel(): void {
+    this.reportsApi.downloadReport(this.getCoverageExcelUrl(), 'training-coverage.xlsx');
+  }
+  exportParticipationPdf(): void {
+    this.reportsApi.downloadReport(this.getParticipationPdfUrl(), 'training-participation.pdf');
+  }
+  exportParticipationExcel(): void {
+    this.reportsApi.downloadReport(this.getParticipationExcelUrl(), 'training-participation.xlsx');
+  }
+  exportCostsPdf(): void {
+    this.reportsApi.downloadReport(this.getCostsPdfUrl(), 'training-costs.pdf');
+  }
+  exportCostsExcel(): void {
+    this.reportsApi.downloadReport(this.getCostsExcelUrl(), 'training-costs.xlsx');
+  }
+  exportEffectivenessPdf(): void {
+    this.reportsApi.downloadReport(this.getEffectivenessPdfUrl(), 'program-effectiveness.pdf');
+  }
+  exportEffectivenessExcel(): void {
+    this.reportsApi.downloadReport(this.getEffectivenessExcelUrl(), 'program-effectiveness.xlsx');
+  }
+
+  localizedCoverageOuName(row: TrainingCoverageRow): string {
+    const lang = (this.translate.currentLang || this.translate.getDefaultLang() || 'en').toLowerCase();
+    const prefersArabic = lang.startsWith('ar');
+    const ar = row.organizationalUnitNameAr?.trim() ?? '';
+    const en = row.organizationalUnitNameEn?.trim() ?? row.organizationalUnitName?.trim() ?? '';
+    if (prefersArabic) return ar || en || '—';
+    return en || ar || '—';
+  }
+
+  private currentFilter(): ReportFilterParams {
+    const f: ReportFilterParams = {};
+    if (this.filterOrgId) f.organizationId = this.filterOrgId;
+    if (this.filterFromDate) f.fromDate = this.filterFromDate;
+    if (this.filterToDate) f.toDate = this.filterToDate;
+    return f;
+  }
+}

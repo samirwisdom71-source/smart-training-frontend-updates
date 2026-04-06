@@ -1,0 +1,93 @@
+<app-page-shell [title]="'reports.competency' | translate" [breadcrumbs]="breadcrumbs()">
+  <div dir="rtl">
+  <nav class="report-tabs" aria-label="Report types">
+    <a routerLink="/reports/training" class="report-tabs__link" routerLinkActive="report-tabs__link--active">{{ 'reports.training' | translate }}</a>
+    <a routerLink="/reports/competency" class="report-tabs__link" routerLinkActive="report-tabs__link--active">{{ 'reports.competency' | translate }}</a>
+    <a routerLink="/reports/certifications" class="report-tabs__link" routerLinkActive="report-tabs__link--active">{{ 'reports.certifications' | translate }}</a>
+  </nav>
+  <div class="ds-filterbar">
+    <div class="ds-filterbar__controls">
+      <div class="ds-filterfield">
+        <div class="ds-filterfield__label">{{ 'audit.fromDate' | translate }}</div>
+        <input
+          type="date"
+          class="ds-input ds-filterfield__control"
+          [(ngModel)]="filterFromDate"
+          [max]="filterToDate || null"
+          (change)="onFromDateChange()"
+        />
+      </div>
+      <div class="ds-filterfield">
+        <div class="ds-filterfield__label">{{ 'audit.toDate' | translate }}</div>
+        <input
+          type="date"
+          class="ds-input ds-filterfield__control"
+          [(ngModel)]="filterToDate"
+          [min]="filterFromDate || null"
+          (change)="onToDateChange()"
+        />
+      </div>
+    </div>
+    <div class="ds-filterbar__actions">
+      <div class="report-export-actions" *appShowIfPermission="PermissionCodes.report.export">
+        <button type="button" class="export-icon-btn export-icon-btn--pdf" [attr.aria-label]="'reports.exportPdf' | translate" [title]="'reports.exportPdf' | translate" (click)="exportPdf()">
+          <svg class="export-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 3h7l3 3v15H7V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M12 10v7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M9.5 14.5 12 17l2.5-2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 20h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <span class="visually-hidden">PDF</span>
+        </button>
+        <button type="button" class="export-icon-btn export-icon-btn--excel" [attr.aria-label]="'reports.exportExcel' | translate" [title]="'reports.exportExcel' | translate" (click)="exportExcel()">
+          <svg class="export-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 3h7l3 3v15H7V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M10 12l4 6M14 12l-4 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M5 8h2v10H5" fill="currentColor" opacity="0.15"/>
+          </svg>
+          <span class="visually-hidden">Excel</span>
+        </button>
+      </div>
+      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
+        {{ 'common.clearFilters' | translate }}
+      </button>
+      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm filter-refresh-btn" (click)="load()">
+        <span class="filter-refresh-icon" aria-hidden="true">⟳</span>
+        <span class="filter-refresh-label">{{ 'common.refresh' | translate }}</span>
+      </button>
+    </div>
+  </div>
+  @if (loading()) {
+    <div class="table-loading"><div class="ds-skeleton" style="height: 120px;"></div></div>
+  } @else if (error()) {
+    <div class="ds-error-state"><p>{{ error() }}</p></div>
+  } @else {
+    <div class="ds-table-wrap">
+      <table class="ds-table">
+        <caption class="visually-hidden">{{ 'reports.competency' | translate }}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{{ 'competency.competency' | translate }}</th>
+            <th scope="col">{{ 'table.organizationalUnit' | translate }}</th>
+            <th scope="col">{{ 'reports.severity' | translate }}</th>
+            <th scope="col">{{ 'reports.gapCount' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rows(); track r.competencyName + (r.departmentName ?? '') + r.severity) {
+            <tr>
+              <td>{{ r.competencyName }}</td>
+              <td>{{ localizedDepartmentName(r) }}</td>
+              <td>{{ r.severity }}</td>
+              <td>{{ r.gapCount }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (!rows().length) { <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p> }
+  }
+  </div>
+</app-page-shell>

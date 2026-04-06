@@ -1,0 +1,125 @@
+.filter-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+
+  .filter-search { flex: 1 1 12rem; min-width: 10rem; }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+}
+
+.modal-drawer {
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.modal-drawer__title {
+  font-size: var(--text-h1);
+  font-weight: 600;
+  margin: 0 0 var(--space-md);
+}
+
+.modal-drawer form .form-group {
+  margin-bottom: var(--space-md);
+}
+
+.modal-drawer__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+.modal-hint {
+  font-size: var(--text-body-sm);
+  color: var(--color-text-secondary);
+}
+
+.recipient-select-all {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  font-size: var(--text-body-sm);
+  cursor: pointer;
+}
+
+.recipient-list {
+  max-height: 220px;
+  overflow: auto;
+  padding: var(--space-xs);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--color-surface-muted, #f8fafc);
+}
+
+.recipient-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  font-size: var(--text-body-sm);
+}
+
+.recipient-row:hover {
+  background: var(--color-surface-hover, rgba(0, 0, 0, 0.04));
+}
+
+.cell-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2xs);
+  flex-wrap: wrap;
+}
+
+.transfer-status-badge {
+  border: 1px solid transparent;
+  font-weight: 700;
+}
+
+.transfer-status-badge--planned {
+  color: #7c2d12;
+  background: #ffedd5;
+  border-color: #fdba74;
+}
+
+.transfer-status-badge--inprogress {
+  color: #1d4ed8;
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.transfer-status-badge--completed {
+  color: #166534;
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.transfer-status-badge--cancelled {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.transfer-status-badge--default {
+  color: #334155;
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}

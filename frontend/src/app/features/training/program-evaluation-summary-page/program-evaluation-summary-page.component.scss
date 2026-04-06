@@ -1,0 +1,9 @@
+.program-name { margin-bottom: var(--space-md); }
+.summary-card { padding: var(--space-lg); margin-bottom: var(--space-lg); }
+.summary-card h3 { margin: 0 0 var(--space-md); }
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--space-md); }
+.summary-item { display: flex; flex-direction: column; gap: var(--space-2xs); }
+.summary-label { font-size: var(--text-caption); color: var(--color-text-secondary); }
+.summary-value { font-size: var(--text-h2); font-weight: 600; }
+.section-title { font-size: var(--text-h2); margin: var(--space-lg) 0 var(--space-sm); }
+.table-loading { padding: var(--space-md) 0; }

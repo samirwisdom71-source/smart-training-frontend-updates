@@ -1,0 +1,371 @@
+<app-page-shell
+  [title]="(program()?.titleAr | localizedText:program()?.titleEn:('nav.programs' | translate))"
+  [breadcrumbs]="breadcrumbs()"
+  [showPageTitle]="false"
+>
+  @if (loading()) {
+    <div class="program-detail program-detail--loading">
+      <div class="program-detail__skeleton ds-skeleton"></div>
+      <div class="program-detail__skeleton program-detail__skeleton--short ds-skeleton"></div>
+    </div>
+  } @else if (error()) {
+    <div class="ds-error-state program-detail__error">
+      <p class="ds-error-state__title">{{ error() }}</p>
+      <a routerLink="/programs" class="ds-btn ds-btn--secondary ds-btn--sm">{{ 'common.back' | translate }}</a>
+    </div>
+  } @else if (program()) {
+    @let p = program()!;
+    <div class="program-detail">
+      <article class="program-hero" aria-labelledby="program-hero-title">
+        <header class="program-hero__banner">
+          <div class="program-hero__banner-text">
+            <h1 id="program-hero-title" class="program-hero__title">{{ p.titleAr | localizedText:p.titleEn:p.titleEn }}</h1>
+            <p class="program-hero__org">{{ p.organizationNameEn }}</p>
+          </div>
+          <span class="program-hero__status ds-badge" [ngClass]="statusBadgeClass(p.status)">{{ p.status }}</span>
+        </header>
+
+        <div class="program-hero__body">
+          <ul class="program-kv-grid" role="list">
+            <li class="program-kv">
+              <span class="program-kv__label">{{ 'programs.deliveryMode' | translate }}</span>
+              <span class="program-kv__value">{{ p.deliveryMode ?? '—' }}</span>
+            </li>
+            @if (p.deliveryMode !== 'Online') {
+              <li class="program-kv">
+                <span class="program-kv__label">{{ 'programs.location' | translate }}</span>
+                <span class="program-kv__value">{{ locationScopeLabel(p.location) }}</span>
+              </li>
+            }
+            @if (p.deliveryMode === 'Online' || p.deliveryMode === 'Hybrid') {
+              <li class="program-kv program-kv--wide">
+                <span class="program-kv__label">{{ 'programs.onlineLink' | translate }}</span>
+                <span class="program-kv__value">
+                  @if (p.onlineLink) {
+                    <a [href]="p.onlineLink" target="_blank" rel="noopener">{{ p.onlineLink }}</a>
+                  } @else {
+                    —
+                  }
+                </span>
+              </li>
+            }
+            <li class="program-kv">
+              <span class="program-kv__label">{{ 'programs.capacity' | translate }}</span>
+              <span class="program-kv__value">{{ p.capacity ?? '—' }}</span>
+            </li>
+            <li class="program-kv program-kv--date-start">
+              <span class="program-kv__label">{{ 'programs.programStartDate' | translate }}</span>
+              <span class="program-kv__value program-kv__value--date">{{ p.startDate ? (p.startDate | date:'mediumDate') : '—' }}</span>
+            </li>
+            <li class="program-kv program-kv--date-end">
+              <span class="program-kv__label">{{ 'programs.programEndDate' | translate }}</span>
+              <span class="program-kv__value program-kv__value--date">{{ p.endDate ? (p.endDate | date:'mediumDate') : '—' }}</span>
+            </li>
+          </ul>
+
+          @if (canEdit()) {
+            <div class="program-hero__actions">
+              @for (opt of nextStatusOptions(); track opt.value) {
+                <button
+                  type="button"
+                  class="ds-btn ds-btn--sm program-hero__btn program-hero__btn--gold"
+                  [disabled]="statusChanging()"
+                  (click)="changeStatus(opt.value)"
+                >
+                  {{ opt.labelKey | translate }}
+                </button>
+              }
+              @if (p.scientificMaterialsPath) {
+                <a
+                  class="ds-btn ds-btn--sm program-hero__btn program-hero__btn--outline"
+                  [href]="materialsUrl(p.scientificMaterialsPath)"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  {{ 'programs.scientificMaterials' | translate }}
+                </a>
+              }
+              <label class="ds-btn ds-btn--sm program-hero__btn program-hero__btn--outline" [class.ds-btn--disabled]="materialsUploading()">
+                <input type="file" accept="application/pdf" (change)="onMaterialsSelected($event)" style="display:none" />
+                {{ materialsUploading() ? ('common.loading' | translate) : ('common.upload' | translate) }}
+              </label>
+            </div>
+            @if (materialsError()) {
+              <p class="program-hero__materials-error ds-field-error">{{ materialsError() }}</p>
+            }
+          }
+        </div>
+      </article>
+
+      <section class="program-summary-section" aria-labelledby="program-summary-title">
+        <button
+          type="button"
+          id="program-summary-title"
+          class="program-summary-trigger"
+          [attr.aria-expanded]="summaryExpanded()"
+          aria-controls="program-summary-panel"
+          (click)="toggleSummaryExpanded()"
+        >
+          <span class="program-summary-trigger__text">{{ 'common.details' | translate }}</span>
+          <span class="program-summary-trigger__icon-wrap" aria-hidden="true">
+            <svg class="program-summary-trigger__icon" [class.program-summary-trigger__icon--open]="summaryExpanded()" viewBox="0 0 20 20" fill="none">
+              <path d="M5 7.5 10 12.5 15 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+        </button>
+
+        @if (summaryExpanded()) {
+          <div id="program-summary-panel" class="program-summary-panel">
+            <div class="program-summary-layout">
+              <article class="program-summary-card ds-card">
+                <h3 class="program-summary-card__title">{{ 'common.details' | translate }}</h3>
+                <dl class="program-summary-meta">
+                  <div class="program-summary-meta__item">
+                    <dt>{{ 'table.code' | translate }}</dt>
+                    <dd>{{ p.code || '—' }}</dd>
+                  </div>
+                  <div class="program-summary-meta__item">
+                    <dt>{{ 'programs.executorType' | translate }}</dt>
+                    <dd>{{ p.executorType ? (('programs.executorTypes.' + p.executorType) | translate) : '—' }}</dd>
+                  </div>
+                  <div class="program-summary-meta__item">
+                    <dt>{{ 'competency.competency' | translate }}</dt>
+                    <dd>{{ p.competencyNameEn || '—' }}</dd>
+                  </div>
+                  <div class="program-summary-meta__item">
+                    <dt>{{ 'table.createdAt' | translate }}</dt>
+                    <dd>{{ p.createdAt ? (p.createdAt | date:'mediumDate') : '—' }}</dd>
+                  </div>
+                </dl>
+
+                <div class="program-summary-description">
+                  <h4 class="program-summary-description__title">{{ 'table.description' | translate }}</h4>
+                  <p class="program-summary-description__text">
+                    {{ (p.descriptionAr | localizedText:p.descriptionEn:p.descriptionEn) || '—' }}
+                  </p>
+                </div>
+              </article>
+
+              <article class="program-summary-card ds-card">
+                <h3 class="program-summary-card__title">{{ 'evaluation.summary' | translate }}</h3>
+
+                @if (evaluationSummaryLoading()) {
+                  <div class="program-summary-card__loading ds-skeleton"></div>
+                } @else if (evaluationSummary()) {
+                  @let summary = evaluationSummary()!;
+                  <div class="program-summary-metrics">
+                    <div class="program-summary-metrics__item">
+                      <span class="program-summary-metrics__label">{{ 'evaluation.avgContentScore' | translate }}</span>
+                      <strong class="program-summary-metrics__value">{{ summary.avgContentScore | number:'1.1-1' }}</strong>
+                    </div>
+                    <div class="program-summary-metrics__item">
+                      <span class="program-summary-metrics__label">{{ 'evaluation.avgTrainerScore' | translate }}</span>
+                      <strong class="program-summary-metrics__value">{{ summary.avgTrainerScore | number:'1.1-1' }}</strong>
+                    </div>
+                    <div class="program-summary-metrics__item">
+                      <span class="program-summary-metrics__label">{{ 'evaluation.avgOrganizationScore' | translate }}</span>
+                      <strong class="program-summary-metrics__value">{{ summary.avgOrganizationScore | number:'1.1-1' }}</strong>
+                    </div>
+                    <div class="program-summary-metrics__item">
+                      <span class="program-summary-metrics__label">{{ 'evaluation.avgUsefulnessScore' | translate }}</span>
+                      <strong class="program-summary-metrics__value">{{ summary.avgUsefulnessScore | number:'1.1-1' }}</strong>
+                    </div>
+                    <div class="program-summary-metrics__item program-summary-metrics__item--wide">
+                      <span class="program-summary-metrics__label">{{ 'evaluation.totalResponses' | translate }}</span>
+                      <strong class="program-summary-metrics__value">{{ summary.totalResponses }}</strong>
+                    </div>
+                  </div>
+                } @else {
+                  <p class="program-summary-card__empty">—</p>
+                }
+              </article>
+            </div>
+          </div>
+        }
+      </section>
+
+      <section class="program-sessions" aria-labelledby="program-sessions-title">
+        <div class="program-sessions__toolbar">
+          <div class="program-sessions__title-wrap">
+            <h2 id="program-sessions-title" class="program-sessions__title">{{ 'programs.sessions' | translate }}</h2>
+            <span class="program-sessions__accent" aria-hidden="true"></span>
+          </div>
+          @if (canEdit()) {
+            <button type="button" class="ds-btn ds-btn--sm program-sessions__add" (click)="openAddSession()">
+              {{ 'common.add' | translate }} {{ 'programs.session' | translate }}
+            </button>
+          }
+        </div>
+
+        @if (!(p.sessions && p.sessions.length)) {
+          <div class="program-empty ds-empty">
+            <p class="program-empty__title ds-empty__title">{{ 'programs.noSessions' | translate }}</p>
+            @if (canEdit()) {
+              <button type="button" class="ds-btn ds-btn--sm program-sessions__add" (click)="openAddSession()">{{ 'common.add' | translate }}</button>
+            }
+          </div>
+        } @else {
+          <div class="ds-table-wrap program-table-wrap">
+            <table class="ds-table program-table">
+              <thead>
+                <tr>
+                  <th>{{ 'programs.sessionTitle' | translate }}</th>
+                  <th>{{ 'programs.startDateTime' | translate }}</th>
+                  <th>{{ 'programs.endDateTime' | translate }}</th>
+                  <th>{{ 'programs.location' | translate }}</th>
+                  <th>{{ 'programs.onlineLink' | translate }}</th>
+                  @if (canEdit()) {
+                    <th class="program-table__actions-col"></th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (s of p.sessions; track s.id) {
+                  <tr>
+                    <td>{{ s.titleEn }}</td>
+                    <td>{{ s.startDateTime | date:'short' }}</td>
+                    <td>{{ s.endDateTime | date:'short' }}</td>
+                    <td>{{ locationScopeLabel(s.location) }}</td>
+                    <td>
+                      @if (s.onlineLink) {
+                        <a [href]="s.onlineLink" target="_blank" rel="noopener">{{ 'programs.openOnlineLink' | translate }}</a>
+                      } @else {
+                        —
+                      }
+                    </td>
+                    @if (canEdit()) {
+                      <td class="cell-actions program-table__actions">
+                        <button
+                          type="button"
+                          class="ds-btn ds-btn--ghost ds-btn--icon"
+                          (click)="openEditSession(s)"
+                          [attr.aria-label]="'common.edit' | translate"
+                          [title]="'common.edit' | translate"
+                        >
+                          <svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M13.5 6.5 16 4l3 3-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
+                          (click)="confirmDeleteSession(s)"
+                          [attr.aria-label]="'common.delete' | translate"
+                          [title]="'common.delete' | translate"
+                        >
+                          <svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M6 19V7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                            <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M4 7h16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                          </svg>
+                        </button>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+
+      <nav class="program-next-nav">
+        <a [routerLink]="['/enrollments']" [queryParams]="{ programId: p.id }" class="program-next-nav__card">
+          <span class="program-next-nav__label">{{ 'nav.enrollments' | translate }}</span>
+          <span class="program-next-nav__hint" aria-hidden="true">→</span>
+        </a>
+        <a [routerLink]="['/attendance']" [queryParams]="{ programId: p.id }" class="program-next-nav__card program-next-nav__card--muted">
+          <span class="program-next-nav__label">{{ 'attendance.title' | translate }}</span>
+          <span class="program-next-nav__hint" aria-hidden="true">→</span>
+        </a>
+        <a [routerLink]="['/programs', p.id, 'evaluation']" class="program-next-nav__card program-next-nav__card--muted">
+          <span class="program-next-nav__label">{{ 'evaluation.submitEvaluation' | translate }}</span>
+          <span class="program-next-nav__hint" aria-hidden="true">→</span>
+        </a>
+      </nav>
+    </div>
+  }
+</app-page-shell>
+@if (showConfirm()) {
+  <app-confirm-dialog
+    [title]="'dialog.confirmDelete' | translate"
+    [message]="deleteConfirmMessage()"
+    [confirmLabel]="'common.delete' | translate"
+    [cancelLabel]="'common.cancel' | translate"
+    (confirm)="doDelete()"
+    (cancel)="cancelDelete()"
+  />
+}
+@if (showSessionModal()) {
+  <div class="modal-overlay program-modal-overlay" (click)="closeSessionModal()">
+    <div class="modal-drawer ds-card program-modal" (click)="$event.stopPropagation()">
+      <div class="program-modal__head">
+        <h3 class="program-modal__title">{{ editingSession() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'programs.session' | translate }}</h3>
+      </div>
+      <div class="program-modal__body">
+        @if (modalError()) { <p class="ds-field-error">{{ modalError() }}</p> }
+        <form (ngSubmit)="saveSession()">
+          <div class="form-group">
+            <label class="ds-label">{{ 'programs.sessionTitleEn' | translate }}</label>
+            <input type="text" class="ds-input" [(ngModel)]="sessionForm.titleEn" name="titleEn" />
+          </div>
+          <div class="form-group">
+            <label class="ds-label">{{ 'programs.sessionTitleAr' | translate }}</label>
+            <input type="text" class="ds-input" [(ngModel)]="sessionForm.titleAr" name="titleAr" />
+          </div>
+          <div class="form-group">
+            <label class="ds-label">{{ 'programs.startDateTime' | translate }}</label>
+            <input
+              type="datetime-local"
+              class="ds-input"
+              [(ngModel)]="sessionForm.startDateTime"
+              name="startDateTime"
+              [max]="sessionForm.endDateTime || null"
+              (change)="onSessionStartChange()"
+            />
+          </div>
+          <div class="form-group">
+            <label class="ds-label">{{ 'programs.endDateTime' | translate }}</label>
+            <input
+              type="datetime-local"
+              class="ds-input"
+              [(ngModel)]="sessionForm.endDateTime"
+              name="endDateTime"
+              [min]="sessionForm.startDateTime || null"
+              (change)="onSessionEndChange()"
+            />
+          </div>
+          @if (sessionPlacePreview(); as sp) {
+            @if (sp.hasAny) {
+              <div class="program-modal__inherit" aria-live="polite">
+                <p class="program-modal__inherit-hint">{{ 'programs.sessionPlaceFromProgram' | translate }}</p>
+                @if (sp.showLocation) {
+                  <p class="program-modal__inherit-row">
+                    <span class="program-modal__inherit-label">{{ 'programs.location' | translate }}</span>
+                    <span class="program-modal__inherit-value">{{ locationScopeLabel(sp.location) }}</span>
+                  </p>
+                }
+                @if (sp.showLink) {
+                  <p class="program-modal__inherit-row">
+                    <span class="program-modal__inherit-label">{{ 'programs.onlineLink' | translate }}</span>
+                    <span class="program-modal__inherit-value">
+                      @if (sp.onlineLink) {
+                        <a [href]="sp.onlineLink" target="_blank" rel="noopener">{{ sp.onlineLink }}</a>
+                      } @else {
+                        —
+                      }
+                    </span>
+                  </p>
+                }
+              </div>
+            }
+          }
+          <div class="modal-drawer__actions program-modal__actions">
+            <button type="button" class="ds-btn ds-btn--secondary" (click)="closeSessionModal()">{{ 'common.cancel' | translate }}</button>
+            <button type="submit" class="ds-btn ds-btn--primary program-modal__submit" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}

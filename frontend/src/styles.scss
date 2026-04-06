@@ -1,0 +1,45 @@
+@use './styles/variables' as *;
+@use './styles/theme' as *;
+
+/* Global overrides */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Page actions row: align add button to the end (right in LTR, left in RTL) */
+.actions-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-md);
+}
+
+/* App tooltip (icons, sidebar collapsed, table actions) */
+.app-tooltip {
+  position: absolute;
+  z-index: 2000;
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(17, 24, 39, 0.92);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15px;
+  line-height: 1.2;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  opacity: 0;
+  transform: translate3d(-9999px, -9999px, 0) scale(0.98);
+  pointer-events: none;
+  transition: opacity 120ms ease, transform 120ms ease;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.app-tooltip--visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}

@@ -1,0 +1,28 @@
+/* Settings page */
+
+.settings-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.settings-table th,
+.settings-table td {
+  padding: 0.75rem 1rem;
+  text-align: start;
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+}
+.settings-table th {
+  font-weight: 600;
+  color: var(--color-text-secondary, #666);
+}
+.settings-table .value-cell {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.settings-table .value-cell input {
+  flex: 1;
+  min-width: 0;
+}
+.settings-table .value-cell .ds-btn {
+  flex-shrink: 0;
+}

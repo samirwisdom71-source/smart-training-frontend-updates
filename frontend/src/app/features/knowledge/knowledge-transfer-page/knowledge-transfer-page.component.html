@@ -1,0 +1,214 @@
+<app-page-shell [title]="'nav.knowledgeTransfer' | translate" [breadcrumbs]="breadcrumbs()">
+  <div class="ds-filterbar">
+    <div class="ds-filterbar__controls">
+      <div class="ds-filterfield">
+        <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
+        <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (keyup.enter)="load()" />
+      </div>
+    </div>
+    <div class="ds-filterbar__actions">
+      @if (canCreate()) {
+        <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openAddModal()">{{ 'common.add' | translate }}</button>
+      }
+      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'common.refresh' | translate }}</button>
+    </div>
+  </div>
+  @if (loading()) {
+    <div class="table-loading"><div class="ds-skeleton" style="height: 120px;"></div></div>
+  } @else if (error()) {
+    <div class="ds-error-state"><p>{{ error() }}</p></div>
+  } @else {
+    <div class="ds-table-wrap">
+      <table class="ds-table">
+        <thead>
+          <tr>
+            <th>{{ 'knowledge.title' | translate }}</th>
+            <th>{{ 'knowledge.from' | translate }}</th>
+            <th>{{ 'knowledge.to' | translate }}</th>
+            <th>{{ 'knowledge.transferPeriod' | translate }}</th>
+            <th>{{ 'knowledge.status' | translate }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.id) {
+            <tr>
+              <td>{{ title(item) }}</td>
+              <td>{{ tableEmployeeDisplayName(item.fromEmployeeId, item.fromEmployeeNameEn) }}</td>
+              <td>{{ tableEmployeeDisplayName(item.toEmployeeId, item.toEmployeeNameEn) }}</td>
+              <td>{{ formatPeriod(item) }}</td>
+              <td>
+                <span
+                  class="ds-badge transfer-status-badge"
+                  [class.transfer-status-badge--planned]="item.status === 'Planned'"
+                  [class.transfer-status-badge--inprogress]="item.status === 'InProgress'"
+                  [class.transfer-status-badge--completed]="item.status === 'Completed'"
+                  [class.transfer-status-badge--cancelled]="item.status === 'Cancelled'"
+                  [class.transfer-status-badge--default]="!item.status || (item.status !== 'Planned' && item.status !== 'InProgress' && item.status !== 'Completed' && item.status !== 'Cancelled')"
+                >
+                  {{ transferStatusLabel(item.status) }}
+                </span>
+              </td>
+              <td class="cell-actions">
+                @if (canEdit()) {
+                  <button
+                    type="button"
+                    class="ds-btn ds-btn--ghost ds-btn--icon"
+                    (click)="openEditModal(item)"
+                    [attr.aria-label]="'common.edit' | translate"
+                    [title]="'common.edit' | translate"
+                  >
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                      <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                      <path d="M13.5 6.5 16 4l3 3-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                }
+                @if (canDelete()) {
+                  <button
+                    type="button"
+                    class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
+                    (click)="confirmDelete(item)"
+                    [attr.aria-label]="'common.delete' | translate"
+                    [title]="'common.delete' | translate"
+                  >
+                    <svg class="icon-svg" viewBox="0 0 24 24">
+                      <path d="M6 19V7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                      <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M4 7h16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (!items().length) { <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p> }
+  }
+  @if (showConfirm()) {
+    <app-confirm-dialog
+      [title]="'dialog.confirmDelete' | translate"
+      [message]="deleteConfirmMessage()"
+      [confirmLabel]="'common.delete' | translate"
+      [cancelLabel]="'common.cancel' | translate"
+      (confirm)="doDelete()"
+      (cancel)="cancelDelete()"
+    />
+  }
+
+  @if (showAddModal()) {
+    <div class="modal-overlay" (click)="closeAddModal()">
+      <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
+        <h3 class="modal-drawer__title">{{ (editingId() ? 'knowledge.editKnowledgeTransfer' : 'knowledge.addKnowledgeTransfer') | translate }}</h3>
+        @if (modalError()) {
+          <p class="ds-field-error">{{ modalError() }}</p>
+        }
+        @if (loadingDetail()) {
+          <p class="modal-hint">{{ 'common.loading' | translate }}</p>
+        } @else {
+        <form (ngSubmit)="saveTransfer()">
+          <div class="form-group">
+            <label class="ds-label" for="kt-title-en">{{ 'table.titleEn' | translate }}</label>
+            <input id="kt-title-en" type="text" class="ds-input" name="titleEn" [(ngModel)]="transferForm.titleEn" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label class="ds-label" for="kt-title-ar">{{ 'table.titleAr' | translate }}</label>
+            <input id="kt-title-ar" type="text" class="ds-input" name="titleAr" [(ngModel)]="transferForm.titleAr" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label class="ds-label" for="kt-desc-en">{{ 'table.descriptionEn' | translate }}</label>
+            <textarea id="kt-desc-en" class="ds-textarea" name="descEn" rows="3" [(ngModel)]="transferForm.descriptionEn"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="ds-label" for="kt-desc-ar">{{ 'table.descriptionAr' | translate }}</label>
+            <textarea id="kt-desc-ar" class="ds-textarea" name="descAr" rows="3" [(ngModel)]="transferForm.descriptionAr"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="ds-label" for="kt-from">{{ 'knowledge.selectFromInternalExpert' | translate }}</label>
+            @if (loadingModalEmployees()) {
+              <p class="modal-hint">{{ 'common.loading' | translate }}</p>
+            } @else {
+              <select
+                id="kt-from"
+                class="ds-input"
+                name="fromEmployeeId"
+                [(ngModel)]="transferForm.fromEmployeeId"
+                (ngModelChange)="onFromEmployeeChange()"
+              >
+                <option [ngValue]="null">—</option>
+                @for (e of fromExpertOptions(); track e.id) {
+                  <option [ngValue]="e.id">{{ employeeLabel(e) }}</option>
+                }
+              </select>
+              @if (!fromExpertOptions().length) {
+                <p class="modal-hint">{{ 'knowledge.noInternalExpertsForTransfer' | translate }}</p>
+              }
+            }
+          </div>
+          <div class="form-group">
+            <div class="ds-label">{{ 'knowledge.selectToEmployee' | translate }}</div>
+            @if (loadingModalEmployees()) {
+              <p class="modal-hint">{{ 'common.loading' | translate }}</p>
+            } @else if (editingId()) {
+              <select id="kt-to" class="ds-input" name="toEmployeeId" [(ngModel)]="transferForm.toEmployeeId">
+                <option [ngValue]="null">—</option>
+                @for (e of employeeOptions(); track e.id) {
+                  <option [ngValue]="e.id">{{ employeeLabel(e) }}</option>
+                }
+              </select>
+            } @else {
+              <label class="recipient-select-all">
+                <input
+                  type="checkbox"
+                  [checked]="allRecipientsSelected()"
+                  [indeterminate]="someRecipientsSelected()"
+                  (change)="toggleSelectAllRecipients($any($event.target).checked)"
+                />
+                {{ 'knowledge.selectAllRecipients' | translate }}
+              </label>
+              <div class="recipient-list" role="group" [attr.aria-label]="'knowledge.selectToEmployee' | translate">
+                @for (e of recipientEmployees(); track e.id) {
+                  <label class="recipient-row">
+                    <input
+                      type="checkbox"
+                      [checked]="isToRecipientSelected(e.id)"
+                      (change)="toggleToRecipient(e.id, $any($event.target).checked)"
+                    />
+                    <span>{{ employeeLabel(e) }}</span>
+                  </label>
+                }
+              </div>
+              <p class="modal-hint">{{ 'knowledge.recipientCheckboxHint' | translate }}</p>
+            }
+          </div>
+          <div class="form-group">
+            <label class="ds-label" for="kt-date">{{ 'knowledge.transferFromDateTime' | translate }}</label>
+            <input id="kt-date" type="datetime-local" class="ds-input" name="transferDate" [(ngModel)]="transferForm.transferDate" />
+          </div>
+          <div class="form-group">
+            <label class="ds-label" for="kt-end-date">{{ 'knowledge.transferToDateTime' | translate }}</label>
+            <input id="kt-end-date" type="datetime-local" class="ds-input" name="transferEndDate" [(ngModel)]="transferForm.transferEndDate" />
+          </div>
+          <div class="form-group">
+            <label class="ds-label" for="kt-status">{{ 'knowledge.status' | translate }}</label>
+            <select id="kt-status" class="ds-input" name="status" [(ngModel)]="transferForm.status">
+              @for (opt of transferStatusOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.labelKey | translate }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="ds-label" for="kt-notes">{{ 'table.notes' | translate }}</label>
+            <textarea id="kt-notes" class="ds-textarea" name="notes" rows="3" [(ngModel)]="transferForm.notes"></textarea>
+          </div>
+          <div class="modal-drawer__actions">
+            <button type="button" class="ds-btn ds-btn--secondary" (click)="closeAddModal()">{{ 'common.cancel' | translate }}</button>
+            <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving() || loadingDetail()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
+          </div>
+        </form>
+        }
+      </div>
+    </div>
+  }
+</app-page-shell>

@@ -1,0 +1,143 @@
+// Smart Training — Premium Design System Tokens
+// Forest / Growth palette — greens (learning, growth)
+// RTL-ready; government/enterprise grade
+
+:root {
+  // —— Primary (deep teal) ——
+  --color-primary: #0a4d52;
+  --color-primary-hover: #0d6b72;
+  --color-primary-active: #06363a;
+  --color-primary-contrast: #ffffff;
+  --color-primary-muted: rgba(10, 77, 82, 0.14);
+
+  // —— Secondary (neutral gray) ——
+  --color-secondary: #4b5563;
+  --color-secondary-hover: #6b7280;
+  --color-secondary-soft: #e5e7eb;
+
+  // —— Accent (teal-green) ——
+  --color-accent: #0d9488;
+  --color-accent-hover: #14b8a6;
+  --color-accent-soft: #ccfbf1;
+
+  // —— Background & surface ——
+  --color-bg: #ffffff;
+  --color-bg-alt: #f9fafb;
+  --color-bg-elevated: #ffffff;
+  /* Sidebar (white surface) */
+  --color-bg-sidebar: #ffffff;
+  --color-sidebar-border: var(--color-border-light);
+  --color-sidebar-text: var(--color-primary);
+  /* أوضح من النص الرئيسي؛ ما زال ضمن عائلة البرايماري */
+  --color-sidebar-text-muted: color-mix(in srgb, var(--color-primary) 72%, var(--color-text-secondary));
+  --color-sidebar-hover: rgba(10, 77, 82, 0.08);
+  --color-sidebar-active: rgba(184, 134, 11, 0.14);
+  --color-sidebar-indicator: #b8860b;
+  --color-sidebar-icon-bg: rgba(10, 77, 82, 0.08);
+  --color-sidebar-icon-bg-hover: rgba(184, 134, 11, 0.2);
+  --color-sidebar-scrollbar-thumb: rgba(15, 23, 42, 0.22);
+
+  /* Header (match sidebar) */
+  --color-bg-header: #ffffff;
+  --color-header-border: var(--color-border-light);
+  --color-header-text: var(--color-text);
+  --color-header-text-muted: var(--color-text-secondary);
+  --color-header-hover: rgba(10, 77, 82, 0.08);
+  --color-bg-card: #ffffff;
+  --color-bg-hover: #f3f4f6;
+  --color-bg-subtle: #f9fafb;
+
+  // —— Border (neutral) ——
+  --color-border: #d1d5db;
+  --color-border-light: #e5e7eb;
+  --color-border-focus: var(--color-primary);
+
+  // —— Text ——
+  --color-text: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-text-inverse: #ffffff;
+
+  // —— Semantic ——
+  --color-success: #2e7d32;
+  --color-success-soft: #e8f5e9;
+  --color-warning: #ed6c02;
+  --color-warning-soft: #fff3e0;
+  --color-error: #d32f2f;
+  --color-error-soft: #fdecea;
+  --color-info: #0288d1;
+  --color-info-soft: #e1f5fe;
+
+  // —— Legacy aliases (keep for existing code) ——
+  --color-primary-light: var(--color-primary-hover);
+  --color-primary-dark: var(--color-primary-active);
+  --color-accent-old: #0d9488;
+  --color-accent-soft-old: #ccfbf1;
+
+  // —— Spacing (4px base) ——
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs: 6px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  // —— Typography ——
+  --font-sans: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Outfit', 'DM Sans', sans-serif;
+  --font-arabic: 'Tajawal', 'DM Sans', sans-serif;
+  --font-sidebar: 'Cairo', 'Tajawal', 'Segoe UI', sans-serif;
+
+  --text-display-1: 2rem;
+  --text-display-2: 1.5rem;
+  --text-h1: 1.25rem;
+  --text-h2: 1.125rem;
+  --text-body: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-caption: 0.8125rem;
+  --text-overline: 0.75rem;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+
+  // —— Radius ——
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  // —— Shadows & elevation ——
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.1);
+  --shadow-xl: 0 20px 40px rgba(15, 23, 42, 0.12);
+  --shadow-focus: 0 0 0 3px rgba(4, 120, 87, 0.25);
+
+  // —— Layout ——
+  --sidebar-width: 268px;
+  --header-height: 64px;
+  --content-max-width: 1400px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 220px;
+  }
+}
+
+// RTL-aware spacing mixin
+@mixin dir-spacing($prop, $start, $end) {
+  #{$prop}-inline-start: $start;
+  #{$prop}-inline-end: $end;
+}

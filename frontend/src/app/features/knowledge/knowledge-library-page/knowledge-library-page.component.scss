@@ -1,0 +1,74 @@
+.filter-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+
+  .filter-search { flex: 1 1 12rem; min-width: 10rem; }
+  .filter-category { flex: 0 1 10rem; min-width: 8rem; }
+  .filter-status { flex: 0 0 auto; width: auto; min-width: 0; }
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+}
+
+.modal-drawer {
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.modal-drawer__title {
+  font-size: var(--text-h1);
+  font-weight: 600;
+  margin: 0 0 var(--space-md);
+}
+
+.modal-drawer form .form-group {
+  margin-bottom: var(--space-md);
+}
+
+.modal-drawer__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+.modal-hint {
+  font-size: var(--text-body-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.modal-hint--muted {
+  margin-top: var(--space-2xs);
+  margin-bottom: 0;
+}
+
+.form-group--checkbox .ds-label--inline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.cell-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2xs);
+  flex-wrap: wrap;
+}
