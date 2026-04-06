@@ -232,7 +232,8 @@ import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
     }
 
     /* —— Landing (Gulf) —— */
-    :host-context(.landing) .lang-toggle {
+    :host-context(.landing) .lang-toggle,
+    :host-context(.login-shell) .lang-toggle {
       border: 1px solid rgba(214, 185, 122, 0.42);
       background: linear-gradient(
         165deg,
@@ -248,7 +249,8 @@ import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
       backdrop-filter: blur(10px);
     }
 
-    :host-context(.landing) .lang-toggle::after {
+    :host-context(.landing) .lang-toggle::after,
+    :host-context(.login-shell) .lang-toggle::after {
       background: linear-gradient(
         155deg,
         rgba(214, 185, 122, 0.18) 0%,
@@ -257,7 +259,8 @@ import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
       opacity: 0.9;
     }
 
-    :host-context(.landing) .lang-toggle__thumb {
+    :host-context(.landing) .lang-toggle__thumb,
+    :host-context(.login-shell) .lang-toggle__thumb {
       background: linear-gradient(
         165deg,
         rgba(214, 185, 122, 0.38) 0%,
@@ -269,7 +272,8 @@ import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
         inset 0 -2px 0 rgba(0, 0, 0, 0.25);
     }
 
-    :host-context(.landing) .lang-toggle__divider {
+    :host-context(.landing) .lang-toggle__divider,
+    :host-context(.login-shell) .lang-toggle__divider {
       background: linear-gradient(
         180deg,
         transparent,
@@ -278,23 +282,27 @@ import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
       );
     }
 
-    :host-context(.landing) .lang-toggle__btn--active .lang-toggle__glyph {
+    :host-context(.landing) .lang-toggle__btn--active .lang-toggle__glyph,
+    :host-context(.login-shell) .lang-toggle__btn--active .lang-toggle__glyph {
       color: #fdfbf6;
       text-shadow:
         0 1px 0 rgba(0, 0, 0, 0.35),
         0 0 12px rgba(214, 185, 122, 0.35);
     }
 
-    :host-context(.landing) .lang-toggle__btn:not(.lang-toggle__btn--active) .lang-toggle__glyph {
+    :host-context(.landing) .lang-toggle__btn:not(.lang-toggle__btn--active) .lang-toggle__glyph,
+    :host-context(.login-shell) .lang-toggle__btn:not(.lang-toggle__btn--active) .lang-toggle__glyph {
       color: rgba(248, 250, 248, 0.45);
       text-shadow: none;
     }
 
-    :host-context(.landing) .lang-toggle__btn:hover:not(.lang-toggle__btn--active) .lang-toggle__glyph {
+    :host-context(.landing) .lang-toggle__btn:hover:not(.lang-toggle__btn--active) .lang-toggle__glyph,
+    :host-context(.login-shell) .lang-toggle__btn:hover:not(.lang-toggle__btn--active) .lang-toggle__glyph {
       color: rgba(240, 230, 210, 0.88);
     }
 
-    :host-context(.landing) .lang-toggle:hover {
+    :host-context(.landing) .lang-toggle:hover,
+    :host-context(.login-shell) .lang-toggle:hover {
       border-color: rgba(214, 185, 122, 0.65);
       filter: brightness(1.04);
       box-shadow:
@@ -304,7 +312,8 @@ import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
         0 0 18px rgba(200, 164, 93, 0.14);
     }
 
-    :host-context(.landing) .lang-toggle__btn:focus-visible {
+    :host-context(.landing) .lang-toggle__btn:focus-visible,
+    :host-context(.login-shell) .lang-toggle__btn:focus-visible {
       outline-color: var(--gulf-gold-hover);
     }
 

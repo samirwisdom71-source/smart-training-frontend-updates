@@ -1,0 +1,194 @@
+<div class="login-shell login-shell--gulf" [attr.dir]="locale.isRtl ? 'rtl' : 'ltr'">
+  <div class="login-shell__split">
+    <aside class="login-visual" aria-hidden="true">
+      <div class="login-visual__bg"></div>
+      <div class="login-visual__glow login-visual__glow--1"></div>
+      <div class="login-visual__glow login-visual__glow--2"></div>
+      <div class="login-visual__grid"></div>
+      <div class="login-visual__content">
+        <div class="login-visual__badge">{{ 'auth.loginVisualBadge' | translate }}</div>
+        <h2 class="login-visual__heading">{{ 'auth.loginVisualHeading' | translate }}</h2>
+        <p class="login-visual__desc">{{ 'auth.loginVisualDesc' | translate }}</p>
+
+        <div class="login-visual__stage">
+          <div class="login-visual__ring" aria-hidden="true"></div>
+          <div class="login-visual__photo-frame">
+            <img
+              class="login-visual__photo"
+              src="/assets/images/login.jpg"
+              width="800"
+              height="1000"
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="login-visual__photo-scrim" aria-hidden="true"></div>
+          </div>
+
+          <div class="login-visual__float login-visual__float--1">
+            <span class="login-visual__float-value">+24%</span>
+            <span class="login-visual__float-hint">{{ 'nav.impact' | translate }}</span>
+          </div>
+          <div class="login-visual__float login-visual__float--2">
+            <span class="login-visual__float-value">12</span>
+            <span class="login-visual__float-hint">{{ 'nav.programs' | translate }}</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="login-panel">
+      <div class="login-panel__inner">
+        <header class="login-panel__toolbar">
+          <a
+            routerLink="/home"
+            class="login-back"
+            [class.login-back--rtl]="locale.isRtl"
+            [attr.aria-label]="'landing.backToHome' | translate"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M15 6l-6 6 6 6"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </a>
+          <app-language-switcher />
+        </header>
+
+        <div class="login-card">
+          <div class="login-card__head">
+            <div class="login-card__mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+              <g clip-path="url(#clip0_4418_7087)">
+              <path d="M12.0001 15.6294C10.6801 15.6294 9.6001 14.5494 9.6001 13.2294V10.7594C9.6001 9.4394 10.6801 8.35938 12.0001 8.35938C13.3201 8.35938 14.4001 9.4394 14.4001 10.7594V13.2294C14.4001 14.5594 13.3201 15.6294 12.0001 15.6294ZM12.0001 9.86938C11.5101 9.86938 11.1001 10.2694 11.1001 10.7694V13.2394C11.1001 13.7394 11.5001 14.1394 12.0001 14.1394C12.5001 14.1394 12.9001 13.7394 12.9001 13.2394V10.7694C12.9001 10.2694 12.4901 9.86938 12.0001 9.86938Z" fill="white" style="fill: var(--fillg);"/>
+              <path d="M12 18.8197C8.83 18.8197 6.25 16.2397 6.25 13.0697V10.9297C6.25 7.75969 8.83 5.17969 12 5.17969C14.96 5.17969 17.42 7.39972 17.72 10.3397C17.76 10.7497 17.46 11.1197 17.05 11.1597C16.64 11.2097 16.27 10.8997 16.23 10.4897C16.01 8.31968 14.19 6.67969 12 6.67969C9.66 6.67969 7.75 8.58969 7.75 10.9297V13.0697C7.75 15.4097 9.66 17.3197 12 17.3197C14.2 17.3197 16.06 15.5997 16.24 13.4097C16.27 12.9997 16.63 12.6897 17.05 12.7197C17.46 12.7497 17.77 13.1097 17.74 13.5297C17.5 16.4997 14.98 18.8197 12 18.8197Z" fill="white" style="fill: var(--fillg);"/>
+              <path d="M22 9.75C21.59 9.75 21.25 9.41 21.25 9V7C21.25 4.42 19.58 2.75 17 2.75H15C14.59 2.75 14.25 2.41 14.25 2C14.25 1.59 14.59 1.25 15 1.25H17C20.44 1.25 22.75 3.56 22.75 7V9C22.75 9.41 22.41 9.75 22 9.75Z" fill="white" style="fill: var(--fillg);"/>
+              <path d="M2 9.75C1.59 9.75 1.25 9.41 1.25 9V7C1.25 3.56 3.56 1.25 7 1.25H9C9.41 1.25 9.75 1.59 9.75 2C9.75 2.41 9.41 2.75 9 2.75H7C4.42 2.75 2.75 4.42 2.75 7V9C2.75 9.41 2.41 9.75 2 9.75Z" fill="white" style="fill: var(--fillg);"/>
+              <path d="M17 22.75H15C14.59 22.75 14.25 22.41 14.25 22C14.25 21.59 14.59 21.25 15 21.25H17C19.58 21.25 21.25 19.58 21.25 17V15C21.25 14.59 21.59 14.25 22 14.25C22.41 14.25 22.75 14.59 22.75 15V17C22.75 20.44 20.44 22.75 17 22.75Z" fill="white" style="fill: var(--fillg);"/>
+              <path d="M9 22.75H7C3.56 22.75 1.25 20.44 1.25 17V15C1.25 14.59 1.59 14.25 2 14.25C2.41 14.25 2.75 14.59 2.75 15V17C2.75 19.58 4.42 21.25 7 21.25H9C9.41 21.25 9.75 21.59 9.75 22C9.75 22.41 9.41 22.75 9 22.75Z" fill="white" style="fill: var(--fillg);"/>
+              </g>
+              <defs>
+              <clipPath id="clip0_4418_7087">
+              <rect width="24" height="24" fill="white"/>
+              </clipPath>
+              </defs>
+              </svg></div>
+            <h1 class="login-card__title">{{ 'auth.loginTitle' | translate }}</h1>
+            <p class="login-card__tagline">{{ 'auth.loginTagline' | translate }}</p>
+          </div>
+
+          @if (errorMessage) {
+            <p class="login-error-banner" role="alert">{{ errorMessage }}</p>
+          }
+
+          <form class="login-form" (ngSubmit)="onSubmit()">
+            <div class="login-field">
+              <label for="email" class="login-field__label">{{ 'auth.email' | translate }}</label>
+              <div class="login-field__control">
+                <span class="login-field__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path
+                      d="M4 6h16v12H4V6z"
+                      stroke-linejoin="round"
+                    />
+                    <path d="M4 8l8 6 8-6" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </span>
+                <input
+                  id="email"
+                  type="email"
+                  class="login-field__input"
+                  [class.login-field__input--error]="emailError"
+                  [placeholder]="'auth.emailPlaceholder' | translate"
+                  [(ngModel)]="email"
+                  name="email"
+                  autocomplete="email"
+                />
+              </div>
+              @if (emailError) {
+                <span class="login-field__error">{{ emailError }}</span>
+              }
+            </div>
+
+            <div class="login-field">
+              <div class="login-field__label-row">
+                <label for="password" class="login-field__label">{{ 'auth.password' | translate }}</label>
+                <a routerLink="/forgot-password" class="login-link">{{ 'auth.forgotPassword' | translate }}</a>
+              </div>
+              <div class="login-field__control">
+                <span class="login-field__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="5" y="11" width="14" height="10" rx="2" stroke-linejoin="round" />
+                    <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke-linecap="round" />
+                  </svg>
+                </span>
+                <input
+                  id="password"
+                  [type]="showPassword ? 'text' : 'password'"
+                  class="login-field__input"
+                  [class.login-field__input--error]="passwordError"
+                  [placeholder]="'auth.passwordPlaceholder' | translate"
+                  [(ngModel)]="password"
+                  name="password"
+                  autocomplete="current-password"
+                />
+                <button
+                  type="button"
+                  class="login-field__eye"
+                  (click)="showPassword = !showPassword"
+                  [attr.aria-label]="showPassword ? ('auth.hidePassword' | translate) : ('auth.showPassword' | translate)"
+                >
+                  @if (showPassword) {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  }
+                </button>
+              </div>
+              @if (passwordError) {
+                <span class="login-field__error">{{ passwordError }}</span>
+              }
+            </div>
+
+            <label class="login-remember">
+              <input type="checkbox" [(ngModel)]="rememberMe" name="rememberMe" class="login-remember__input" />
+              <span class="login-remember__text">{{ 'auth.rememberMe' | translate }}</span>
+            </label>
+
+            <button
+              type="submit"
+              class="login-submit"
+              [class.login-submit--loading]="loading"
+              [disabled]="loading"
+              [attr.aria-busy]="loading"
+            >
+              <span class="login-submit__spinner" aria-hidden="true"></span>
+              <svg viewBox="0 0 24 24" class="arr-2" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path
+                  d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z"
+                ></path>
+              </svg>
+              <span class="text">{{ loading ? ('auth.signingIn' | translate) : ('auth.login' | translate) }}</span>
+              <span class="circle" aria-hidden="true"></span>
+              <svg viewBox="0 0 24 24" class="arr-1" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path
+                  d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z"
+                ></path>
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

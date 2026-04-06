@@ -353,20 +353,46 @@ import { TooltipDirective } from '../../shared/tooltip/tooltip.directive';
       overflow-y: auto;
       padding-inline-end: 4px;
       scrollbar-width: thin;
-      scrollbar-color: var(--color-sidebar-scrollbar-thumb) transparent;
+      scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
     }
     .nav::-webkit-scrollbar {
       width: 6px;
     }
     .nav::-webkit-scrollbar-track {
-      background: transparent;
+      margin-block: 3px;
+      margin-inline: 1px;
+      background: var(--scrollbar-track-gradient);
+      background-color: var(--scrollbar-track);
+      border-radius: var(--radius-full);
+      box-shadow:
+        inset 0 1px 0 var(--scrollbar-track-inset-highlight),
+        inset 0 -1px 0 var(--scrollbar-track-inset-shadow),
+        inset 0 0 0 1px var(--scrollbar-track-edge);
     }
     .nav::-webkit-scrollbar-thumb {
-      background: var(--color-sidebar-scrollbar-thumb);
-      border-radius: 999px;
+      background: linear-gradient(
+        180deg,
+        var(--scrollbar-thumb) 0%,
+        color-mix(in srgb, var(--scrollbar-thumb) 85%, var(--gulf-green-900) 15%) 100%
+      );
+      border-radius: var(--radius-full);
+      border: 1px solid var(--scrollbar-thumb-ring);
+      box-shadow: 0 1px 2px rgba(15, 61, 46, 0.12);
     }
     .nav::-webkit-scrollbar-thumb:hover {
-      background: rgba(15, 23, 42, 0.35);
+      background: linear-gradient(
+        180deg,
+        var(--scrollbar-thumb-hover) 0%,
+        color-mix(in srgb, var(--scrollbar-thumb-hover) 88%, var(--gulf-gold-dark) 12%) 100%
+      );
+      box-shadow: 0 1px 3px rgba(200, 164, 93, 0.28);
+    }
+    .nav::-webkit-scrollbar-thumb:active {
+      background: linear-gradient(
+        180deg,
+        var(--scrollbar-thumb-active) 0%,
+        color-mix(in srgb, var(--scrollbar-thumb-active) 80%, var(--gulf-green-900) 20%) 100%
+      );
     }
     .nav-group {
       display: flex;
