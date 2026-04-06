@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
@@ -10,20 +10,27 @@ import { ShowIfPermissionDirective } from '../../../core/directives/show-if-perm
 import { PermissionCodes } from '../../../core/auth/permissions';
 import { LocaleService } from '../../../core/i18n/locale.service';
 import { forkJoin } from 'rxjs';
-import type { TrainingCoverageRow, TrainingParticipationRow, TrainingCostsRow, ProgramEffectivenessRow } from '../../../core/api/reports/reports-api.models';
-import type { ReportFilterParams } from '../../../core/api/reports/reports-api.models';
+import type {
+  TrainingCoverageRow,
+  TrainingParticipationRow,
+  TrainingCostsRow,
+  ProgramEffectivenessRow,
+  ReportFilterParams,
+} from '../../../core/api/reports/reports-api.models';
+import { reportsPercentTone, reportsScoreTone, reportsStatusTone, type StatusTone } from '../reports-ui.utils';
 
 @Component({
   selector: 'app-reports-training-page',
   standalone: true,
   imports: [CommonModule, FormsModule, TranslateModule, DecimalPipe, RouterLink, RouterLinkActive, PageShellComponent, ShowIfPermissionDirective],
   templateUrl: './reports-training-page.component.html',
-  styleUrls: ['./reports-training-page.component.scss'],
+  styleUrls: ['./reports-training-page.component.scss', '../reports-analytics.scss'],
 })
 export class ReportsTrainingPageComponent implements OnInit {
   private readonly reportsApi = inject(ReportsApiService);
   private readonly translate = inject(TranslateService);
   private readonly locale = inject(LocaleService);
+  private readonly router = inject(Router);
 
   protected readonly PermissionCodes = PermissionCodes;
 
@@ -37,28 +44,30 @@ export class ReportsTrainingPageComponent implements OnInit {
   filterFromDate = '';
   filterToDate = '';
 
+  readonly reportsTabIndex = computed(() => {
+    const path = this.router.url.split('?')[0];
+    if (path.includes('/reports/certifications')) return 2;
+    if (path.includes('/reports/competency')) return 1;
+    return 0;
+  });
+
   breadcrumbs = computed(() => [{ label: this.translate.instant('nav.reports'), route: '/reports' }, { label: this.translate.instant('reports.training') }]);
 
   ngOnInit(): void {
-    // Force Arabic + RTL for reports pages as requested.
     this.locale.setLang('ar');
     this.load();
   }
 
   onFromDateChange(): void {
-    // If user picks/enters a From date after To date, push To date forward.
     if (this.filterFromDate && this.filterToDate && this.filterToDate < this.filterFromDate) {
       this.filterToDate = this.filterFromDate;
     }
-    this.load();
   }
 
   onToDateChange(): void {
-    // If user picks/enters a To date before From date, pull From date back.
     if (this.filterFromDate && this.filterToDate && this.filterToDate < this.filterFromDate) {
       this.filterFromDate = this.filterToDate;
     }
-    this.load();
   }
 
   clearFilters(): void {
@@ -68,10 +77,29 @@ export class ReportsTrainingPageComponent implements OnInit {
     this.load();
   }
 
+  percentPillClass(percent: number): string {
+    return `reports-pct reports-pct--${reportsPercentTone(percent)}`;
+  }
+
+  scorePillClass(score: number | null | undefined): string {
+    return `reports-pct reports-pct--${reportsScoreTone(score)}`;
+  }
+
+  statusChipClass(status: string | null | undefined): string {
+    const t: StatusTone = reportsStatusTone(status);
+    const map: Record<StatusTone, string> = {
+      success: 'reports-chip reports-chip--success',
+      warning: 'reports-chip reports-chip--warning',
+      danger: 'reports-chip reports-chip--danger',
+      neutral: 'reports-chip reports-chip--neutral',
+    };
+    return map[t];
+  }
+
   load(): void {
     this.loading.set(true);
     this.error.set(null);
-    const filter: any = {};
+    const filter: ReportFilterParams = {};
     if (this.filterOrgId) filter.organizationId = this.filterOrgId;
     if (this.filterFromDate) filter.fromDate = this.filterFromDate;
     if (this.filterToDate) filter.toDate = this.filterToDate;
@@ -84,12 +112,15 @@ export class ReportsTrainingPageComponent implements OnInit {
     }).subscribe({
       next: (res) => {
         this.loading.set(false);
-        if (res.coverage.success && res.coverage.data) this.coverageRows.set((res.coverage.data as any).rows ?? []);
-        if (res.participation.success && res.participation.data) this.participationRows.set((res.participation.data as any).rows ?? []);
-        if (res.costs.success && res.costs.data) this.costsRows.set((res.costs.data as any).rows ?? []);
-        if (res.effectiveness.success && res.effectiveness.data) this.effectivenessRows.set((res.effectiveness.data as any).rows ?? []);
+        if (res.coverage.success && res.coverage.data) this.coverageRows.set((res.coverage.data as { rows?: TrainingCoverageRow[] }).rows ?? []);
+        if (res.participation.success && res.participation.data) this.participationRows.set((res.participation.data as { rows?: TrainingParticipationRow[] }).rows ?? []);
+        if (res.costs.success && res.costs.data) this.costsRows.set((res.costs.data as { rows?: TrainingCostsRow[] }).rows ?? []);
+        if (res.effectiveness.success && res.effectiveness.data) this.effectivenessRows.set((res.effectiveness.data as { rows?: ProgramEffectivenessRow[] }).rows ?? []);
       },
-      error: () => { this.loading.set(false); this.error.set('Failed to load'); },
+      error: () => {
+        this.loading.set(false);
+        this.error.set('Failed to load');
+      },
     });
   }
 

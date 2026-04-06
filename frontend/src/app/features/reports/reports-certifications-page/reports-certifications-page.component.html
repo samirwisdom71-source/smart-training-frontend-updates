@@ -1,95 +1,120 @@
-<app-page-shell [title]="'reports.certifications' | translate" [breadcrumbs]="breadcrumbs()">
-  <div dir="rtl">
-  <nav class="report-tabs" aria-label="Report types">
-    <a routerLink="/reports/training" class="report-tabs__link" routerLinkActive="report-tabs__link--active">{{ 'reports.training' | translate }}</a>
-    <a routerLink="/reports/competency" class="report-tabs__link" routerLinkActive="report-tabs__link--active">{{ 'reports.competency' | translate }}</a>
-    <a routerLink="/reports/certifications" class="report-tabs__link" routerLinkActive="report-tabs__link--active">{{ 'reports.certifications' | translate }}</a>
-  </nav>
-  <div class="ds-filterbar">
-    <div class="ds-filterbar__controls">
-      <div class="ds-filterfield">
-        <div class="ds-filterfield__label">{{ 'audit.fromDate' | translate }}</div>
-        <input
-          type="date"
-          class="ds-input ds-filterfield__control"
-          [(ngModel)]="filterFromDate"
-          [max]="filterToDate || null"
-          (change)="onFromDateChange()"
-        />
+<app-page-shell [title]="'reports.hubTitle' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true" [showPageTitle]="false">
+  <div class="reports-hub" dir="rtl" [style.--reports-tab-active]="reportsTabIndex()">
+    <header class="reports-hub__hero">
+      <div class="reports-hub__hero-inner">
+        <h1 class="reports-hub__title">{{ 'reports.hubTitle' | translate }}</h1>
+        <p class="reports-hub__subtitle">{{ 'reports.hubSubtitle' | translate }}</p>
       </div>
-      <div class="ds-filterfield">
-        <div class="ds-filterfield__label">{{ 'audit.toDate' | translate }}</div>
-        <input
-          type="date"
-          class="ds-input ds-filterfield__control"
-          [(ngModel)]="filterToDate"
-          [min]="filterFromDate || null"
-          (change)="onToDateChange()"
-        />
+    </header>
+
+    <div class="reports-hub__tabs-wrap">
+      <nav class="reports-hub__tabs" aria-label="Report types">
+        <span class="reports-hub__tab-indicator" aria-hidden="true"></span>
+        <a routerLink="/reports/training" class="reports-hub__tab" routerLinkActive="reports-hub__tab--active" [routerLinkActiveOptions]="{ exact: true }">{{ 'reports.training' | translate }}</a>
+        <a routerLink="/reports/competency" class="reports-hub__tab" routerLinkActive="reports-hub__tab--active" [routerLinkActiveOptions]="{ exact: true }">{{ 'reports.competency' | translate }}</a>
+        <a routerLink="/reports/certifications" class="reports-hub__tab" routerLinkActive="reports-hub__tab--active" [routerLinkActiveOptions]="{ exact: true }">{{ 'reports.certifications' | translate }}</a>
+      </nav>
+    </div>
+
+    <div class="reports-hub__filters">
+      <div class="reports-hub__filters-fields">
+        <div class="reports-hub__field">
+          <span class="reports-hub__field-label">{{ 'audit.fromDate' | translate }}</span>
+          <input
+            type="date"
+            [(ngModel)]="filterFromDate"
+            [max]="filterToDate || null"
+            (change)="onFromDateChange()"
+          />
+        </div>
+        <div class="reports-hub__field">
+          <span class="reports-hub__field-label">{{ 'audit.toDate' | translate }}</span>
+          <input
+            type="date"
+            [(ngModel)]="filterToDate"
+            [min]="filterFromDate || null"
+            (change)="onToDateChange()"
+          />
+        </div>
+      </div>
+      <div class="reports-hub__filters-actions">
+        <div class="report-export-actions" *appShowIfPermission="PermissionCodes.report.export">
+          <button type="button" class="export-icon-btn export-icon-btn--pdf" [attr.aria-label]="'reports.exportPdf' | translate" [title]="'reports.exportPdf' | translate" (click)="exportPdf()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <g clip-path="url(#clip0_4418_7269)">
+              <path d="M9 17.75C8.9 17.75 8.81 17.73 8.71 17.69C8.43 17.58 8.25 17.3 8.25 17V11C8.25 10.59 8.59 10.25 9 10.25C9.41 10.25 9.75 10.59 9.75 11V15.19L10.47 14.47C10.76 14.18 11.24 14.18 11.53 14.47C11.82 14.76 11.82 15.24 11.53 15.53L9.53 17.53C9.39 17.67 9.19 17.75 9 17.75Z" fill="white" style="fill: var(--fillg);"/>
+              <path d="M8.99994 17.7495C8.80994 17.7495 8.61994 17.6795 8.46994 17.5295L6.46994 15.5295C6.17994 15.2395 6.17994 14.7595 6.46994 14.4695C6.75994 14.1795 7.23994 14.1795 7.52994 14.4695L9.52994 16.4695C9.81994 16.7595 9.81994 17.2395 9.52994 17.5295C9.37994 17.6795 9.18994 17.7495 8.99994 17.7495Z" fill="white" style="fill: var(--fillg);"/>
+              <path d="M15 22.75H9C3.57 22.75 1.25 20.43 1.25 15V9C1.25 3.57 3.57 1.25 9 1.25H14C14.41 1.25 14.75 1.59 14.75 2C14.75 2.41 14.41 2.75 14 2.75H9C4.39 2.75 2.75 4.39 2.75 9V15C2.75 19.61 4.39 21.25 9 21.25H15C19.61 21.25 21.25 19.61 21.25 15V10C21.25 9.59 21.59 9.25 22 9.25C22.41 9.25 22.75 9.59 22.75 10V15C22.75 20.43 20.43 22.75 15 22.75Z" fill="white" style="fill: var(--fillg);"/>
+              <path d="M22 10.7505H18C14.58 10.7505 13.25 9.42048 13.25 6.00048V2.00048C13.25 1.70048 13.43 1.42048 13.71 1.31048C13.99 1.19048 14.31 1.26048 14.53 1.47048L22.53 9.47048C22.74 9.68048 22.81 10.0105 22.69 10.2905C22.57 10.5705 22.3 10.7505 22 10.7505ZM14.75 3.81048V6.00048C14.75 8.58048 15.42 9.25048 18 9.25048H20.19L14.75 3.81048Z" fill="white" style="fill: var(--fillg);"/>
+              </g>
+              <defs>
+              <clipPath id="clip0_4418_7269">
+              <rect width="24" height="24" fill="white"/>
+              </clipPath>
+              </defs>
+              </svg>
+            <span class="visually-hidden">PDF</span>
+          </button>
+          <button type="button" class="export-icon-btn export-icon-btn--excel" [attr.aria-label]="'reports.exportExcel' | translate" [title]="'reports.exportExcel' | translate" (click)="exportExcel()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M15.26 22.2503H8.73998C3.82998 22.2503 1.72998 20.1503 1.72998 15.2403V15.1103C1.72998 10.6703 3.47998 8.53027 7.39998 8.16027C7.79998 8.13027 8.17998 8.43027 8.21998 8.84027C8.25998 9.25027 7.95998 9.62027 7.53998 9.66027C4.39998 9.95027 3.22998 11.4303 3.22998 15.1203V15.2503C3.22998 19.3203 4.66998 20.7603 8.73998 20.7603H15.26C19.33 20.7603 20.77 19.3203 20.77 15.2503V15.1203C20.77 11.4103 19.58 9.93027 16.38 9.66027C15.97 9.62027 15.66 9.26027 15.7 8.85027C15.74 8.44027 16.09 8.13027 16.51 8.17027C20.49 8.51027 22.27 10.6603 22.27 15.1303V15.2603C22.27 20.1503 20.17 22.2503 15.26 22.2503Z" fill="white" style="fill: var(--fillg);"/>
+              <path d="M12 15.63C11.59 15.63 11.25 15.29 11.25 14.88V2C11.25 1.59 11.59 1.25 12 1.25C12.41 1.25 12.75 1.59 12.75 2V14.88C12.75 15.3 12.41 15.63 12 15.63Z" fill="white" style="fill: var(--fillg);"/>
+              <path d="M12.0001 16.7498C11.8101 16.7498 11.6201 16.6798 11.4701 16.5298L8.12009 13.1798C7.83009 12.8898 7.83009 12.4098 8.12009 12.1198C8.41009 11.8298 8.89009 11.8298 9.18009 12.1198L12.0001 14.9398L14.8201 12.1198C15.1101 11.8298 15.5901 11.8298 15.8801 12.1198C16.1701 12.4098 16.1701 12.8898 15.8801 13.1798L12.5301 16.5298C12.3801 16.6798 12.1901 16.7498 12.0001 16.7498Z" fill="white" style="fill: var(--fillg);"/>
+              </svg>
+            <span class="visually-hidden">Excel</span>
+          </button>
+        </div>
+        <button type="button" class="reports-hub__btn reports-hub__btn--ghost" (click)="clearFilters()">
+          {{ 'common.clearFilters' | translate }}
+        </button>
+        <button type="button" class="reports-hub__btn reports-hub__btn--primary" (click)="load()">
+          {{ 'common.apply' | translate }}
+        </button>
+        <button type="button" class="reports-hub__btn reports-hub__btn--ghost reports-hub__btn-icon" [attr.aria-label]="'common.refresh' | translate" [title]="'common.refresh' | translate" (click)="load()">
+          <span class="reports-hub__refresh-icon" aria-hidden="true">⟳</span>
+        </button>
       </div>
     </div>
-    <div class="ds-filterbar__actions">
-      <div class="report-export-actions" *appShowIfPermission="PermissionCodes.report.export">
-        <button type="button" class="export-icon-btn export-icon-btn--pdf" [attr.aria-label]="'reports.exportPdf' | translate" [title]="'reports.exportPdf' | translate" (click)="exportPdf()">
-          <svg class="export-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M7 3h7l3 3v15H7V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-            <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-            <path d="M12 10v7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M9.5 14.5 12 17l2.5-2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M9 20h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-          <span class="visually-hidden">PDF</span>
-        </button>
-        <button type="button" class="export-icon-btn export-icon-btn--excel" [attr.aria-label]="'reports.exportExcel' | translate" [title]="'reports.exportExcel' | translate" (click)="exportExcel()">
-          <svg class="export-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M7 3h7l3 3v15H7V3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-            <path d="M14 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-            <path d="M10 12l4 6M14 12l-4 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            <path d="M5 8h2v10H5" fill="currentColor" opacity="0.15"/>
-          </svg>
-          <span class="visually-hidden">Excel</span>
-        </button>
-      </div>
-      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
-        {{ 'common.clearFilters' | translate }}
-      </button>
-      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm filter-refresh-btn" (click)="load()">
-        <span class="filter-refresh-icon" aria-hidden="true">⟳</span>
-        <span class="filter-refresh-label">{{ 'common.refresh' | translate }}</span>
-      </button>
-    </div>
-  </div>
-  @if (loading()) {
-    <div class="table-loading"><div class="ds-skeleton" style="height: 120px;"></div></div>
-  } @else if (error()) {
-    <div class="ds-error-state"><p>{{ error() }}</p></div>
-  } @else {
-    <div class="ds-table-wrap">
-      <table class="ds-table">
-        <caption class="visually-hidden">{{ 'reports.certifications' | translate }}</caption>
-        <thead>
-          <tr>
-            <th scope="col">{{ 'employees.employee' | translate }}</th>
-            <th scope="col">{{ 'programs.program' | translate }}</th>
-            <th scope="col">{{ 'reports.certificateNumber' | translate }}</th>
-            <th scope="col">{{ 'certificates.issueDate' | translate }}</th>
-            <th scope="col">{{ 'table.status' | translate }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (r of rows(); track r.certificateNumber + r.employeeName + r.programTitle) {
+
+    @if (loading()) {
+      <div class="reports-hub__skeleton"><div class="ds-skeleton" style="height: 180px; border-radius: 16px;"></div></div>
+    } @else if (error()) {
+      <div class="reports-hub__error"><p>{{ error() }}</p></div>
+    } @else if (rows().length) {
+      <div class="reports-table-shell reports-table-shell--cards">
+        <table class="reports-table">
+          <caption class="visually-hidden">{{ 'reports.certifications' | translate }}</caption>
+          <thead>
             <tr>
-              <td>{{ r.employeeName }}</td>
-              <td>{{ r.programTitle }}</td>
-              <td>{{ r.certificateNumber }}</td>
-              <td>{{ r.issueDate }}</td>
-              <td>{{ r.status }}</td>
+              <th scope="col">{{ 'employees.employee' | translate }}</th>
+              <th scope="col">{{ 'programs.program' | translate }}</th>
+              <th scope="col">{{ 'reports.certificateNumber' | translate }}</th>
+              <th scope="col">{{ 'certificates.issueDate' | translate }}</th>
+              <th scope="col">{{ 'table.status' | translate }}</th>
             </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    @if (!rows().length) { <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p> }
-  }
+          </thead>
+          <tbody>
+            @for (r of rows(); track r.certificateNumber + r.employeeName + r.programTitle) {
+              <tr>
+                <td [attr.data-label]="'employees.employee' | translate">{{ r.employeeName }}</td>
+                <td [attr.data-label]="'programs.program' | translate">{{ r.programTitle }}</td>
+                <td [attr.data-label]="'reports.certificateNumber' | translate"><span class="reports-num">{{ r.certificateNumber }}</span></td>
+                <td [attr.data-label]="'certificates.issueDate' | translate">{{ r.issueDate }}</td>
+                <td [attr.data-label]="'table.status' | translate"><span [class]="statusChipClass(r.status)">{{ r.status }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="reports-empty" role="status">
+        <svg class="reports-empty__icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M9 12h6M9 16h6M8 3h8l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7l4-4Z" stroke-linejoin="round"/>
+          <path d="M8 3v4h4" stroke-linejoin="round"/>
+        </svg>
+        <p class="reports-empty__text">{{ 'table.noRows' | translate }}</p>
+        <p class="reports-empty__hint">{{ 'reports.dataEmptyHint' | translate }}</p>
+      </div>
+    }
   </div>
 </app-page-shell>

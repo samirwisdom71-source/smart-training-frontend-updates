@@ -684,7 +684,10 @@
     "gapCount": "Gap count",
     "certificateNumber": "Certificate #"
     ,
-    "exportPdf": "Export PDF"
+    "exportPdf": "Export PDF",
+    "hubTitle": "Training reports",
+    "hubSubtitle": "Analytics for coverage, participation, costs, effectiveness, and certifications — unified for enterprise decisions.",
+    "dataEmptyHint": "Adjust the date range and tap Apply to load data, or try a different period."
   },
   "knowledge": {
     "title": "Title",
