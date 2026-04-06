@@ -17,7 +17,7 @@ body {
   line-height: var(--line-height-normal);
 }
 
-// RTL — first-class Arabic
+// RTL — first-class Arabic (Cairo for all text surfaces)
 [dir='rtl'] {
   text-align: right;
 
@@ -30,6 +30,13 @@ body {
   .ds-stat__label,
   .ds-stat__value {
     font-family: var(--font-arabic);
+  }
+}
+
+[dir='ltr'] {
+  body,
+  .page-title {
+    font-family: var(--font-sans);
   }
 }
 

@@ -3,22 +3,34 @@
 // RTL-ready; government/enterprise grade
 
 :root {
-  // —— Primary (deep teal) ——
-  --color-primary: #0a4d52;
-  --color-primary-hover: #0d6b72;
-  --color-primary-active: #06363a;
+  // —— Gulf premium palette (named) ——
+  --gulf-green-900: #0c2f25;
+  --gulf-green-800: #0f3d2e;
+  --gulf-green-700: #124a39;
+  --gulf-emerald: #0d6b5c;
+  --gulf-emerald-deep: #0a5247;
+  --gulf-gold: #c8a45d;
+  --gulf-gold-hover: #d6b97a;
+  --gulf-gold-dark: #b8924a;
+  --gulf-text: #f8faf8;
+  --gulf-text-muted: rgba(248, 250, 248, 0.78);
+
+  // —— Primary (Gulf dark green) ——
+  --color-primary: var(--gulf-green-800);
+  --color-primary-hover: var(--gulf-green-700);
+  --color-primary-active: var(--gulf-green-900);
   --color-primary-contrast: #ffffff;
-  --color-primary-muted: rgba(10, 77, 82, 0.14);
+  --color-primary-muted: rgba(15, 61, 46, 0.14);
 
   // —— Secondary (neutral gray) ——
   --color-secondary: #4b5563;
   --color-secondary-hover: #6b7280;
   --color-secondary-soft: #e5e7eb;
 
-  // —— Accent (teal-green) ——
-  --color-accent: #0d9488;
-  --color-accent-hover: #14b8a6;
-  --color-accent-soft: #ccfbf1;
+  // —— Accent (emerald / gold highlights) ——
+  --color-accent: var(--gulf-emerald);
+  --color-accent-hover: #128a78;
+  --color-accent-soft: rgba(13, 107, 92, 0.12);
 
   // —— Background & surface ——
   --color-bg: #ffffff;
@@ -31,10 +43,10 @@
   /* أوضح من النص الرئيسي؛ ما زال ضمن عائلة البرايماري */
   --color-sidebar-text-muted: color-mix(in srgb, var(--color-primary) 72%, var(--color-text-secondary));
   --color-sidebar-hover: rgba(10, 77, 82, 0.08);
-  --color-sidebar-active: rgba(184, 134, 11, 0.14);
-  --color-sidebar-indicator: #b8860b;
-  --color-sidebar-icon-bg: rgba(10, 77, 82, 0.08);
-  --color-sidebar-icon-bg-hover: rgba(184, 134, 11, 0.2);
+  --color-sidebar-active: rgba(200, 164, 93, 0.16);
+  --color-sidebar-indicator: var(--gulf-gold);
+  --color-sidebar-icon-bg: rgba(15, 61, 46, 0.08);
+  --color-sidebar-icon-bg-hover: rgba(200, 164, 93, 0.22);
   --color-sidebar-scrollbar-thumb: rgba(15, 23, 42, 0.22);
 
   /* Header (match sidebar) */
@@ -85,11 +97,11 @@
   --space-2xl: 48px;
   --space-3xl: 64px;
 
-  // —— Typography ——
-  --font-sans: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
-  --font-display: 'Outfit', 'DM Sans', sans-serif;
-  --font-arabic: 'Tajawal', 'DM Sans', sans-serif;
-  --font-sidebar: 'Cairo', 'Tajawal', 'Segoe UI', sans-serif;
+  // —— Typography (Cairo enterprise) ——
+  --font-sans: 'Cairo', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Cairo', 'Segoe UI', sans-serif;
+  --font-arabic: 'Cairo', 'Segoe UI', sans-serif;
+  --font-sidebar: 'Cairo', 'Segoe UI', sans-serif;
 
   --text-display-1: 2rem;
   --text-display-2: 1.5rem;

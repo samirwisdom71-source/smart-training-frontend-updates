@@ -13,7 +13,7 @@ interface CompetencyTab {
 @Component({
   selector: 'app-competency-shell-page',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, NgForOf, TranslateModule, PageShellComponent],
+  imports: [RouterOutlet, NgForOf, TranslateModule, PageShellComponent],
   template: `
     <app-page-shell
       [title]="'nav.competency' | translate"

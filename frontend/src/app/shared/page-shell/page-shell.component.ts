@@ -10,7 +10,7 @@ export interface BreadcrumbItem {
 @Component({
   selector: 'app-page-shell',
   standalone: true,
-  imports: [RouterLink, TranslateModule],
+  imports: [ TranslateModule],
   template: `
     <div class="page-shell" [class.page-shell--full-width]="fullWidth()">
       @if (showPageTitle()) {

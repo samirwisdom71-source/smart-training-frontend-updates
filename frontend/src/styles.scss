@@ -1,6 +1,12 @@
 @use './styles/variables' as *;
 @use './styles/theme' as *;
 
+/**
+ * Gulf premium palette (government / enterprise)
+ * Named tokens: --gulf-green-900/800/700, --gulf-gold, --gulf-gold-hover, --gulf-gold-dark, --gulf-emerald
+ * Mapped to app tokens in _variables.scss (--color-primary, accents, sidebar gold).
+ */
+
 /* Global overrides */
 *,
 *::before,
