@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
+import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
 import { CompetencyTypesApiService } from '../../../core/api/competency-types/competency-types-api.service';
 import { CompetencyFrameworksApiService } from '../../../core/api/competency-frameworks/competency-frameworks-api.service';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -16,12 +18,19 @@ import type { PagedResult } from '../../../core/models/api-response';
 @Component({
   selector: 'app-competency-types-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe],
+  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe, TooltipDirective, PortalToBodyDirective],
   template: `
     <app-page-shell [title]="'nav.competencyTypes' | translate" [breadcrumbs]="breadcrumbs()">
       <div class="actions-row" actions>
         @if (canCreate()) {
-          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }} {{ 'competency.type' | translate }}</button>
+          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm premium-primary-btn" (click)="openCreate()">
+            <span class="premium-primary-btn__icon" aria-hidden="true">
+              <svg class="icon-svg" viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            {{ 'common.add' | translate }} {{ 'competency.type' | translate }}
+          </button>
         }
       </div>
       <div filters>
@@ -96,10 +105,10 @@ import type { PagedResult } from '../../../core/models/api-response';
                     @if (canEdit()) {
                       <button
                         type="button"
-                        class="ds-btn ds-btn--ghost ds-btn--icon"
+                        class="ds-btn ds-btn--ghost ds-btn--icon premium-icon-btn"
                         (click)="openEdit(t)"
                         [attr.aria-label]="'common.edit' | translate"
-                        [title]="'common.edit' | translate"
+                        [appTooltip]="'common.edit' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
@@ -108,11 +117,11 @@ import type { PagedResult } from '../../../core/models/api-response';
                       </button>
                       <button
                         type="button"
-                        class="ds-btn ds-btn--ghost ds-btn--icon status-toggle-btn"
+                        class="ds-btn ds-btn--ghost ds-btn--icon status-toggle-btn premium-icon-btn"
                         [class.status-toggle-btn--active]="t.isActive"
                         (click)="setStatus(t)"
                         [attr.aria-label]="'org.setStatus' | translate"
-                        [title]="'org.setStatus' | translate"
+                        [appTooltip]="'org.setStatus' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <rect x="3" y="7" width="18" height="10" rx="5" fill="none" stroke="currentColor" stroke-width="1.6"/>
@@ -123,10 +132,10 @@ import type { PagedResult } from '../../../core/models/api-response';
                     @if (canDelete()) {
                       <button
                         type="button"
-                        class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
+                        class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger premium-icon-btn"
                         (click)="confirmDelete(t)"
                         [attr.aria-label]="'common.delete' | translate"
-                        [title]="'common.delete' | translate"
+                        [appTooltip]="'common.delete' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <path d="M6 19V7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6" />
@@ -149,11 +158,36 @@ import type { PagedResult } from '../../../core/models/api-response';
     </app-page-shell>
 
     @if (showModal()) {
-      <div class="modal-overlay" (click)="closeModal()">
-        <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
-          <h3 class="modal-drawer__title">{{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'competency.type' | translate }}</h3>
-          @if (modalError()) { <p class="ds-field-error">{{ modalError() }}</p> }
-          <form (ngSubmit)="save()">
+      <div
+        class="modal-overlay"
+        appPortalToBody
+        (mousedown)="$event.preventDefault(); $event.stopPropagation()"
+        (click)="$event.preventDefault(); $event.stopPropagation(); closeModal()"
+      >
+        <div class="modal-drawer premium-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+          <div class="premium-modal__header">
+            <div class="premium-modal__titlewrap">
+              <h3 class="premium-modal__title">{{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'competency.type' | translate }}</h3>
+              <p class="premium-modal__subtitle">{{ 'nav.competencyTypes' | translate }}</p>
+            </div>
+            <button type="button" class="ds-btn ds-btn--ghost ds-btn--icon premium-modal__close" (click)="closeModal($event)" [attr.aria-label]="'common.close' | translate" [appTooltip]="'common.close' | translate">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="premium-modal__body">
+            @if (modalError()) {
+              <div class="premium-modal__error">
+                <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 9v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M12 17h.01" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                  <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                </svg>
+                <p class="premium-modal__error-text">{{ modalError() }}</p>
+              </div>
+            }
+            <form class="premium-form" (ngSubmit)="save()">
             <div class="form-group">
               <label class="ds-label">{{ 'table.code' | translate }}</label>
               <input type="text" class="ds-input" [(ngModel)]="form.code" name="code" />
@@ -186,11 +220,12 @@ import type { PagedResult } from '../../../core/models/api-response';
               <label class="ds-label">{{ 'competency.displayOrder' | translate }}</label>
               <input type="number" class="ds-input" [(ngModel)]="form.displayOrder" name="displayOrder" min="0" />
             </div>
-            <div class="modal-drawer__actions">
-              <button type="button" class="ds-btn ds-btn--secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
-              <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
+            <div class="premium-modal__footer">
+              <button type="button" class="ds-btn ds-btn--secondary premium-secondary-btn" (click)="closeModal($event)">{{ 'common.cancel' | translate }}</button>
+              <button type="submit" class="ds-btn ds-btn--primary premium-primary-btn" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
             </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
     }
@@ -218,11 +253,139 @@ import type { PagedResult } from '../../../core/models/api-response';
     .status-toggle-btn.status-toggle-btn--active:hover { background: rgba(34, 197, 94, 0.18); }
     .pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); flex-wrap: wrap; }
     .pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
-    .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; padding: var(--space-lg); }
-    .modal-drawer { max-width: 440px; width: 100%; max-height: 90vh; overflow: auto; }
-    .modal-drawer__title { font-size: var(--text-h1); font-weight: 600; margin: 0 0 var(--space-md); }
-    .modal-drawer form .form-group { margin-bottom: var(--space-md); }
-    .modal-drawer__actions { display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-lg); }
+    .premium-primary-btn {
+      background: linear-gradient(145deg, var(--gulf-green-800), color-mix(in srgb, var(--gulf-green-700) 86%, var(--gulf-gold) 14%));
+      border-color: color-mix(in srgb, var(--gulf-gold) 28%, transparent);
+      box-shadow: 0 10px 28px rgba(15, 61, 46, 0.16), 0 0 22px rgba(200, 164, 93, 0.12);
+      transition: transform 0.18s ease, box-shadow 0.22s ease;
+    }
+    .premium-primary-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 34px rgba(15, 61, 46, 0.2), 0 0 30px rgba(200, 164, 93, 0.16);
+    }
+    .premium-primary-btn__icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    .premium-secondary-btn:hover:not(:disabled) {
+      border-color: var(--gulf-gold);
+      box-shadow: 0 0 18px rgba(200, 164, 93, 0.14);
+    }
+
+    .premium-icon-btn:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--gulf-gold) 10%, var(--color-bg-subtle));
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483647;
+      background: radial-gradient(ellipse 85% 65% at 50% 0%, rgba(200, 164, 93, 0.16), transparent 55%), rgba(15,23,42,0.58);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-lg);
+    }
+
+    .modal-drawer { max-width: 560px; width: 100%; max-height: 90vh; overflow: hidden; border-radius: 20px; }
+
+    .premium-modal {
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 30%, var(--color-border));
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, color-mix(in srgb, var(--color-bg-elevated) 92%, var(--gulf-emerald) 6%) 100%);
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25), 0 0 28px rgba(200, 164, 93, 0.14);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+    }
+
+    .premium-modal__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-md);
+      padding: 18px 18px 14px;
+      background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--gulf-green-800) 92%, #000) 0%,
+        var(--gulf-green-800) 55%,
+        color-mix(in srgb, var(--gulf-gold) 18%, var(--gulf-green-700)) 100%
+      );
+      color: var(--gulf-text);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .premium-modal__header::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 0% 0%, rgba(200, 164, 93, 0.22), transparent 55%);
+      pointer-events: none;
+    }
+
+    .premium-modal__titlewrap { position: relative; z-index: 1; min-width: 0; }
+    .premium-modal__title { margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; text-shadow: 0 1px 18px rgba(0,0,0,0.22); }
+    .premium-modal__subtitle { margin: 0.25rem 0 0; font-size: 0.85rem; font-weight: 600; color: rgba(248, 250, 248, 0.8); }
+
+    .premium-modal__close {
+      position: relative;
+      z-index: 1;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.95);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .premium-modal__close:hover:not(:disabled) {
+      background: rgba(255,255,255,0.18);
+      border-color: rgba(200,164,93,0.6);
+      box-shadow: 0 0 18px rgba(200,164,93,0.18), inset 0 1px 0 rgba(255,255,255,0.16);
+    }
+
+    .premium-modal__body { padding: 18px; overflow: auto; flex: 1 1 auto; -webkit-overflow-scrolling: touch; }
+    .premium-form .form-group { margin-bottom: var(--space-md); }
+
+    .premium-modal__error {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 18%, rgba(211,47,47,0.28));
+      background: linear-gradient(180deg, rgba(253, 236, 234, 0.85), rgba(255,255,255,0.7));
+      box-shadow: 0 10px 26px rgba(211,47,47,0.08);
+      margin-bottom: var(--space-md);
+    }
+    .premium-modal__error .icon-svg { width: 18px; height: 18px; color: #b91c1c; margin-top: 2px; }
+    .premium-modal__error-text { margin: 0; font-size: var(--text-body-sm); color: color-mix(in srgb, var(--color-text) 80%, #b91c1c 20%); line-height: 1.4; }
+
+    .premium-modal__footer {
+      position: sticky;
+      bottom: 0;
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-sm);
+      padding: 14px 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.92));
+      border-top: 1px solid color-mix(in srgb, var(--gulf-gold) 16%, var(--color-border));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    @media (max-width: 560px) {
+      .premium-modal__footer { flex-direction: column-reverse; align-items: stretch; }
+      .modal-overlay { padding: var(--space-md); }
+    }
   `]
 })
 export class CompetencyTypesPageComponent implements OnInit {
@@ -244,6 +407,7 @@ export class CompetencyTypesPageComponent implements OnInit {
 
   readonly frameworkOptions = signal<CompetencyFrameworkListDto[]>([]);
   readonly showModal = signal(false);
+  readonly modalClosing = signal(false);
   readonly editingId = signal<string | null>(null);
   readonly saving = signal(false);
   readonly modalError = signal<string | null>(null);
@@ -367,6 +531,7 @@ export class CompetencyTypesPageComponent implements OnInit {
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
 
   openCreate(): void {
+    if (this.modalClosing()) return;
     this.editingId.set(null);
     const fw = this.frameworkOptions()[0];
     this.form = { code: '', nameEn: '', nameAr: '', descriptionEn: null, descriptionAr: null, frameworkId: fw?.id ?? '', displayOrder: 0 };
@@ -375,6 +540,7 @@ export class CompetencyTypesPageComponent implements OnInit {
   }
 
   openEdit(t: CompetencyTypeListDto): void {
+    if (this.modalClosing()) return;
     this.editingId.set(t.id);
     this.form = { code: t.code, nameEn: t.nameEn, nameAr: t.nameAr, descriptionEn: null, descriptionAr: null, frameworkId: t.frameworkId, displayOrder: t.displayOrder };
     this.modalError.set(null);
@@ -396,9 +562,16 @@ export class CompetencyTypesPageComponent implements OnInit {
     });
   }
 
-  closeModal(): void {
-    this.showModal.set(false);
-    this.editingId.set(null);
+  closeModal(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    if (this.modalClosing()) return;
+    this.modalClosing.set(true);
+    setTimeout(() => {
+      this.showModal.set(false);
+      this.editingId.set(null);
+      this.modalClosing.set(false);
+    }, 0);
   }
 
   save(): void {

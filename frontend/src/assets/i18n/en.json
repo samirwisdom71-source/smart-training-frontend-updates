@@ -835,6 +835,7 @@
     "framework": "Framework",
     "type": "Type",
     "competency": "Competency",
+    "pageSubtitle": "Build frameworks, define proficiency, and map competencies with premium enterprise governance.",
     "proficiencyLevel": "Proficiency level",
     "displayOrder": "Display order",
     "levelNumber": "Level",
@@ -849,6 +850,7 @@
     "viewUnits": "View organizational units",
     "setAsDefault": "Set as default",
     "defaultOrg": "Default",
+    "pageSubtitle": "Manage organizations and organizational units with a clear hierarchy and premium governance-grade UX.",
     "organizationalUnits": "Organizational units",
     "parentUnitLabel": "Parent organizational unit",
     "parentUnitHint": "The higher-level unit this one reports to. Choose «Any» if this unit is at the root level.",
@@ -863,13 +865,18 @@
   },
   "positions": {
     "reportsToHint": "Shows only other positions in the same organizational unit. Select the organizational unit first.",
+    "pageSubtitle": "Define positions, reporting lines, and vacancy status with clear enterprise governance.",
     "setVacant": "Position set as vacant",
     "setOccupied": "Position set as occupied"
   },
   "employees": {
     "employee": "Employee",
+    "pageSubtitle": "Manage employee profiles, roles, and organizational assignment with a premium experience.",
     "jobHint": "Shows only jobs linked to the selected organizational unit. Select the organizational unit first.",
     "emailPasswordRequired": "Email and password are required to create the login account."
+  },
+  "jobs": {
+    "pageSubtitle": "Maintain job catalogs, grade levels, and organizational-unit linkage with premium clarity."
   },
   "users": {
     "roles": "Roles",

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { EmployeesApiService } from '../../../core/api/employees/employees-api.service';
 import { PositionsApiService } from '../../../core/api/positions/positions-api.service';
 import { JobsApiService } from '../../../core/api/jobs/jobs-api.service';
@@ -22,24 +23,32 @@ import type { PagedResult } from '../../../core/models/api-response';
 @Component({
   selector: 'app-employees-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent],
+  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective],
   template: `
-    <app-page-shell [title]="'nav.employees' | translate" [breadcrumbs]="breadcrumbs()">
-      <div class="actions-row" actions>
+    <app-page-shell [title]="'nav.employees' | translate" [breadcrumbs]="breadcrumbs()" [showPageTitle]="false">
+      <div class="employees-page ds-animate-fade-up" data-delay="1">
+      <header class="employees-hero">
+        <div class="employees-hero__inner">
+          <h1 class="employees-hero__title">{{ 'nav.employees' | translate }}</h1>
+          <p class="employees-hero__subtitle">{{ 'employees.pageSubtitle' | translate }}</p>
+        </div>
+      </header>
+
+      <div class="actions-row employees-actions" actions>
         @if (canCreate()) {
-          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }} {{ 'table.employee' | translate }}</button>
+          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm employees-primary-btn" (click)="openCreate()">{{ 'common.add' | translate }} {{ 'table.employee' | translate }}</button>
         }
       </div>
       <div filters>
-        <div class="ds-filterbar">
+        <div class="ds-filterbar employees-filterbar">
           <div class="ds-filterbar__controls">
             <div class="ds-filterfield">
               <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
-              <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (ngModelChange)="onSearchChange()" />
+              <input type="text" class="ds-input filter-search ds-filterfield__control employees-input" [(ngModel)]="search" (ngModelChange)="onSearchChange()" [placeholder]="'common.search' | translate" />
             </div>
             <div class="ds-filterfield">
               <div class="ds-filterfield__label">{{ 'table.organizationalUnit' | translate }}</div>
-              <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="organizationalUnitIdFilter" (ngModelChange)="onFilterChange()">
+              <select class="ds-input filter-select ds-filterfield__control employees-input" [(ngModel)]="organizationalUnitIdFilter" (ngModelChange)="onFilterChange()">
                 <option [ngValue]="null">{{ 'common.all' | translate }}</option>
                 @for (ou of ouOptions(); track ou.id) {
                   <option [ngValue]="ou.id">{{ getLocalizedText(ou.nameAr, ou.nameEn) }}</option>
@@ -48,7 +57,7 @@ import type { PagedResult } from '../../../core/models/api-response';
             </div>
             <div class="ds-filterfield">
               <div class="ds-filterfield__label">{{ 'table.job' | translate }}</div>
-              <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="jobIdFilter" (ngModelChange)="onFilterChange()">
+              <select class="ds-input filter-select ds-filterfield__control employees-input" [(ngModel)]="jobIdFilter" (ngModelChange)="onFilterChange()">
                 <option [ngValue]="null">{{ 'common.all' | translate }}</option>
                 @for (j of jobOptions(); track j.id) {
                   <option [ngValue]="j.id">{{ getLocalizedText(j.titleAr, j.titleEn) }}</option>
@@ -57,7 +66,7 @@ import type { PagedResult } from '../../../core/models/api-response';
             </div>
             <div class="ds-filterfield">
               <div class="ds-filterfield__label">{{ 'table.status' | translate }}</div>
-              <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+              <select class="ds-input filter-select ds-filterfield__control employees-input" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
                 <option value="">{{ 'common.all' | translate }}</option>
                 <option value="Active">{{ 'status.active' | translate }}</option>
                 <option value="Inactive">{{ 'status.inactive' | translate }}</option>
@@ -65,7 +74,7 @@ import type { PagedResult } from '../../../core/models/api-response';
             </div>
           </div>
           <div class="ds-filterbar__actions">
-            <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
+            <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm employees-secondary-btn" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
           </div>
@@ -91,8 +100,8 @@ import type { PagedResult } from '../../../core/models/api-response';
           }
         </div>
       } @else {
-        <div class="ds-table-wrap">
-          <table class="ds-table">
+        <div class="ds-table-wrap employees-table-wrap">
+          <table class="ds-table employees-table">
             <thead>
               <tr>
                 <th>{{ 'table.employeeNumber' | translate }}</th>
@@ -119,10 +128,10 @@ import type { PagedResult } from '../../../core/models/api-response';
                     @if (canEdit()) {
                       <button
                         type="button"
-                        class="ds-btn ds-btn--ghost ds-btn--icon"
+                        class="ds-btn ds-btn--ghost ds-btn--icon employees-icon-btn"
                         (click)="openEdit(e)"
                         [attr.aria-label]="'common.edit' | translate"
-                        [title]="'common.edit' | translate"
+                        [appTooltip]="'common.edit' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
@@ -131,11 +140,11 @@ import type { PagedResult } from '../../../core/models/api-response';
                       </button>
                       <button
                         type="button"
-                        class="ds-btn ds-btn--ghost ds-btn--icon status-toggle-btn"
+                        class="ds-btn ds-btn--ghost ds-btn--icon status-toggle-btn employees-icon-btn"
                         [class.status-toggle-btn--active]="e.status === 'Active'"
                         (click)="setStatus(e)"
                         [attr.aria-label]="'org.setStatus' | translate"
-                        [title]="'org.setStatus' | translate"
+                        [appTooltip]="'org.setStatus' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <rect x="3" y="7" width="18" height="10" rx="5" fill="none" stroke="currentColor" stroke-width="1.6"/>
@@ -146,10 +155,10 @@ import type { PagedResult } from '../../../core/models/api-response';
                     @if (canDelete()) {
                       <button
                         type="button"
-                        class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
+                        class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger employees-icon-btn"
                         (click)="confirmDelete(e)"
                         [attr.aria-label]="'common.delete' | translate"
-                        [title]="'common.delete' | translate"
+                        [appTooltip]="'common.delete' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <path d="M6 19V7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6" />
@@ -169,16 +178,35 @@ import type { PagedResult } from '../../../core/models/api-response';
           <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
         </div>
       }
+      </div>
     </app-page-shell>
 
     @if (showModal()) {
       <div class="modal-overlay" (click)="closeModal()">
-        <div class="modal-drawer ds-card modal-drawer--wide" (click)="$event.stopPropagation()">
-          <h3 class="modal-drawer__title">{{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'table.employee' | translate }}</h3>
-          @if (modalError()) {
-            <p class="ds-field-error">{{ modalError() }}</p>
-          }
-          <form (ngSubmit)="save()">
+        <div class="modal-drawer premium-modal premium-modal--wide" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+          <div class="premium-modal__header">
+            <div class="premium-modal__titlewrap">
+              <h3 class="premium-modal__title">{{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'table.employee' | translate }}</h3>
+              <p class="premium-modal__subtitle">{{ 'nav.employees' | translate }}</p>
+            </div>
+            <button type="button" class="ds-btn ds-btn--ghost ds-btn--icon premium-modal__close" (click)="closeModal()" [attr.aria-label]="'common.close' | translate" [appTooltip]="'common.close' | translate">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="premium-modal__body">
+            @if (modalError()) {
+              <div class="premium-modal__error">
+                <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 9v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M12 17h.01" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                  <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                </svg>
+                <p class="premium-modal__error-text">{{ modalError() }}</p>
+              </div>
+            }
+            <form class="premium-form" (ngSubmit)="save()">
             <div class="form-group">
               <label class="ds-label">{{ 'table.employeeNumber' | translate }}</label>
               <input type="text" class="ds-input" [(ngModel)]="form.employeeNumber" name="employeeNumber" />
@@ -266,11 +294,12 @@ import type { PagedResult } from '../../../core/models/api-response';
                 }
               </select>
             </div>
-            <div class="modal-drawer__actions">
-              <button type="button" class="ds-btn ds-btn--secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
-              <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
+            <div class="premium-modal__footer">
+              <button type="button" class="ds-btn ds-btn--secondary employees-secondary-btn" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
+              <button type="submit" class="ds-btn ds-btn--primary employees-primary-btn" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
             </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
     }
@@ -287,27 +316,245 @@ import type { PagedResult } from '../../../core/models/api-response';
     }
   `,
   styles: [`
+    .employees-page {
+      --employees-border: color-mix(in srgb, var(--gulf-gold) 18%, var(--color-border-light));
+      --employees-shadow-card: 0 12px 34px rgba(15, 61, 46, 0.08);
+    }
+
+    .employees-hero {
+      margin-block-end: var(--space-md);
+      padding: var(--space-lg) var(--space-xl);
+      border-radius: 20px;
+      background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--gulf-green-800) 92%, #000) 0%,
+        var(--gulf-green-800) 42%,
+        color-mix(in srgb, var(--gulf-green-700) 88%, var(--gulf-gold) 12%) 100%
+      );
+      color: var(--gulf-text);
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 35%, transparent);
+      box-shadow:
+        0 16px 40px rgba(11, 42, 33, 0.18),
+        0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+        0 0 48px rgba(200, 164, 93, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .employees-hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 0% 0%, rgba(200, 164, 93, 0.18), transparent 55%);
+      pointer-events: none;
+    }
+
+    .employees-hero__inner { position: relative; z-index: 1; }
+    .employees-hero__title { margin: 0 0 var(--space-xs); font-size: clamp(1.35rem, 2.5vw, 1.75rem); font-weight: 800; letter-spacing: -0.02em; text-shadow: 0 1px 18px rgba(0,0,0,0.2); }
+    .employees-hero__subtitle { margin: 0; font-size: var(--text-body-sm); font-weight: 600; color: var(--gulf-text-muted); max-width: 52rem; line-height: var(--line-height-normal); }
+
+    .employees-actions { margin-bottom: var(--space-md); }
+    .employees-primary-btn { background: linear-gradient(145deg, var(--gulf-green-800), color-mix(in srgb, var(--gulf-green-700) 86%, var(--gulf-gold) 14%)); border-color: color-mix(in srgb, var(--gulf-gold) 28%, transparent); box-shadow: 0 10px 28px rgba(15, 61, 46, 0.16), 0 0 22px rgba(200, 164, 93, 0.12); }
+    .employees-secondary-btn:hover:not(:disabled) { border-color: var(--gulf-gold); box-shadow: 0 0 18px rgba(200, 164, 93, 0.14); }
+
     .filter-row { display: flex; gap: var(--space-md); align-items: center; flex-wrap: wrap; }
     .filter-search { max-width: 280px; }
     .filter-select { max-width: 200px; }
+    .employees-filterbar {
+      margin-bottom: var(--space-md);
+      padding: var(--space-md) var(--space-lg);
+      border-radius: 18px;
+      border: 1px solid var(--employees-border);
+      background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, color-mix(in srgb, var(--color-bg-elevated) 92%, var(--gulf-emerald) 6%) 100%);
+      box-shadow: var(--employees-shadow-card), inset 0 1px 0 rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .employees-input { border-radius: 14px; }
+
     .table-loading { padding: var(--space-md) 0; }
     .cell-actions { text-align: end; }
     .status-toggle-btn { color: var(--color-text-secondary, #64748b); }
     .status-toggle-btn .icon-svg { width: 22px; height: 22px; }
     .status-toggle-btn.status-toggle-btn--active { color: #22c55e; }
     .status-toggle-btn.status-toggle-btn--active:hover { background: rgba(34, 197, 94, 0.18); }
+    .employees-icon-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--gulf-gold) 10%, var(--color-bg-subtle)); }
+
+    .employees-table-wrap {
+      border-radius: 18px;
+      border-color: var(--employees-border);
+      box-shadow: var(--employees-shadow-card);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+
+    .employees-table th {
+      background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--gulf-green-800) 92%, #000) 0%,
+        var(--gulf-green-800) 58%,
+        color-mix(in srgb, var(--gulf-green-700) 88%, var(--gulf-gold) 12%) 100%
+      );
+    }
+
     .pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); flex-wrap: wrap; }
     .pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
-    .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; padding: var(--space-lg); }
-    .modal-drawer { max-width: 440px; width: 100%; max-height: 90vh; overflow: auto; }
-    .modal-drawer--wide { max-width: 520px; }
-    .modal-drawer__title { font-size: var(--text-h1); font-weight: 600; margin: 0 0 var(--space-md); }
-    .modal-drawer form .form-group { margin-bottom: var(--space-md); }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483647;
+      background: radial-gradient(ellipse 85% 65% at 50% 0%, rgba(200, 164, 93, 0.16), transparent 55%), rgba(15,23,42,0.58);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-lg);
+    }
+
+    .modal-drawer { max-width: 680px; width: 100%; max-height: 90vh; overflow: hidden; border-radius: 20px; }
+
+    .premium-modal {
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 30%, var(--color-border));
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, color-mix(in srgb, var(--color-bg-elevated) 92%, var(--gulf-emerald) 6%) 100%);
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.25), 0 0 28px rgba(200, 164, 93, 0.14);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+    }
+
+    .premium-modal--wide { max-width: 760px; }
+
+    .premium-modal__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-md);
+      padding: 18px 18px 14px;
+      background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--gulf-green-800) 92%, #000) 0%,
+        var(--gulf-green-800) 55%,
+        color-mix(in srgb, var(--gulf-gold) 18%, var(--gulf-green-700)) 100%
+      );
+      color: var(--gulf-text);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .premium-modal__header::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 0% 0%, rgba(200, 164, 93, 0.22), transparent 55%);
+      pointer-events: none;
+    }
+
+    .premium-modal__titlewrap { position: relative; z-index: 1; min-width: 0; }
+    .premium-modal__title { margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; text-shadow: 0 1px 18px rgba(0,0,0,0.22); }
+    .premium-modal__subtitle { margin: 0.25rem 0 0; font-size: 0.85rem; font-weight: 600; color: rgba(248, 250, 248, 0.8); }
+
+    .premium-modal__close {
+      position: relative;
+      z-index: 1;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.95);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+    .premium-modal__close:hover:not(:disabled) {
+      background: rgba(255,255,255,0.18);
+      border-color: rgba(200,164,93,0.6);
+      box-shadow: 0 0 18px rgba(200,164,93,0.18), inset 0 1px 0 rgba(255,255,255,0.16);
+    }
+
+    .premium-modal__body {
+      padding: 18px;
+      overflow: auto;
+      flex: 1 1 auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .premium-form .form-group { margin-bottom: var(--space-md); }
     .ds-hint { font-size: var(--text-body-sm, 0.875rem); color: var(--color-text-secondary, #64748b); margin: 0 0 var(--space-xs); }
-    .modal-drawer__actions { display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-lg); }
+
+    .premium-modal__error {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 18%, rgba(211,47,47,0.28));
+      background: linear-gradient(180deg, rgba(253, 236, 234, 0.85), rgba(255,255,255,0.7));
+      box-shadow: 0 10px 26px rgba(211,47,47,0.08);
+      margin-bottom: var(--space-md);
+    }
+    .premium-modal__error .icon-svg { width: 18px; height: 18px; color: #b91c1c; margin-top: 2px; }
+    .premium-modal__error-text { margin: 0; font-size: var(--text-body-sm); color: color-mix(in srgb, var(--color-text) 80%, #b91c1c 20%); line-height: 1.4; }
+
+    .premium-modal__footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-sm);
+      margin-top: var(--space-lg);
+      padding-top: var(--space-md);
+      border-top: 1px solid color-mix(in srgb, var(--gulf-green-800) 8%, var(--color-border-light));
+    }
+
+    @media (max-width: 560px) {
+      .premium-modal__footer { flex-direction: column-reverse; align-items: stretch; }
+      .modal-overlay { padding: var(--space-md); }
+    }
     .input-with-toggle { display: flex; gap: var(--space-xs); align-items: center; }
     .input-with-toggle .ds-input { flex: 1; }
     .input-toggle-btn { flex-shrink: 0; }
+
+    /* Password block polish */
+    .input-with-toggle {
+      padding: 6px;
+      border-radius: 16px;
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 18%, var(--color-border-light));
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.85) 0%,
+        color-mix(in srgb, var(--color-bg-elevated) 92%, var(--gulf-emerald) 6%) 100%
+      );
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    }
+
+    .input-with-toggle .ds-input {
+      border: none;
+      box-shadow: none;
+      background: transparent;
+      min-height: 44px;
+      padding-inline: 10px;
+    }
+
+    .input-with-toggle:has(.ds-input:focus) {
+      border-color: var(--gulf-gold);
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--gulf-gold) 20%, transparent),
+        0 0 26px rgba(200, 164, 93, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .input-toggle-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 18%, var(--color-border-light));
+      background: rgba(255, 255, 255, 0.75);
+      color: var(--gulf-green-900);
+      transition: transform 0.18s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    }
+
+    .input-toggle-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: var(--gulf-gold);
+      box-shadow: 0 10px 26px rgba(15, 61, 46, 0.12), 0 0 22px rgba(200, 164, 93, 0.18);
+    }
   `]
 })
 export class EmployeesPageComponent implements OnInit {

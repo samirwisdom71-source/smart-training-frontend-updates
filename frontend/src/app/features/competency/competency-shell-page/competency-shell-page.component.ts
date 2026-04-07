@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { NgForOf } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
@@ -13,83 +13,212 @@ interface CompetencyTab {
 @Component({
   selector: 'app-competency-shell-page',
   standalone: true,
-  imports: [RouterOutlet, NgForOf, TranslateModule, PageShellComponent],
+  imports: [RouterOutlet, NgForOf, TranslateModule, PageShellComponent, RouterLink, RouterLinkActive],
   template: `
     <app-page-shell
       [title]="'nav.competency' | translate"
       [breadcrumbs]="[{ label: ('nav.competency' | translate) }]"
+      [showPageTitle]="false"
     >
-      <div class="tabs-wrap" role="tablist" [attr.aria-label]="'nav.competency' | translate">
-        <button
-          *ngFor="let tab of tabs; let i = index"
-          type="button"
-          role="tab"
-          class="tab-btn"
-          [class.active]="activeIndex === i"
-          [attr.aria-selected]="activeIndex === i"
-          (click)="navigateTo(i)"
-        >
-          {{ tab.labelKey | translate }}
-        </button>
-      </div>
+      <div class="competency-hub ds-animate-fade-up" data-delay="1" [style.--competency-tab-active]="activeIndex">
+        <header class="competency-hub__hero">
+          <div class="competency-hub__hero-inner">
+            <h1 class="competency-hub__title">{{ 'nav.competency' | translate }}</h1>
+            <p class="competency-hub__subtitle">{{ 'competency.pageSubtitle' | translate }}</p>
+          </div>
+        </header>
 
-      <router-outlet></router-outlet>
+        <div class="competency-hub__tabs-wrap">
+          <nav class="competency-hub__tabs" aria-label="Competency sections">
+            <span class="competency-hub__tab-indicator" aria-hidden="true"></span>
+            <a
+              *ngFor="let tab of tabs"
+              [routerLink]="['/competency', tab.path]"
+              class="competency-hub__tab"
+              routerLinkActive="competency-hub__tab--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
+              {{ tab.labelKey | translate }}
+            </a>
+          </nav>
+        </div>
 
-      <div class="wizard-nav">
-        <button
-          type="button"
-          class="ds-btn ds-btn--ghost"
-          (click)="goPrev()"
-          [disabled]="activeIndex === 0"
-        >
-          {{ 'common.previous' | translate }}
-        </button>
-        <button
-          type="button"
-          class="ds-btn ds-btn--primary"
-          (click)="goNext()"
-          [disabled]="activeIndex === tabs.length - 1"
-        >
-          {{ 'common.next' | translate }}
-        </button>
+        <router-outlet></router-outlet>
+
+        <div class="wizard-nav">
+          <button
+            type="button"
+            class="ds-btn ds-btn--ghost competency-hub__wizard-btn"
+            (click)="goPrev()"
+            [disabled]="activeIndex === 0"
+          >
+            {{ 'common.previous' | translate }}
+          </button>
+          <button
+            type="button"
+            class="ds-btn ds-btn--primary competency-hub__wizard-btn"
+            (click)="goNext()"
+            [disabled]="activeIndex === tabs.length - 1"
+          >
+            {{ 'common.next' | translate }}
+          </button>
+        </div>
       </div>
     </app-page-shell>
   `,
   styles: [`
-    .tabs-wrap {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: var(--space-lg);
-      padding: 8px;
-      border: 1px solid var(--color-border-light);
-      border-radius: var(--radius-lg);
-      background: var(--color-bg-subtle);
+    .competency-hub {
+      --competency-tab-active: 0;
+      font-family: var(--font-sans);
+      color: var(--color-text);
+      max-width: 100%;
+      // padding-block-end: var(--space-2xl);
     }
 
-    .tab-btn {
-      border: 1px solid transparent;
-      background: transparent;
-      color: var(--color-text-secondary);
-      border-radius: 999px;
-      padding: 10px 14px;
+    @media (min-width: 1024px) {
+      .competency-hub {
+        // padding-inline: var(--space-lg);
+      }
+    }
+
+    .competency-hub__hero {
+      margin-block-end: var(--space-lg);
+      padding: var(--space-lg) var(--space-xl);
+      border-radius: 20px;
+      background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--gulf-green-800) 92%, #000) 0%,
+        var(--gulf-green-800) 42%,
+        color-mix(in srgb, var(--gulf-green-700) 88%, var(--gulf-gold) 12%) 100%
+      );
+      color: var(--gulf-text);
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 35%, transparent);
+      box-shadow:
+        0 16px 40px rgba(11, 42, 33, 0.18),
+        0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+        0 0 48px rgba(200, 164, 93, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .competency-hub__hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 0% 0%, rgba(200, 164, 93, 0.18), transparent 55%);
+      pointer-events: none;
+    }
+
+    .competency-hub__hero-inner { position: relative; z-index: 1; }
+
+    .competency-hub__title {
+      margin: 0 0 var(--space-xs);
+      font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-shadow: 0 1px 18px rgba(0, 0, 0, 0.2);
+    }
+
+    .competency-hub__subtitle {
+      margin: 0;
       font-size: var(--text-body-sm);
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
+      font-weight: 600;
+      color: var(--gulf-text-muted);
+      max-width: 52rem;
+      line-height: var(--line-height-normal);
+    }
+
+    .competency-hub__tabs-wrap { margin-block-end: var(--space-lg); }
+
+    .competency-hub__tabs {
+      position: relative;
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      border-radius: 18px;
+      background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-bg-elevated) 88%, var(--gulf-emerald) 8%) 0%,
+        var(--color-bg-subtle) 100%
+      );
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 22%, var(--color-border-light));
+      box-shadow:
+        0 8px 28px rgba(15, 61, 46, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow: hidden;
+    }
+
+    .competency-hub__tab-indicator {
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      inset-inline-start: 6px;
+      width: calc((100% - 24px) / 5);
+      border-radius: 14px;
+      background: linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--gulf-green-800) 94%, #000) 0%,
+        var(--gulf-green-700) 55%,
+        color-mix(in srgb, var(--gulf-green-800) 78%, var(--gulf-gold) 22%) 100%
+      );
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 45%, transparent);
+      box-shadow:
+        0 8px 24px rgba(11, 42, 33, 0.28),
+        0 0 28px rgba(200, 164, 93, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      z-index: 0;
+      transition: transform 0.28s cubic-bezier(0.34, 1.12, 0.52, 1), box-shadow 0.25s ease;
+      pointer-events: none;
+    }
+
+    :host-context(:not([dir='rtl'])) .competency-hub__tab-indicator {
+      transform: translateX(calc(var(--competency-tab-active, 0) * (100% + 6px)));
+    }
+
+    :host-context([dir='rtl']) .competency-hub__tab-indicator {
+      transform: translateX(calc(var(--competency-tab-active, 0) * (-100% - 6px)));
+    }
+
+    .competency-hub__tab {
+      position: relative;
+      z-index: 1;
+      flex: 1 1 0;
+      min-width: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: var(--text-body-sm);
+      font-weight: 700;
+      text-decoration: none;
+      color: color-mix(in srgb, var(--color-text) 78%, var(--gulf-green-800));
+      border: 1px solid transparent;
+      transition:
+        color 0.22s ease,
+        background 0.22s ease,
+        box-shadow 0.22s ease,
+        transform 0.2s ease;
       white-space: nowrap;
     }
 
-    .tab-btn:hover {
-      background: var(--color-bg-hover);
-      color: var(--color-text);
+    .competency-hub__tab:hover:not(.competency-hub__tab--active) {
+      color: var(--gulf-green-900);
+      background: color-mix(in srgb, var(--gulf-gold) 10%, transparent);
+      box-shadow: 0 0 20px rgba(200, 164, 93, 0.12);
     }
 
-    .tab-btn.active {
-      background: var(--color-primary);
-      color: var(--color-primary-contrast, #fff);
-      border-color: var(--color-primary);
-      box-shadow: var(--shadow-sm);
+    .competency-hub__tab--active {
+      color: #fff;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .competency-hub__tab:focus-visible {
+      outline: 2px solid var(--gulf-gold);
+      outline-offset: 2px;
     }
 
     .wizard-nav {
@@ -98,6 +227,19 @@ interface CompetencyTab {
       align-items: center;
       margin-top: var(--space-lg);
       gap: var(--space-sm);
+    }
+
+    @media (max-width: 720px) {
+      .competency-hub__tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .competency-hub__tab {
+        flex: 0 0 auto;
+      }
+      .competency-hub__tab-indicator {
+        display: none;
+      }
     }
   `]
 })

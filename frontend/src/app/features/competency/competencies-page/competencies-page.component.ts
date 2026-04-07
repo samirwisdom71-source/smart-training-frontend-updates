@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
+import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
 import { CompetenciesApiService } from '../../../core/api/competencies/competencies-api.service';
 import { CompetencyFrameworksApiService } from '../../../core/api/competency-frameworks/competency-frameworks-api.service';
 import { CompetencyTypesApiService } from '../../../core/api/competency-types/competency-types-api.service';
@@ -18,237 +20,19 @@ import type { PagedResult } from '../../../core/models/api-response';
 @Component({
   selector: 'app-competencies-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe],
-  template: `
-    <app-page-shell [title]="'nav.competencies' | translate" [breadcrumbs]="breadcrumbs()">
-      <div class="actions-row" actions>
-        @if (canCreate()) {
-          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }} {{ 'competency.competency' | translate }}</button>
-        }
-      </div>
-      <div filters>
-        <div class="ds-filterbar">
-          <div class="ds-filterbar__controls">
-            <div class="ds-filterfield">
-              <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
-              <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (ngModelChange)="onSearchChange()" />
-            </div>
-            <div class="ds-filterfield">
-              <div class="ds-filterfield__label">{{ 'competency.framework' | translate }}</div>
-              <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="frameworkIdFilter" (ngModelChange)="onFilterChange()">
-                <option [ngValue]="null">{{ 'common.all' | translate }}</option>
-                @for (fw of frameworkOptions(); track fw.id) {
-                  <option [ngValue]="fw.id">{{ fw.nameAr | localizedText:fw.nameEn }}</option>
-                }
-              </select>
-            </div>
-            <div class="ds-filterfield">
-              <div class="ds-filterfield__label">{{ 'competency.type' | translate }}</div>
-              <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="competencyTypeIdFilter" (ngModelChange)="onFilterChange()">
-                <option [ngValue]="null">{{ 'common.all' | translate }}</option>
-                @for (t of typeOptions(); track t.id) {
-                  <option [ngValue]="t.id">{{ t.nameAr | localizedText:t.nameEn }}</option>
-                }
-              </select>
-            </div>
-            <div class="ds-filterfield">
-              <div class="ds-filterfield__label">{{ 'table.status' | translate }}</div>
-              <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="isActiveFilter" (ngModelChange)="onFilterChange()">
-                <option [ngValue]="null">{{ 'common.all' | translate }}</option>
-                <option [ngValue]="true">{{ 'status.active' | translate }}</option>
-                <option [ngValue]="false">{{ 'status.inactive' | translate }}</option>
-              </select>
-            </div>
-          </div>
-          <div class="ds-filterbar__actions">
-            <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
-              {{ 'common.clearFilters' | translate }}
-            </button>
-          </div>
-        </div>
-      </div>
 
-      @if (loading()) {
-        <div class="table-loading"><div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div><div class="ds-skeleton" style="height: 48px;"></div></div>
-      } @else if (error()) {
-        <div class="ds-error-state">
-          <p class="ds-error-state__title">{{ error() }}</p>
-          <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
-        </div>
-      } @else if (!data()?.items?.length) {
-        <div class="ds-empty">
-          <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p>
-          @if (canCreate()) {
-            <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }}</button>
-          }
-        </div>
-      } @else {
-        <div class="ds-table-wrap">
-          <table class="ds-table">
-            <thead>
-              <tr>
-                <th>{{ 'table.code' | translate }}</th>
-                <th>{{ 'table.name' | translate }}</th>
-                <th>{{ 'competency.type' | translate }}</th>
-                <th>{{ 'competency.framework' | translate }}</th>
-                <th>{{ 'competency.displayOrder' | translate }}</th>
-                <th>{{ 'table.status' | translate }}</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (c of data()!.items; track c.id) {
-                <tr>
-                  <td>{{ c.code }}</td>
-                  <td>{{ displayName(c.nameEn, c.nameAr) }}</td>
-                  <td>{{ c.competencyTypeNameAr | localizedText:c.competencyTypeNameEn }}</td>
-                  <td>{{ c.frameworkNameAr | localizedText:c.frameworkNameEn }}</td>
-                  <td>{{ c.displayOrder }}</td>
-                  <td><span class="ds-badge" [class.ds-badge--success]="c.isActive" [class.ds-badge--neutral]="!c.isActive">{{ c.isActive ? ('status.active' | translate) : ('status.inactive' | translate) }}</span></td>
-                  <td class="cell-actions">
-                    @if (canEdit()) {
-                      <button
-                        type="button"
-                        class="ds-btn ds-btn--ghost ds-btn--icon"
-                        (click)="openEdit(c)"
-                        [attr.aria-label]="'common.edit' | translate"
-                        [title]="'common.edit' | translate"
-                      >
-                        <svg class="icon-svg" viewBox="0 0 24 24">
-                          <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-                          <path d="M13.5 6.5 16 4l3 3-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        class="ds-btn ds-btn--ghost ds-btn--icon status-toggle-btn"
-                        [class.status-toggle-btn--active]="c.isActive"
-                        (click)="setStatus(c)"
-                        [attr.aria-label]="'org.setStatus' | translate"
-                        [title]="'org.setStatus' | translate"
-                      >
-                        <svg class="icon-svg" viewBox="0 0 24 24">
-                          <rect x="3" y="7" width="18" height="10" rx="5" fill="none" stroke="currentColor" stroke-width="1.6"/>
-                          <circle cx="8" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
-                        </svg>
-                      </button>
-                    }
-                    @if (canDelete()) {
-                      <button
-                        type="button"
-                        class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
-                        (click)="confirmDelete(c)"
-                        [attr.aria-label]="'common.delete' | translate"
-                        [title]="'common.delete' | translate"
-                      >
-                        <svg class="icon-svg" viewBox="0 0 24 24">
-                          <path d="M6 19V7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6" />
-                          <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M4 7h16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-                        </svg>
-                      </button>
-                    }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-        <div class="pagination">
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-          <span class="pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
-        </div>
-      }
-    </app-page-shell>
-
-    @if (showModal()) {
-      <div class="modal-overlay" (click)="closeModal()">
-        <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
-          <h3 class="modal-drawer__title">{{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'competency.competency' | translate }}</h3>
-          @if (modalError()) { <p class="ds-field-error">{{ modalError() }}</p> }
-          <form (ngSubmit)="save()">
-            <div class="form-group">
-              <label class="ds-label">{{ 'table.code' | translate }}</label>
-              <input type="text" class="ds-input" [(ngModel)]="form.code" name="code" />
-            </div>
-            <div class="form-group">
-              <label class="ds-label">{{ 'table.nameEn' | translate }}</label>
-              <input type="text" class="ds-input" [(ngModel)]="form.nameEn" name="nameEn" />
-            </div>
-            <div class="form-group">
-              <label class="ds-label">{{ 'table.nameAr' | translate }}</label>
-              <input type="text" class="ds-input" [(ngModel)]="form.nameAr" name="nameAr" />
-            </div>
-            <div class="form-group">
-              <label class="ds-label">{{ 'table.descriptionEn' | translate }}</label>
-              <textarea class="ds-textarea" [(ngModel)]="form.descriptionEn" name="descriptionEn" rows="2"></textarea>
-            </div>
-            <div class="form-group">
-              <label class="ds-label">{{ 'table.descriptionAr' | translate }}</label>
-              <textarea class="ds-textarea" [(ngModel)]="form.descriptionAr" name="descriptionAr" rows="2"></textarea>
-            </div>
-            <div class="form-group">
-              <label class="ds-label">{{ 'competency.framework' | translate }}</label>
-              <select class="ds-input" [(ngModel)]="form.frameworkId" name="frameworkId" (ngModelChange)="onFrameworkChange()">
-                @for (fw of frameworkOptions(); track fw.id) {
-                  <option [ngValue]="fw.id">{{ fw.nameAr | localizedText:fw.nameEn }} ({{ fw.code }})</option>
-                }
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="ds-label">{{ 'competency.type' | translate }}</label>
-              <select class="ds-input" [(ngModel)]="form.competencyTypeId" name="competencyTypeId" [disabled]="!!editingId()">
-                @for (t of typeOptions(); track t.id) {
-                  <option [ngValue]="t.id">{{ t.nameAr | localizedText:t.nameEn }} ({{ t.code }})</option>
-                }
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="ds-label">{{ 'competency.category' | translate }}</label>
-              <input type="text" class="ds-input" [(ngModel)]="form.category" name="category" />
-            </div>
-            <div class="form-group">
-              <label class="ds-label">{{ 'competency.displayOrder' | translate }}</label>
-              <input type="number" class="ds-input" [(ngModel)]="form.displayOrder" name="displayOrder" min="0" />
-            </div>
-            <div class="modal-drawer__actions">
-              <button type="button" class="ds-btn ds-btn--secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
-              <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    }
-
-    @if (showConfirm()) {
-      <app-confirm-dialog
-        [title]="'dialog.confirmDelete' | translate"
-        [message]="deleteConfirmMessage()"
-        [confirmLabel]="'common.delete' | translate"
-        [cancelLabel]="'common.cancel' | translate"
-        (confirm)="doDelete()"
-        (cancel)="cancelDelete()"
-      />
-    }
-  `,
-  styles: [`
-    .filter-row { display: flex; gap: var(--space-md); align-items: center; flex-wrap: wrap; }
-    .filter-search { max-width: 280px; }
-    .filter-select { max-width: 200px; }
-    .table-loading { padding: var(--space-md) 0; }
-    .cell-actions { text-align: end; }
-    .status-toggle-btn { color: var(--color-text-secondary, #64748b); }
-    .status-toggle-btn .icon-svg { width: 22px; height: 22px; }
-    .status-toggle-btn.status-toggle-btn--active { color: #22c55e; }
-    .status-toggle-btn.status-toggle-btn--active:hover { background: rgba(34, 197, 94, 0.18); }
-    .pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); flex-wrap: wrap; }
-    .pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
-    .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; padding: var(--space-lg); }
-    .modal-drawer { max-width: 440px; width: 100%; max-height: 90vh; overflow: auto; }
-    .modal-drawer__title { font-size: var(--text-h1); font-weight: 600; margin: 0 0 var(--space-md); }
-    .modal-drawer form .form-group { margin-bottom: var(--space-md); }
-    .modal-drawer__actions { display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-lg); }
-  `]
+  imports: [
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    TooltipDirective,
+    PortalToBodyDirective,
+    LocalizedTextPipe,
+  ],
+  templateUrl: './competencies-page.component.html',
+  styleUrls: ['./competencies-page.component.scss'],
+    
 })
 export class CompetenciesPageComponent implements OnInit {
   private readonly api = inject(CompetenciesApiService);
@@ -278,6 +62,9 @@ export class CompetenciesPageComponent implements OnInit {
 
   readonly showConfirm = signal(false);
   readonly toDelete = signal<CompetencyListDto | null>(null);
+
+  /** Blocks openCreate/openEdit briefly after dismiss — avoids click-through reopening the portaled modal. */
+  private suppressCompetencyModalOpenUntil = 0;
 
   form: CreateCompetencyRequest = {
     code: '',
@@ -421,6 +208,7 @@ export class CompetenciesPageComponent implements OnInit {
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
 
   openCreate(): void {
+    if (Date.now() < this.suppressCompetencyModalOpenUntil) return;
     this.editingId.set(null);
     const fw = this.frameworkOptions()[0];
     const types = this.typeOptions();
@@ -434,6 +222,7 @@ export class CompetenciesPageComponent implements OnInit {
   }
 
   openEdit(c: CompetencyListDto): void {
+    if (Date.now() < this.suppressCompetencyModalOpenUntil) return;
     this.editingId.set(c.id);
     this.form = {
       code: c.code, nameEn: c.nameEn, nameAr: c.nameAr, descriptionEn: null, descriptionAr: null,
@@ -460,7 +249,11 @@ export class CompetenciesPageComponent implements OnInit {
     });
   }
 
-  closeModal(): void {
+  closeModal(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    (event as MouseEvent | undefined)?.stopImmediatePropagation?.();
+    this.suppressCompetencyModalOpenUntil = Date.now() + 400;
     this.showModal.set(false);
     this.editingId.set(null);
   }

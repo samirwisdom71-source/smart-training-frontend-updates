@@ -262,38 +262,60 @@
 // —— Tables ——
 .ds-table-wrap {
   overflow-x: auto;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-light);
-  background: var(--color-bg-card);
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--gulf-gold) 18%, var(--color-border-light));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.94) 0%,
+    color-mix(in srgb, var(--color-bg-elevated) 92%, var(--gulf-emerald) 6%) 100%
+  );
+  box-shadow:
+    0 10px 32px rgba(15, 61, 46, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  -webkit-overflow-scrolling: touch;
 }
 
 .ds-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: var(--text-body-sm);
 }
 
 .ds-table tbody tr {
-  transition: background-color 0.18s ease;
+  transition: background 0.22s ease, box-shadow 0.22s ease;
 }
 
 .ds-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   text-align: start;
   font-weight: var(--font-weight-semibold);
-  color: var(--color-primary-contrast);
-  background: var(--color-primary);
-  padding: var(--space-md);
-  border-block-end: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--gulf-text);
+  background: linear-gradient(180deg, var(--gulf-green-800) 0%, var(--gulf-green-900) 100%);
+  padding: 14px 16px;
+  border-block-end: 1px solid color-mix(in srgb, var(--gulf-gold) 35%, transparent);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 
 .ds-table td {
-  padding: var(--space-md);
-  border-block-end: 1px solid var(--color-border-light);
+  padding: 14px 16px;
+  border-block-end: 1px solid color-mix(in srgb, var(--gulf-green-800) 6%, var(--color-border-light));
   color: var(--color-text);
 }
 
+.ds-table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--gulf-green-800) 3.5%, var(--color-bg-elevated));
+}
+
 .ds-table tbody tr:hover td {
-  background: var(--color-bg-hover);
+  background: color-mix(in srgb, var(--gulf-gold) 9%, var(--color-bg-elevated)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gulf-gold) 18%, transparent);
 }
 
 .ds-table tbody tr:last-child td {
@@ -302,11 +324,24 @@
 
 // —— Filter bar (unified) ——
 .ds-filterbar {
+  padding: 14px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
   flex-wrap: nowrap;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--gulf-gold) 16%, var(--color-border));
+  background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--color-bg-elevated) 92%, var(--gulf-green-800) 8%) 0%,
+      color-mix(in srgb, var(--color-bg-elevated) 90%, var(--gulf-gold) 4%) 100%
+    );
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.10),
+    0 0 24px rgba(200, 164, 93, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .ds-filterbar__controls {
@@ -345,6 +380,21 @@
 
 .ds-filterfield__control {
   min-width: 0;
+}
+
+.ds-filterbar .ds-input,
+.ds-filterbar .ds-textarea,
+.ds-filterbar select.ds-input {
+  border-color: color-mix(in srgb, var(--gulf-gold) 18%, var(--color-border));
+  background: color-mix(in srgb, var(--color-bg-elevated) 92%, white 8%);
+  transition: box-shadow 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.ds-filterbar .ds-input:focus,
+.ds-filterbar .ds-textarea:focus,
+.ds-filterbar select.ds-input:focus {
+  border-color: color-mix(in srgb, var(--gulf-gold) 44%, var(--color-primary));
+  box-shadow: 0 0 0 4px rgba(200, 164, 93, 0.16);
 }
 
 @media (max-width: 980px) {

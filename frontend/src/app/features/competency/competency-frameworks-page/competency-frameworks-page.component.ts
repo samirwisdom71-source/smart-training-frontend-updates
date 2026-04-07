@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
+import { CompetencyFrameworkModalComponent } from '../competency-framework-modal/competency-framework-modal.component';
 import { CompetencyFrameworksApiService } from '../../../core/api/competency-frameworks/competency-frameworks-api.service';
 import { OrganizationsApiService } from '../../../core/api/organizations/organizations-api.service';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -16,12 +18,19 @@ import { ToastService } from '../../../core/toast/toast.service';
 @Component({
   selector: 'app-competency-frameworks-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe],
+  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe, TooltipDirective, CompetencyFrameworkModalComponent],
   template: `
-    <app-page-shell [title]="'nav.competencyFrameworks' | translate" [breadcrumbs]="breadcrumbs()">
+    <app-page-shell [title]="'nav.competencyFrameworks' | translate" [breadcrumbs]="breadcrumbs()" [showPageTitle]="false">
       <div class="actions-row" actions>
         @if (canCreate()) {
-          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }} {{ 'competency.framework' | translate }}</button>
+          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm premium-primary-btn" (click)="openCreate()">
+            <span class="premium-primary-btn__icon" aria-hidden="true">
+              <svg class="icon-svg" viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            {{ 'common.add' | translate }} {{ 'competency.framework' | translate }}
+          </button>
         }
       </div>
       <div filters>
@@ -98,10 +107,10 @@ import { ToastService } from '../../../core/toast/toast.service';
                     @if (canEdit()) {
                       <button
                         type="button"
-                        class="ds-btn ds-btn--ghost ds-btn--icon"
+                        class="ds-btn ds-btn--ghost ds-btn--icon premium-icon-btn"
                         (click)="openEdit(f)"
                         [attr.aria-label]="'common.edit' | translate"
-                        [title]="'common.edit' | translate"
+                        [appTooltip]="'common.edit' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
@@ -110,11 +119,11 @@ import { ToastService } from '../../../core/toast/toast.service';
                       </button>
                       <button
                         type="button"
-                        class="ds-btn ds-btn--ghost ds-btn--icon status-toggle-btn"
+                        class="ds-btn ds-btn--ghost ds-btn--icon status-toggle-btn premium-icon-btn"
                         [class.status-toggle-btn--active]="f.isActive"
                         (click)="setStatus(f)"
                         [attr.aria-label]="'org.setStatus' | translate"
-                        [title]="'org.setStatus' | translate"
+                        [appTooltip]="'org.setStatus' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <rect x="3" y="7" width="18" height="10" rx="5" fill="none" stroke="currentColor" stroke-width="1.6"/>
@@ -125,10 +134,10 @@ import { ToastService } from '../../../core/toast/toast.service';
                     @if (canDelete()) {
                       <button
                         type="button"
-                        class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
+                        class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger premium-icon-btn"
                         (click)="confirmDelete(f)"
                         [attr.aria-label]="'common.delete' | translate"
-                        [title]="'common.delete' | translate"
+                        [appTooltip]="'common.delete' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <path d="M6 19V7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6" />
@@ -150,51 +159,16 @@ import { ToastService } from '../../../core/toast/toast.service';
       }
     </app-page-shell>
 
-    @if (showModal()) {
-      <div class="modal-overlay" (click)="closeModal()">
-        <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
-          <h3 class="modal-drawer__title">{{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'competency.framework' | translate }}</h3>
-          @if (modalError()) {
-            <p class="ds-field-error">{{ modalError() }}</p>
-          }
-          <form (ngSubmit)="save()">
-            <div class="form-group">
-              <label class="ds-label">{{ 'table.code' | translate }}</label>
-              <input type="text" class="ds-input" [(ngModel)]="form.code" name="code" />
-            </div>
-            <div class="form-group">
-              <label class="ds-label">{{ 'table.nameEn' | translate }}</label>
-              <input type="text" class="ds-input" [(ngModel)]="form.nameEn" name="nameEn" />
-            </div>
-            <div class="form-group">
-              <label class="ds-label">{{ 'table.nameAr' | translate }}</label>
-              <input type="text" class="ds-input" [(ngModel)]="form.nameAr" name="nameAr" />
-            </div>
-            <div class="form-group">
-              <label class="ds-label">{{ 'table.descriptionEn' | translate }}</label>
-              <textarea class="ds-textarea" [(ngModel)]="form.descriptionEn" name="descriptionEn" rows="2"></textarea>
-            </div>
-            <div class="form-group">
-              <label class="ds-label">{{ 'table.descriptionAr' | translate }}</label>
-              <textarea class="ds-textarea" [(ngModel)]="form.descriptionAr" name="descriptionAr" rows="2"></textarea>
-            </div>
-            <div class="form-group">
-              <label class="ds-label">{{ 'table.organization' | translate }}</label>
-              <select class="ds-input" [(ngModel)]="form.organizationId" name="organizationId">
-                <option [ngValue]="null">—</option>
-                @for (org of orgOptions(); track org.id) {
-                  <option [ngValue]="org.id">{{ org.nameAr | localizedText:org.nameEn }} ({{ org.code }})</option>
-                }
-              </select>
-            </div>
-            <div class="modal-drawer__actions">
-              <button type="button" class="ds-btn ds-btn--secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
-              <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    }
+    <app-competency-framework-modal
+      [open]="showModal()"
+      [form]="form"
+      [orgOptions]="orgOptions()"
+      [editingId]="editingId()"
+      [modalError]="modalError()"
+      [saving]="saving()"
+      (dismissed)="onFrameworkModalDismissed()"
+      (saveRequested)="save()"
+    />
 
     @if (showConfirm()) {
       <app-confirm-dialog
@@ -219,11 +193,35 @@ import { ToastService } from '../../../core/toast/toast.service';
     .status-toggle-btn.status-toggle-btn--active:hover { background: rgba(34, 197, 94, 0.18); }
     .pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); flex-wrap: wrap; }
     .pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
-    .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; padding: var(--space-lg); }
-    .modal-drawer { max-width: 440px; width: 100%; max-height: 90vh; overflow: auto; }
-    .modal-drawer__title { font-size: var(--text-h1); font-weight: 600; margin: 0 0 var(--space-md); }
-    .modal-drawer form .form-group { margin-bottom: var(--space-md); }
-    .modal-drawer__actions { display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-lg); }
+    .premium-primary-btn {
+      background: linear-gradient(145deg, var(--gulf-green-800), color-mix(in srgb, var(--gulf-green-700) 86%, var(--gulf-gold) 14%));
+      border-color: color-mix(in srgb, var(--gulf-gold) 28%, transparent);
+      box-shadow: 0 10px 28px rgba(15, 61, 46, 0.16), 0 0 22px rgba(200, 164, 93, 0.12);
+      transition: transform 0.18s ease, box-shadow 0.22s ease;
+    }
+    .premium-primary-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 34px rgba(15, 61, 46, 0.2), 0 0 30px rgba(200, 164, 93, 0.16);
+    }
+    .premium-primary-btn__icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    .premium-secondary-btn:hover:not(:disabled) {
+      border-color: var(--gulf-gold);
+      box-shadow: 0 0 18px rgba(200, 164, 93, 0.14);
+    }
+
+    .premium-icon-btn:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--gulf-gold) 10%, var(--color-bg-subtle));
+    }
   `]
 })
 export class CompetencyFrameworksPageComponent implements OnInit {
@@ -260,6 +258,9 @@ export class CompetencyFrameworksPageComponent implements OnInit {
     descriptionAr: null,
     organizationId: null,
   };
+
+  /** Blocks openCreate/openEdit briefly after dismiss — avoids click-through reopening the modal. */
+  private suppressFrameworkModalOpenUntil = 0;
 
   canCreate = () => this.auth.hasPermission(PermissionCodes.competency.create);
   canEdit = () => this.auth.hasPermission(PermissionCodes.competency.edit);
@@ -367,6 +368,7 @@ export class CompetencyFrameworksPageComponent implements OnInit {
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
 
   openCreate(): void {
+    if (Date.now() < this.suppressFrameworkModalOpenUntil) return;
     this.editingId.set(null);
     this.form = { code: '', nameEn: '', nameAr: '', descriptionEn: null, descriptionAr: null, organizationId: null };
     this.modalError.set(null);
@@ -374,6 +376,7 @@ export class CompetencyFrameworksPageComponent implements OnInit {
   }
 
   openEdit(f: CompetencyFrameworkListDto): void {
+    if (Date.now() < this.suppressFrameworkModalOpenUntil) return;
     this.editingId.set(f.id);
     this.form = { code: f.code, nameEn: f.nameEn, nameAr: f.nameAr, descriptionEn: null, descriptionAr: null, organizationId: f.organizationId ?? null };
     this.modalError.set(null);
@@ -394,9 +397,11 @@ export class CompetencyFrameworksPageComponent implements OnInit {
     });
   }
 
-  closeModal(): void {
+  onFrameworkModalDismissed(): void {
+    this.suppressFrameworkModalOpenUntil = Date.now() + 400;
     this.showModal.set(false);
     this.editingId.set(null);
+    this.modalError.set(null);
   }
 
   save(): void {
@@ -405,7 +410,7 @@ export class CompetencyFrameworksPageComponent implements OnInit {
     if (id) {
       this.saving.set(true);
       this.api.update(id, this.form as UpdateCompetencyFrameworkRequest).subscribe({
-        next: () => { this.saving.set(false); this.closeModal(); this.load(); },
+        next: () => { this.saving.set(false); this.onFrameworkModalDismissed(); this.load(); },
         error: (err) => { this.saving.set(false); this.modalError.set(err.error?.errors?.[0] ?? err.error?.message ?? 'Error'); },
       });
     } else {
@@ -415,7 +420,7 @@ export class CompetencyFrameworksPageComponent implements OnInit {
       }
       this.saving.set(true);
       this.api.create(this.form).subscribe({
-        next: () => { this.saving.set(false); this.closeModal(); this.load(); },
+        next: () => { this.saving.set(false); this.onFrameworkModalDismissed(); this.load(); },
         error: (err) => { this.saving.set(false); this.modalError.set(err.error?.errors?.[0] ?? err.error?.message ?? 'Error'); },
       });
     }

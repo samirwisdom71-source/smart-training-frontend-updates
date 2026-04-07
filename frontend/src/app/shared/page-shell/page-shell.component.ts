@@ -24,7 +24,9 @@ export interface BreadcrumbItem {
     </div>
   `,
   styles: [`
-    .page-shell { padding: var(--space-lg); max-width: var(--content-max-width); margin: 0 auto; }
+    .page-shell { 
+    // padding: var(--space-lg); max-width: var(--content-max-width); margin: 0 auto; 
+    }
     .page-shell.page-shell--full-width {
       max-width: none;
       width: 100%;

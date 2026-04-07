@@ -1,0 +1,90 @@
+@if (open()) {
+    <div class="modal-overlay" appPortalToBody>
+      <button
+        type="button"
+        class="modal-backdrop"
+        [attr.aria-label]="'common.close' | translate"
+        (click)="requestDismiss($event)"
+      ></button>
+      <div class="modal-drawer premium-modal" role="dialog" aria-modal="true">
+        <div class="premium-modal__header">
+          <div class="premium-modal__titlewrap">
+            <h3 class="premium-modal__title">
+              {{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }}
+              {{ 'competency.framework' | translate }}
+            </h3>
+            <p class="premium-modal__subtitle">{{ 'nav.competencyFrameworks' | translate }}</p>
+          </div>
+          <button
+            type="button"
+            class="ds-btn ds-btn--ghost ds-btn--icon premium-modal__close"
+            (click)="requestDismiss($event)"
+            [attr.aria-label]="'common.close' | translate"
+            [appTooltip]="'common.close' | translate"
+          >
+            <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+        <div class="premium-modal__body">
+          @if (modalError()) {
+            <div class="premium-modal__error">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 9v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M12 17h.01" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                <path
+                  d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <p class="premium-modal__error-text">{{ modalError() }}</p>
+            </div>
+          }
+
+          <form class="premium-form" (ngSubmit)="saveRequested.emit()">
+            <div class="form-group">
+              <label class="ds-label">{{ 'table.code' | translate }}</label>
+              <input type="text" class="ds-input" [(ngModel)]="form().code" name="code" />
+            </div>
+            <div class="form-group">
+              <label class="ds-label">{{ 'table.nameEn' | translate }}</label>
+              <input type="text" class="ds-input" [(ngModel)]="form().nameEn" name="nameEn" />
+            </div>
+            <div class="form-group">
+              <label class="ds-label">{{ 'table.nameAr' | translate }}</label>
+              <input type="text" class="ds-input" [(ngModel)]="form().nameAr" name="nameAr" />
+            </div>
+            <div class="form-group">
+              <label class="ds-label">{{ 'table.descriptionEn' | translate }}</label>
+              <textarea class="ds-textarea" [(ngModel)]="form().descriptionEn" name="descriptionEn" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="ds-label">{{ 'table.descriptionAr' | translate }}</label>
+              <textarea class="ds-textarea" [(ngModel)]="form().descriptionAr" name="descriptionAr" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="ds-label">{{ 'table.organization' | translate }}</label>
+              <select class="ds-input" [(ngModel)]="form().organizationId" name="organizationId">
+                <option [ngValue]="null">—</option>
+                @for (org of orgOptions(); track org.id) {
+                  <option [ngValue]="org.id">{{ org.nameAr | localizedText:org.nameEn }} ({{ org.code }})</option>
+                }
+              </select>
+            </div>
+            <div class="premium-modal__footer">
+              <button type="button" class="ds-btn ds-btn--secondary premium-secondary-btn" (click)="requestDismiss($event)">
+                {{ 'common.cancel' | translate }}
+              </button>
+              <button type="submit" class="ds-btn ds-btn--primary premium-primary-btn" [disabled]="saving()">
+                {{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
