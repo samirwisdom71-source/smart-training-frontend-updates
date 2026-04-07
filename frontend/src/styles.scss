@@ -1,5 +1,6 @@
 @use './styles/variables' as *;
 @use './styles/theme' as *;
+@use './styles/enterprise-admin' as *;
 @use './styles/dashboard-chart-widgets';
 
 /**
@@ -25,7 +26,8 @@
 /* App tooltip (icons, sidebar collapsed, table actions) */
 .app-tooltip {
   position: absolute;
-  z-index: 2000;
+  /* Above modals (2147483646), drawers, and overlays */
+  z-index: 2147483647;
   max-width: min(320px, calc(100vw - 24px));
   padding: 8px 10px;
   border-radius: 10px;

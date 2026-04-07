@@ -139,6 +139,7 @@ $login-ease: cubic-bezier(0.4, 0, 0.2, 1);
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
     0 0 0 1px rgba(0, 0, 0, 0.25),
     0 0 48px rgba(200, 164, 93, 0.07);
+  animation: login-enter 0.72s $login-ease 0.06s both;
 }
 
 .login-card__head {
@@ -792,6 +793,10 @@ $btn-anim-ease: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .login-card {
+    animation: none;
+  }
+
   .login-panel__inner,
   .login-visual__content,
   .login-visual__float--1,

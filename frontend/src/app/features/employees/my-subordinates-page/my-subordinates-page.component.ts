@@ -9,54 +9,76 @@ import type { EmployeeListDto } from '../../../core/api/employees/employees-api.
   standalone: true,
   imports: [TranslateModule, PageShellComponent],
   template: `
-    <app-page-shell [title]="'nav.mySubordinates' | translate" [breadcrumbs]="breadcrumbs()">
-      @if (loading()) {
-        <div class="table-loading">
-          <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
-          <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
-          <div class="ds-skeleton" style="height: 48px;"></div>
+    <app-page-shell
+      [title]="'nav.mySubordinates' | translate"
+      [breadcrumbs]="breadcrumbs()"
+      [fullWidth]="true"
+      [showPageTitle]="false"
+    >
+      <div class="ent-admin-page ent-page-fade-in">
+        <header class="ent-admin-hero">
+          <div class="ent-admin-hero__inner">
+            <h1 class="ent-admin-hero__title">{{ 'nav.mySubordinates' | translate }}</h1>
+            <p class="ent-admin-hero__subtitle">{{ 'enterprise.adminHeroSubtitle' | translate }}</p>
+          </div>
+        </header>
+
+        <div class="ent-admin-content">
+          @if (loading()) {
+            <div class="ent-table-panel">
+              <div class="table-loading">
+                <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
+                <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
+                <div class="ds-skeleton" style="height: 48px;"></div>
+              </div>
+            </div>
+          } @else if (error()) {
+            <div class="ds-error-state">
+              <p class="ds-error-state__title">{{ error() }}</p>
+              <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
+            </div>
+          } @else if (!items().length) {
+            <div class="ent-table-panel">
+              <div class="ds-empty">
+                <p class="ds-empty__title">{{ 'mySubordinates.empty' | translate }}</p>
+              </div>
+            </div>
+          } @else {
+            <div class="ent-table-panel">
+              <div class="ds-table-wrap">
+                <table class="ds-table">
+                  <thead>
+                    <tr>
+                      <th>{{ 'table.employeeNumber' | translate }}</th>
+                      <th>{{ 'table.name' | translate }}</th>
+                      <th>{{ 'table.email' | translate }}</th>
+                      <th>{{ 'table.status' | translate }}</th>
+                      <th>{{ 'table.jobTitle' | translate }}</th>
+                      <th>{{ 'table.organizationalUnit' | translate }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (e of items(); track e.id) {
+                      <tr>
+                        <td>{{ e.employeeNumber }}</td>
+                        <td>{{ getEmployeeDisplayName(e) }}</td>
+                        <td>{{ e.email ?? '—' }}</td>
+                        <td><span class="ds-badge" [class.ds-badge--success]="e.status === 'Active'" [class.ds-badge--neutral]="e.status !== 'Active'">{{ e.status }}</span></td>
+                        <td>{{ e.jobTitleEn ?? '—' }}</td>
+                        <td>{{ getLocalizedText(e.organizationalUnitNameAr, e.organizationalUnitNameEn) }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
         </div>
-      } @else if (error()) {
-        <div class="ds-error-state">
-          <p class="ds-error-state__title">{{ error() }}</p>
-          <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
-        </div>
-      } @else if (!items().length) {
-        <div class="ds-empty">
-          <p class="ds-empty__title">{{ 'mySubordinates.empty' | translate }}</p>
-        </div>
-      } @else {
-        <div class="ds-table-wrap">
-          <table class="ds-table">
-            <thead>
-              <tr>
-                <th>{{ 'table.employeeNumber' | translate }}</th>
-                <th>{{ 'table.name' | translate }}</th>
-                <th>{{ 'table.email' | translate }}</th>
-                <th>{{ 'table.status' | translate }}</th>
-                <th>{{ 'table.jobTitle' | translate }}</th>
-                <th>{{ 'table.organizationalUnit' | translate }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (e of items(); track e.id) {
-                <tr>
-                  <td>{{ e.employeeNumber }}</td>
-                  <td>{{ getEmployeeDisplayName(e) }}</td>
-                  <td>{{ e.email ?? '—' }}</td>
-                  <td><span class="ds-badge" [class.ds-badge--success]="e.status === 'Active'" [class.ds-badge--neutral]="e.status !== 'Active'">{{ e.status }}</span></td>
-                  <td>{{ e.jobTitleEn ?? '—' }}</td>
-                  <td>{{ getLocalizedText(e.organizationalUnitNameAr, e.organizationalUnitNameEn) }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
+      </div>
     </app-page-shell>
   `,
   styles: [`
-    .table-loading { padding: var(--space-md) 0; }
+    .table-loading { padding: var(--space-md) var(--space-lg); }
   `]
 })
 export class MySubordinatesPageComponent implements OnInit {

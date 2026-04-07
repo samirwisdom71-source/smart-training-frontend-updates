@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { UsersApiService } from '../../../core/api/users/users-api.service';
 import { RolesApiService } from '../../../core/api/roles/roles-api.service';
@@ -16,20 +17,28 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
 @Component({
   selector: 'app-users-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent],
+  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective],
   template: `
-    <app-page-shell [title]="'nav.usersAndRoles' | translate" [breadcrumbs]="breadcrumbs()">
-      <div class="actions-row" actions>
+    <app-page-shell [title]="'nav.usersAndRoles' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true" [showPageTitle]="false">
+      <div class="ent-admin-page ent-page-fade-in">
+        <header class="ent-admin-hero">
+          <div class="ent-admin-hero__inner">
+            <h1 class="ent-admin-hero__title">{{ 'nav.usersAndRoles' | translate }}</h1>
+            <p class="ent-admin-hero__subtitle">{{ 'enterprise.adminHeroSubtitle' | translate }}</p>
+          </div>
+        </header>
+
+      <div class="actions-row">
         @if (canCreate()) {
-          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }} {{ 'table.user' | translate }}</button>
+          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm premium-primary-btn" (click)="openCreate()" [appTooltip]="('common.add' | translate) + ' — ' + ('table.user' | translate)">{{ 'common.add' | translate }} {{ 'table.user' | translate }}</button>
         }
       </div>
-      <div filters>
+      <div filters class="ent-admin-filters">
         <div class="ds-filterbar">
           <div class="ds-filterbar__controls">
             <div class="ds-filterfield">
               <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
-              <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (ngModelChange)="onSearchChange()" />
+              <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (ngModelChange)="onSearchChange()" [placeholder]="'common.search' | translate" />
             </div>
           </div>
           <div class="ds-filterbar__actions">
@@ -40,11 +49,14 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
         </div>
       </div>
 
+      <div class="ent-admin-content">
       @if (loading()) {
+        <div class="ent-table-panel">
         <div class="table-loading">
           <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
           <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
           <div class="ds-skeleton" style="height: 48px;"></div>
+        </div>
         </div>
       } @else if (error()) {
         <div class="ds-error-state">
@@ -52,13 +64,16 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
           <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
         </div>
       } @else if (!data()?.items?.length) {
+        <div class="ent-table-panel">
         <div class="ds-empty">
           <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p>
           @if (canCreate()) {
-            <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }}</button>
+            <button type="button" class="ds-btn ds-btn--primary ds-btn--sm premium-primary-btn" (click)="openCreate()">{{ 'common.add' | translate }}</button>
           }
         </div>
+        </div>
       } @else {
+        <div class="ent-table-panel">
         <div class="ds-table-wrap">
           <table class="ds-table">
             <thead>
@@ -91,7 +106,7 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
                         class="ds-btn ds-btn--ghost ds-btn--icon"
                         (click)="openSetManager(u)"
                         [attr.aria-label]="'users.setManager' | translate"
-                        [title]="'users.setManager' | translate"
+                        [appTooltip]="'users.setManager' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="none" stroke="currentColor" stroke-width="1.5"/>
@@ -102,7 +117,7 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
                         class="ds-btn ds-btn--ghost ds-btn--icon"
                         (click)="openEdit(u)"
                         [attr.aria-label]="'common.edit' | translate"
-                        [title]="'common.edit' | translate"
+                        [appTooltip]="'common.edit' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
@@ -116,7 +131,7 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
                         class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
                         (click)="confirmDelete(u)"
                         [attr.aria-label]="'common.delete' | translate"
-                        [title]="'common.delete' | translate"
+                        [appTooltip]="'common.delete' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="none" stroke="currentColor" stroke-width="1.5"/>
@@ -129,22 +144,44 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
             </tbody>
           </table>
         </div>
-        <div class="pagination">
+        <div class="pagination ent-pagination">
           <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-          <span class="pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
+          <span class="ent-pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
           <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
         </div>
+        </div>
       }
+      </div>
+      </div>
     </app-page-shell>
 
     @if (showModal()) {
-      <div class="modal-overlay" (click)="closeModal()">
-        <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
-          <h3 class="modal-drawer__title">{{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'table.user' | translate }}</h3>
+      <div class="ent-modal-overlay">
+        <button type="button" class="ent-modal-backdrop" [attr.aria-label]="'common.close' | translate" (click)="closeModal()"></button>
+        <div class="ent-modal-shell modal-drawer premium-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+          <div class="premium-modal__header">
+            <div class="premium-modal__titlewrap">
+              <h3 class="premium-modal__title">{{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'table.user' | translate }}</h3>
+              <p class="premium-modal__subtitle">{{ 'nav.usersAndRoles' | translate }}</p>
+            </div>
+            <button type="button" class="ds-btn ds-btn--ghost ds-btn--icon premium-modal__close" (click)="closeModal()" [attr.aria-label]="'common.close' | translate" [appTooltip]="'common.close' | translate">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
+          <div class="premium-modal__body">
           @if (modalError()) {
-            <p class="ds-field-error">{{ modalError() }}</p>
+            <div class="premium-modal__error">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 9v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M12 17h.01" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              </svg>
+              <p class="premium-modal__error-text">{{ modalError() }}</p>
+            </div>
           }
-          <form (ngSubmit)="saveUser()">
+          <form class="premium-form" (ngSubmit)="saveUser()">
             <div class="form-group">
               <label class="ds-label">{{ 'auth.email' | translate }}</label>
               <input type="email" class="ds-input" [(ngModel)]="form.email" name="email" [readonly]="!!editingId()" />
@@ -152,14 +189,36 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
             @if (!editingId()) {
               <div class="form-group">
                 <label class="ds-label">{{ 'auth.password' | translate }}</label>
-                <div class="input-with-toggle">
-                  <input [type]="showPassword() ? 'text' : 'password'" class="ds-input" [(ngModel)]="form.password" name="password" />
-                  <button type="button" class="ds-btn ds-btn--ghost ds-btn--icon input-toggle-btn" (click)="showPassword.set(!showPassword())" [attr.aria-label]="(showPassword() ? 'auth.hidePassword' : 'auth.showPassword') | translate" [title]="(showPassword() ? 'auth.hidePassword' : 'auth.showPassword') | translate">
+                <div class="password-field-wrap">
+                  <input [type]="showPassword() ? 'text' : 'password'" class="ds-input password-field-wrap__input" [(ngModel)]="form.password" name="password" />
+                  <button type="button" class="ds-btn ds-btn--ghost ds-btn--icon password-field-wrap__toggle" (click)="showPassword.set(!showPassword())" [attr.aria-label]="(showPassword() ? 'auth.hidePassword' : 'auth.showPassword') | translate" [appTooltip]="(showPassword() ? 'auth.hidePassword' : 'auth.showPassword') | translate">
                     @if (showPassword()) {
-                      <svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5c0 1.5-.7 2.8-1.8 3.6L17 17H7l1.8-1.4A5 5 0 0 1 12 7Zm0 2a3 3 0 0 0-3 3c0 .9.4 1.6 1 2.1V14h4v-1c.6-.5 1-1.2 1-2.1a3 3 0 0 0-3-3Z" fill="currentColor"/></svg>
-                    } @else {
-                      <svg class="icon-svg" viewBox="0 0 24 24"><path d="M4 12c0-1.5.7-2.8 1.8-3.6L4 5v2a8 8 0 0 0 8 8h2l-1.8-1.4A5 5 0 0 1 7 12H4Zm16 0c0 1.5-.7 2.8-1.8 3.6L20 19v-2a8 8 0 0 0-8-8h-2l1.8 1.4A5 5 0 0 1 17 12h3Z" fill="currentColor"/></svg>
-                    }
+<svg xmlns="http://www.w3.org/2000/svg" class="icon-svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+<g clip-path="url(#clip0_4418_7081)">
+<path d="M11.9999 16.3299C9.60992 16.3299 7.66992 14.3899 7.66992 11.9999C7.66992 9.60992 9.60992 7.66992 11.9999 7.66992C14.3899 7.66992 16.3299 9.60992 16.3299 11.9999C16.3299 14.3899 14.3899 16.3299 11.9999 16.3299ZM11.9999 9.16992C10.4399 9.16992 9.16992 10.4399 9.16992 11.9999C9.16992 13.5599 10.4399 14.8299 11.9999 14.8299C13.5599 14.8299 14.8299 13.5599 14.8299 11.9999C14.8299 10.4399 13.5599 9.16992 11.9999 9.16992Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M12.0001 21.0205C8.24008 21.0205 4.69008 18.8205 2.25008 15.0005C1.19008 13.3505 1.19008 10.6605 2.25008 9.00047C4.70008 5.18047 8.25008 2.98047 12.0001 2.98047C15.7501 2.98047 19.3001 5.18047 21.7401 9.00047C22.8001 10.6505 22.8001 13.3405 21.7401 15.0005C19.3001 18.8205 15.7501 21.0205 12.0001 21.0205ZM12.0001 4.48047C8.77008 4.48047 5.68008 6.42047 3.52008 9.81047C2.77008 10.9805 2.77008 13.0205 3.52008 14.1905C5.68008 17.5805 8.77008 19.5205 12.0001 19.5205C15.2301 19.5205 18.3201 17.5805 20.4801 14.1905C21.2301 13.0205 21.2301 10.9805 20.4801 9.81047C18.3201 6.42047 15.2301 4.48047 12.0001 4.48047Z" fill="white" style="fill: var(--fillg);"/>
+</g>
+<defs>
+<clipPath id="clip0_4418_7081">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
+</svg>                     } @else {
+<svg xmlns="http://www.w3.org/2000/svg" class="icon-svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+<g clip-path="url(#clip0_4418_7080)">
+<path d="M9.46992 15.2799C9.27992 15.2799 9.08992 15.2099 8.93992 15.0599C8.11992 14.2399 7.66992 13.1499 7.66992 11.9999C7.66992 9.60992 9.60992 7.66992 11.9999 7.66992C13.1499 7.66992 14.2399 8.11992 15.0599 8.93992C15.1999 9.07992 15.2799 9.26992 15.2799 9.46992C15.2799 9.66992 15.1999 9.85992 15.0599 9.99992L9.99992 15.0599C9.84992 15.2099 9.65992 15.2799 9.46992 15.2799ZM11.9999 9.16992C10.4399 9.16992 9.16992 10.4399 9.16992 11.9999C9.16992 12.4999 9.29992 12.9799 9.53992 13.3999L13.3999 9.53992C12.9799 9.29992 12.4999 9.16992 11.9999 9.16992Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M5.60009 18.5105C5.43009 18.5105 5.25009 18.4505 5.11009 18.3305C4.04009 17.4205 3.08009 16.3005 2.26009 15.0005C1.20009 13.3505 1.20009 10.6605 2.26009 9.00047C4.70009 5.18047 8.25009 2.98047 12.0001 2.98047C14.2001 2.98047 16.3701 3.74047 18.2701 5.17047C18.6001 5.42047 18.6701 5.89047 18.4201 6.22047C18.1701 6.55047 17.7001 6.62047 17.3701 6.37047C15.7301 5.13047 13.8701 4.48047 12.0001 4.48047C8.77009 4.48047 5.68009 6.42047 3.52009 9.81047C2.77009 10.9805 2.77009 13.0205 3.52009 14.1905C4.27009 15.3605 5.13009 16.3705 6.08009 17.1905C6.39009 17.4605 6.43009 17.9305 6.16009 18.2505C6.02009 18.4205 5.81009 18.5105 5.60009 18.5105Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M12.0001 21.0195C10.6701 21.0195 9.37006 20.7495 8.12006 20.2195C7.74006 20.0595 7.56006 19.6195 7.72006 19.2395C7.88006 18.8595 8.32006 18.6795 8.70006 18.8395C9.76006 19.2895 10.8701 19.5195 11.9901 19.5195C15.2201 19.5195 18.3101 17.5795 20.4701 14.1895C21.2201 13.0195 21.2201 10.9795 20.4701 9.80951C20.1601 9.31951 19.8201 8.84951 19.4601 8.40951C19.2001 8.08951 19.2501 7.61951 19.5701 7.34951C19.8901 7.08951 20.3601 7.12951 20.6301 7.45951C21.0201 7.93951 21.4001 8.45951 21.7401 8.99951C22.8001 10.6495 22.8001 13.3395 21.7401 14.9995C19.3001 18.8195 15.7501 21.0195 12.0001 21.0195Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M12.6901 16.2703C12.3401 16.2703 12.0201 16.0203 11.9501 15.6603C11.8701 15.2503 12.1401 14.8603 12.5501 14.7903C13.6501 14.5903 14.5701 13.6703 14.7701 12.5703C14.8501 12.1603 15.2401 11.9003 15.6501 11.9703C16.0601 12.0503 16.3301 12.4403 16.2501 12.8503C15.9301 14.5803 14.5501 15.9503 12.8301 16.2703C12.7801 16.2603 12.7401 16.2703 12.6901 16.2703Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M1.99994 22.7507C1.80994 22.7507 1.61994 22.6807 1.46994 22.5307C1.17994 22.2407 1.17994 21.7607 1.46994 21.4707L8.93994 14.0007C9.22994 13.7107 9.70994 13.7107 9.99994 14.0007C10.2899 14.2907 10.2899 14.7707 9.99994 15.0607L2.52994 22.5307C2.37994 22.6807 2.18994 22.7507 1.99994 22.7507Z" fill="white" style="fill: var(--fillg);"/>
+<path d="M14.53 10.2195C14.34 10.2195 14.15 10.1495 14 9.99945C13.71 9.70945 13.71 9.22945 14 8.93945L21.47 1.46945C21.76 1.17945 22.24 1.17945 22.53 1.46945C22.82 1.75945 22.82 2.23945 22.53 2.52945L15.06 9.99945C14.91 10.1495 14.72 10.2195 14.53 10.2195Z" fill="white" style="fill: var(--fillg);"/>
+</g>
+<defs>
+<clipPath id="clip0_4418_7080">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
+</svg>                     }
                   </button>
                 </div>
               </div>
@@ -188,22 +247,41 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
                 <span>{{ 'status.active' | translate }}</span>
               </label>
             }
-            <div class="modal-drawer__actions">
-              <button type="button" class="ds-btn ds-btn--secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
-              <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
+            <div class="premium-modal__footer">
+              <button type="button" class="ds-btn ds-btn--secondary premium-secondary-btn" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
+              <button type="submit" class="ds-btn ds-btn--primary premium-primary-btn" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
             </div>
           </form>
+          </div>
         </div>
       </div>
     }
 
     @if (showManagerModal()) {
-      <div class="modal-overlay" (click)="closeManagerModal()">
-        <div class="modal-drawer ds-card modal-drawer--sm" (click)="$event.stopPropagation()">
-          <h3 class="modal-drawer__title">{{ 'users.setManager' | translate }}</h3>
-          <p class="modal-drawer__subtitle">{{ userForManager()?.fullName }}</p>
+      <div class="ent-modal-overlay">
+        <button type="button" class="ent-modal-backdrop" [attr.aria-label]="'common.close' | translate" (click)="closeManagerModal()"></button>
+        <div class="ent-modal-shell ent-modal-shell--sm modal-drawer premium-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+          <div class="premium-modal__header">
+            <div class="premium-modal__titlewrap">
+              <h3 class="premium-modal__title">{{ 'users.setManager' | translate }}</h3>
+              <p class="premium-modal__subtitle">{{ userForManager()?.fullName }}</p>
+            </div>
+            <button type="button" class="ds-btn ds-btn--ghost ds-btn--icon premium-modal__close" (click)="closeManagerModal()" [attr.aria-label]="'common.close' | translate" [appTooltip]="'common.close' | translate">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
+          <div class="premium-modal__body">
           @if (managerModalError()) {
-            <p class="ds-field-error">{{ managerModalError() }}</p>
+            <div class="premium-modal__error">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 9v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M12 17h.01" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              </svg>
+              <p class="premium-modal__error-text">{{ managerModalError() }}</p>
+            </div>
           }
           <div class="form-group">
             <label class="ds-label">{{ 'table.manager' | translate }}</label>
@@ -216,9 +294,10 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
               }
             </select>
           </div>
-          <div class="modal-drawer__actions">
-            <button type="button" class="ds-btn ds-btn--secondary" (click)="closeManagerModal()">{{ 'common.cancel' | translate }}</button>
-            <button type="button" class="ds-btn ds-btn--primary" (click)="saveManager()" [disabled]="savingManager()">{{ savingManager() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
+          <div class="premium-modal__footer">
+            <button type="button" class="ds-btn ds-btn--secondary premium-secondary-btn" (click)="closeManagerModal()">{{ 'common.cancel' | translate }}</button>
+            <button type="button" class="ds-btn ds-btn--primary premium-primary-btn" (click)="saveManager()" [disabled]="savingManager()">{{ savingManager() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
+          </div>
           </div>
         </div>
       </div>
@@ -236,29 +315,27 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
     }
   `,
   styles: [`
-    .filter-row { display: flex; gap: var(--space-md); align-items: center; flex-wrap: wrap; }
+    .actions-row { display: flex; justify-content: flex-end; margin-bottom: var(--space-sm); flex-wrap: wrap; gap: var(--space-sm); }
     .filter-search { max-width: 280px; }
-    .table-loading { padding: var(--space-md) 0; }
+    .table-loading { padding: var(--space-md) var(--space-lg); }
     .cell-user { display: flex; align-items: center; gap: var(--space-sm); }
-    .cell-avatar { width: 28px; height: 28px; border-radius: var(--radius-full); background: var(--color-primary-muted); color: var(--color-primary); font-size: var(--text-caption); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
-    .cell-actions { text-align: end; }
-    .pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); flex-wrap: wrap; }
-    .pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
-    .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; padding: var(--space-lg); }
-    .modal-drawer { max-width: 440px; width: 100%; max-height: 90vh; overflow: auto; }
-    .modal-drawer--sm { max-width: 380px; }
-    .modal-drawer__title { font-size: var(--text-h1); font-weight: 600; margin: 0 0 var(--space-md); }
-    .modal-drawer__subtitle { font-size: var(--text-body-sm); color: var(--color-text-secondary); margin: 0 0 var(--space-md); }
-    .modal-drawer form .form-group { margin-bottom: var(--space-md); }
-    .checkbox-wrap { display: flex; align-items: center; gap: var(--space-sm); font-size: var(--text-body-sm); cursor: pointer; margin-bottom: var(--space-md); }
-    .modal-drawer__actions { display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-lg); }
-    .input-with-toggle { display: flex; gap: var(--space-xs); align-items: center; }
-    .input-with-toggle .ds-input { flex: 1; }
-    .input-toggle-btn { flex-shrink: 0; }
+    .cell-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-full);
+      background: color-mix(in srgb, var(--gulf-gold) 14%, var(--color-primary-muted));
+      color: var(--gulf-green-800);
+      font-size: var(--text-caption);
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 25%, transparent);
+    }
+    .cell-actions { text-align: end; display: flex; flex-wrap: wrap; gap: var(--space-2xs); justify-content: flex-end; }
     .ds-hint { font-size: var(--text-body-sm); color: var(--color-text-secondary); margin: var(--space-xs) 0 0; }
-    .roles-checkbox-list { max-height: 220px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-sm); background: var(--color-bg); }
-    .checkbox-row { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-xs) 0; cursor: pointer; font-size: var(--text-body-sm); }
-    .checkbox-row input { width: 18px; height: 18px; accent-color: var(--color-primary); }
+    .checkbox-wrap { display: flex; align-items: center; gap: var(--space-sm); font-size: var(--text-body-sm); cursor: pointer; margin-bottom: var(--space-md); }
+    .checkbox-wrap input { accent-color: var(--gulf-green-800); }
   `]
 })
 export class UsersPageComponent implements OnInit {

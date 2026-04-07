@@ -18,7 +18,7 @@ import type { PagedResult } from '../../../core/models/api-response';
           <div class="ds-filterbar__controls">
             <div class="ds-filterfield" style="max-width: 280px;">
               <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
-              <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (ngModelChange)="onSearchChange()" />
+              <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (ngModelChange)="onSearchChange()" [placeholder]="'common.search' | translate" />
             </div>
           </div>
           <div class="ds-filterbar__actions">

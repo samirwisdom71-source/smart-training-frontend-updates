@@ -1,206 +1,212 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import type { NotificationDto, PagedResult, ApiResponse } from '../../../core/notifications/models/notification.models';
 
 @Component({
   selector: 'app-notifications-page',
   standalone: true,
-  imports: [RouterLink, TranslateModule],
+  imports: [RouterLink, TranslateModule, PageShellComponent, TooltipDirective],
   template: `
-    <div class="page">
-      <div class="toolbar">
-        <h1 class="title">{{ 'notifications.title' | translate }}</h1>
-        <div class="actions">
-          @if (notifications.unreadCount() > 0) {
-            <button type="button" class="ds-btn ds-btn--secondary" (click)="markAllRead()">{{ 'notifications.markAllRead' | translate }}</button>
-          }
-        </div>
-      </div>
-      <div class="filters">
-        <div class="segmented" role="tablist" [attr.aria-label]="'notifications.title' | translate">
-          <button
-            type="button"
-            class="segmented__btn"
-            [class.active]="unreadOnly() === false"
-            (click)="setUnreadOnly(false)"
-            role="tab"
-            [attr.aria-selected]="unreadOnly() === false"
-          >
-            {{ 'common.all' | translate }}
-          </button>
-          <button
-            type="button"
-            class="segmented__btn"
-            [class.active]="unreadOnly() === true"
-            (click)="setUnreadOnly(true)"
-            role="tab"
-            [attr.aria-selected]="unreadOnly() === true"
-          >
-            {{ 'notifications.unread' | translate }}
-          </button>
-        </div>
-        <select class="ds-select category-select" [value]="category()" (change)="onCategoryChange($event)">
-          <option value="">{{ 'notifications.allCategories' | translate }}</option>
-          @for (c of categories(); track c) {
-            <option [value]="c">{{ c }}</option>
-          }
-        </select>
-      </div>
-      <div class="list-wrap">
-        @if (loading()) {
-          <div class="skeleton-page">
-            @for (i of [1,2,3,4,5,6,7,8]; track i) {
-              <div class="ds-skeleton skeleton-item"></div>
+    <app-page-shell
+      [title]="'notifications.title' | translate"
+      [breadcrumbs]="breadcrumbs()"
+      [fullWidth]="true"
+      [showPageTitle]="false"
+    >
+      <div class="ent-notifications-page">
+        <header class="ent-admin-hero ent-notifications-hero ent-page-fade-in">
+          <div class="ent-admin-hero__inner">
+            <h1 class="ent-admin-hero__title">{{ 'notifications.title' | translate }}</h1>
+            <p class="ent-admin-hero__subtitle">{{ 'enterprise.adminHeroSubtitle' | translate }}</p>
+          </div>
+        </header>
+
+        <div class="ent-notifications-toolbar">
+          <h2 class="ent-title visually-hidden">{{ 'notifications.title' | translate }}</h2>
+          <div class="actions">
+            @if (notifications.unreadCount() > 0) {
+              <button
+                type="button"
+                class="ds-btn ds-btn--secondary premium-secondary-btn"
+                (click)="markAllRead()"
+                [appTooltip]="'notifications.markAllRead' | translate"
+              >
+                {{ 'notifications.markAllRead' | translate }}
+              </button>
             }
           </div>
-        } @else if (paged()) {
-          @if (paged()!.items.length === 0) {
-            <div class="ds-empty empty-state">
-              <p class="ds-empty__title">{{ 'notifications.emptyPage' | translate }}</p>
-            </div>
-          } @else {
-            <div class="list">
-              @for (n of paged()!.items; track n.id) {
-                <a
-                  class="card"
-                  [class.unread]="!n.isRead"
-                  (click)="onClick(n)"
-                  [routerLink]="resolveLink(n)"
-                >
-                  <div class="card-side" aria-hidden="true">
-                    <span class="dot" [class.hide]="n.isRead"></span>
-                  </div>
-                  <div class="card-body">
-                    <div class="card-head">
-                      <span class="card-title">{{ n.title }}</span>
-                      <span class="time">{{ formatDate(n.createdAt) }}</span>
-                    </div>
-                    @if (n.body) {
-                      <p class="card-body-text">{{ n.body }}</p>
-                    }
-                    <div class="card-meta">
-                      @if (n.category) {
-                        <span class="chip">{{ n.category }}</span>
-                      }
-                      @if (!n.isRead) {
-                        <span class="chip chip--unread">{{ 'notifications.unread' | translate }}</span>
-                      }
-                    </div>
-                  </div>
-                  <span class="edge" aria-hidden="true"></span>
-                </a>
+        </div>
+
+        <div class="ent-notifications-filters-row">
+          <div class="ent-segmented" role="tablist" [attr.aria-label]="'notifications.title' | translate">
+            <button
+              type="button"
+              class="ent-segmented__btn"
+              [class.active]="unreadOnly() === false"
+              (click)="setUnreadOnly(false)"
+              role="tab"
+              [attr.aria-selected]="unreadOnly() === false"
+            >
+              {{ 'common.all' | translate }}
+            </button>
+            <button
+              type="button"
+              class="ent-segmented__btn"
+              [class.active]="unreadOnly() === true"
+              (click)="setUnreadOnly(true)"
+              role="tab"
+              [attr.aria-selected]="unreadOnly() === true"
+            >
+              {{ 'notifications.unread' | translate }}
+            </button>
+          </div>
+          <select class="ds-select category-select border-radius-md" [value]="category()" (change)="onCategoryChange($event)">
+            <option value="">{{ 'notifications.allCategories' | translate }}</option>
+            @for (c of categories(); track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="list-wrap">
+          @if (loading()) {
+            <div class="skeleton-page">
+              @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+                <div class="ds-skeleton skeleton-item"></div>
               }
             </div>
-            @if (paged()!.totalPages > 1) {
-              <div class="pagination">
-                <button
-                  type="button"
-                  class="ds-btn ds-btn--secondary"
-                  [disabled]="!paged()!.hasPreviousPage"
-                  (click)="goPage(page() - 1)"
-                >
-                  {{ 'notifications.previous' | translate }}
-                </button>
-                <span class="page-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ paged()!.totalPages }}</span>
-                <button
-                  type="button"
-                  class="ds-btn ds-btn--secondary"
-                  [disabled]="!paged()!.hasNextPage"
-                  (click)="goPage(page() + 1)"
-                >
-                  {{ 'notifications.next' | translate }}
-                </button>
+          } @else if (paged()) {
+            @if (paged()!.items.length === 0) {
+              <div class="ds-empty ent-empty-state">
+                <p class="ds-empty__title">{{ 'notifications.emptyPage' | translate }}</p>
               </div>
+            } @else {
+              <div class="list">
+                @for (n of paged()!.items; track n.id) {
+                  <a
+                    class="card ent-notification-card"
+                    [class.unread]="!n.isRead"
+                    (click)="onClick(n)"
+                    [routerLink]="resolveLink(n)"
+                  >
+                    <div class="card-side" aria-hidden="true">
+                      <span class="dot" [class.hide]="n.isRead"></span>
+                    </div>
+                    <div class="card-body">
+                      <div class="card-head">
+                        <span class="card-title">{{ n.title }}</span>
+                        <span class="time">{{ formatDate(n.createdAt) }}</span>
+                      </div>
+                      @if (n.body) {
+                        <p class="card-body-text">{{ n.body }}</p>
+                      }
+                      <div class="card-meta">
+                        @if (n.category) {
+                          <span class="chip">{{ n.category }}</span>
+                        }
+                        @if (!n.isRead) {
+                          <span class="chip chip--unread">{{ 'notifications.unread' | translate }}</span>
+                        }
+                      </div>
+                    </div>
+                    <span class="edge" aria-hidden="true"></span>
+                  </a>
+                }
+              </div>
+              @if (paged()!.totalPages > 1) {
+                <div class="ent-pagination ent-notifications-pagination">
+                  <button
+                    type="button"
+                    class="ds-btn ds-btn--secondary"
+                    [disabled]="!paged()!.hasPreviousPage"
+                    (click)="goPage(page() - 1)"
+                    [appTooltip]="'notifications.previous' | translate"
+                  >
+                    {{ 'notifications.previous' | translate }}
+                  </button>
+                  <span class="ent-pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ paged()!.totalPages }}</span>
+                  <button
+                    type="button"
+                    class="ds-btn ds-btn--secondary"
+                    [disabled]="!paged()!.hasNextPage"
+                    (click)="goPage(page() + 1)"
+                    [appTooltip]="'notifications.next' | translate"
+                  >
+                    {{ 'notifications.next' | translate }}
+                  </button>
+                </div>
+              }
             }
           }
-        }
+        </div>
       </div>
-    </div>
+    </app-page-shell>
   `,
   styles: [`
-    .page { max-width: 920px; margin: 0 auto; padding: var(--space-xl); }
-    .toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: var(--space-lg);
-    }
-    .title { margin: 0; font-size: var(--text-display-2); font-weight: 600; color: var(--color-text); letter-spacing: -0.02em; }
-    .actions { display: flex; gap: var(--space-sm); }
-    .filters {
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-      margin-bottom: var(--space-lg);
-      flex-wrap: wrap;
-    }
-    .segmented {
-      display: inline-flex;
-      border: 1px solid var(--color-border);
-      background: var(--color-bg-elevated);
-      border-radius: var(--radius-sm);
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
       overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
     }
-    .segmented__btn {
-      padding: var(--space-sm) var(--space-md);
-      border: none;
-      background: transparent;
-      font-size: var(--text-body-sm);
-      cursor: pointer;
-      color: var(--color-text-secondary);
-    }
-    .segmented__btn + .segmented__btn { border-inline-start: 1px solid var(--color-border-light); }
-    .segmented__btn.active { background: var(--color-primary); color: #fff; }
-    .segmented__btn:hover:not(.active) { background: var(--color-bg-hover); color: var(--color-text); }
-    .category-select {
-      min-width: 160px;
-      padding: var(--space-sm) var(--space-md);
-      border-radius: var(--radius-sm);
-      font-size: var(--text-body-sm);
-      background: var(--color-bg-elevated);
-      color: var(--color-text);
-    }
+    .actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
     .list-wrap { min-height: 200px; }
     .skeleton-page { padding: 0; }
     .skeleton-item {
       height: 80px;
       margin-bottom: var(--space-sm);
-      border-radius: var(--radius-md);
+      border-radius: 20px;
     }
-    .empty-state {
-      padding: var(--space-2xl);
-      color: var(--color-text-secondary);
+    .ent-empty-state {
+      padding: var(--space-xl) var(--space-md);
+      border-radius: 18px;
+      border: 1px dashed color-mix(in srgb, var(--gulf-gold) 28%, var(--color-border-light));
+      background: color-mix(in srgb, var(--gulf-green-800) 4%, var(--color-bg-elevated));
+      text-align: center;
     }
-    .list { display: grid; grid-template-columns: 1fr; gap: var(--space-md); }
+    .list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-sm);
+    }
+    @media (min-width: 600px) {
+      .list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
     @media (min-width: 900px) {
-      .list { grid-template-columns: 1fr 1fr; }
+      .list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-md); }
+    }
+    @media (min-width: 1280px) {
+      .list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
     .card {
       display: flex;
       align-items: flex-start;
       gap: var(--space-md);
       padding: var(--space-md);
-      background: var(--color-bg-elevated);
-      border: 1px solid var(--color-border-light);
-      border-radius: var(--radius-md);
       text-decoration: none;
       color: inherit;
       cursor: pointer;
-      transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
       position: relative;
       overflow: hidden;
-      min-height: 112px;
+      min-height: 104px;
+      border-radius: 20px;
     }
-    .card:hover {
-      background: var(--color-bg-hover);
-      box-shadow: var(--shadow-md);
-      transform: translateY(-1px);
-      border-color: rgba(10, 77, 82, 0.25);
+    .card:focus-visible {
+      outline: none;
+      box-shadow: var(--shadow-focus);
     }
-    .card:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
-    .card.unread { border-color: rgba(10, 77, 82, 0.35); }
+    .ent-notifications-pagination {
+      justify-content: center;
+      margin-top: var(--space-lg);
+    }
     .edge {
       position: absolute;
       inset-block: 0;
@@ -209,15 +215,18 @@ import type { NotificationDto, PagedResult, ApiResponse } from '../../../core/no
       background: transparent;
       border-radius: 0;
     }
-    .card.unread .edge { background: var(--color-primary); }
+    .card.unread .edge {
+      background: linear-gradient(180deg, var(--gulf-green-800), var(--gulf-gold));
+    }
     .card-side { display: flex; padding-top: 2px; }
     .dot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: var(--color-primary);
+      background: var(--gulf-green-800);
       flex-shrink: 0;
       margin-top: 6px;
+      box-shadow: 0 0 10px color-mix(in srgb, var(--gulf-gold) 40%, transparent);
     }
     .dot.hide { visibility: hidden; }
     .card-body { flex: 1; min-width: 0; }
@@ -230,7 +239,7 @@ import type { NotificationDto, PagedResult, ApiResponse } from '../../../core/no
     .card-title {
       font-weight: 700;
       font-size: 0.95rem;
-      color: var(--color-text);
+      color: var(--gulf-green-900);
       letter-spacing: -0.01em;
       line-height: 1.3;
       display: -webkit-box;
@@ -259,32 +268,23 @@ import type { NotificationDto, PagedResult, ApiResponse } from '../../../core/no
       align-items: center;
       padding: 4px 8px;
       border-radius: 999px;
-      background: rgba(10, 77, 82, 0.10);
-      color: var(--color-primary);
-      border: 1px solid rgba(10, 77, 82, 0.16);
+      background: color-mix(in srgb, var(--gulf-green-800) 10%, transparent);
+      color: var(--gulf-green-800);
+      border: 1px solid color-mix(in srgb, var(--gulf-green-800) 18%, var(--gulf-gold) 22%);
       font-size: 0.75rem;
       font-weight: 600;
       line-height: 1;
     }
     .chip--unread {
-      background: rgba(184, 134, 11, 0.14);
-      border-color: rgba(184, 134, 11, 0.22);
-      color: #8a5b00;
+      background: color-mix(in srgb, var(--gulf-gold) 14%, var(--color-bg-subtle));
+      border-color: color-mix(in srgb, var(--gulf-gold) 35%, var(--color-border));
+      color: var(--gulf-gold-dark);
     }
     .time {
       font-size: 0.75rem;
       color: var(--color-text-secondary);
       white-space: nowrap;
     }
-    .pagination {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--space-lg);
-      margin-top: var(--space-xl);
-      flex-wrap: wrap;
-    }
-    .page-info { font-size: 0.875rem; color: var(--color-text-secondary); }
   `],
 })
 export class NotificationsPageComponent {
@@ -292,6 +292,8 @@ export class NotificationsPageComponent {
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
   readonly notifications = inject(NotificationService);
+
+  readonly breadcrumbs = computed(() => [{ label: this.translate.instant('notifications.title') }]);
 
   readonly page = signal(1);
   readonly pageSize = 20;

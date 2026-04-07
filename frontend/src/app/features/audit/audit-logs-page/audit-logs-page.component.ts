@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { AuditApiService } from '../../../core/api/audit/audit-api.service';
 import type { AuditLogEntryViewDto, AuditListParams } from '../../../core/api/audit/audit-api.models';
 import type { ApiResponse, PagedResult } from '../../../core/models/api-response';
@@ -9,10 +10,18 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
 @Component({
   selector: 'app-audit-logs-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent],
+  imports: [FormsModule, TranslateModule, PageShellComponent, TooltipDirective],
   template: `
-    <app-page-shell [title]="'audit.title' | translate" [breadcrumbs]="breadcrumbs()">
-      <div filters>
+    <app-page-shell [title]="'audit.title' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true" [showPageTitle]="false">
+      <div class="ent-admin-page ent-page-fade-in">
+        <header class="ent-admin-hero">
+          <div class="ent-admin-hero__inner">
+            <h1 class="ent-admin-hero__title">{{ 'audit.title' | translate }}</h1>
+            <p class="ent-admin-hero__subtitle">{{ 'enterprise.adminHeroSubtitle' | translate }}</p>
+          </div>
+        </header>
+
+        <div filters class="ent-admin-filters ent-admin-filters--4col">
         <div class="ds-filterbar">
           <div class="ds-filterbar__controls">
             <div class="ds-filterfield">
@@ -58,19 +67,22 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
-            <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm filter-refresh-btn" (click)="load()">
+            <button type="button" class="ds-btn ds-btn--sm filter-refresh-btn ent-filter-primary" (click)="load()" [appTooltip]="'common.refresh' | translate">
               <span class="filter-refresh-icon" aria-hidden="true">⟳</span>
               <span class="filter-refresh-label">{{ 'common.refresh' | translate }}</span>
             </button>
           </div>
         </div>
-      </div>
+        </div>
 
+      <div class="ent-admin-content">
       @if (loading()) {
+        <div class="ent-table-panel">
         <div class="table-loading">
           <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
           <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
           <div class="ds-skeleton" style="height: 48px;"></div>
+        </div>
         </div>
       } @else if (error()) {
         <div class="ds-error-state">
@@ -78,10 +90,13 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
           <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
         </div>
       } @else if (!data()?.items?.length) {
+        <div class="ent-table-panel">
         <div class="ds-empty">
           <p class="ds-empty__title">{{ 'audit.noEntries' | translate }}</p>
         </div>
+        </div>
       } @else {
+        <div class="ent-table-panel">
         <div class="ds-table-wrap">
           <table class="ds-table">
             <thead>
@@ -112,7 +127,7 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
                       class="ds-btn ds-btn--ghost ds-btn--icon"
                       (click)="openDetail(e)"
                       [attr.aria-label]="'common.details' | translate"
-                      [title]="'common.details' | translate"
+                      [appTooltip]="'common.details' | translate"
                     >
                       <svg class="icon-svg" viewBox="0 0 24 24">
                         <circle cx="11" cy="11" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/>
@@ -125,22 +140,26 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
             </tbody>
           </table>
         </div>
-        <div class="pagination">
+        <div class="pagination ent-pagination">
           <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-          <span class="pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
+          <span class="ent-pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
           <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
         </div>
+        </div>
       }
+      </div>
+      </div>
     </app-page-shell>
 
     @if (detailEntry()) {
-      <div class="drawer-overlay" (click)="closeDetail()">
-        <div class="drawer ds-card" (click)="$event.stopPropagation()">
-          <div class="drawer__header">
-            <h3 class="drawer__title">{{ 'audit.detailTitle' | translate }}</h3>
-            <button type="button" class="drawer__close" (click)="closeDetail()" aria-label="Close">&times;</button>
+      <div class="premium-drawer-overlay">
+        <button type="button" class="premium-drawer-backdrop" [attr.aria-label]="'common.close' | translate" (click)="closeDetail()"></button>
+        <div class="premium-drawer" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+          <div class="premium-drawer__header">
+            <h3 class="premium-drawer__title">{{ 'audit.detailTitle' | translate }}</h3>
+            <button type="button" class="premium-drawer__close" (click)="closeDetail()" [attr.aria-label]="'common.close' | translate" [appTooltip]="'common.close' | translate">&times;</button>
           </div>
-          <div class="drawer__body">
+          <div class="premium-drawer__body">
             <dl class="detail-list">
               <dt>{{ 'audit.timestamp' | translate }}</dt>
               <dd>{{ formatDate(detailEntry()!.timestamp) }}</dd>
@@ -190,19 +209,9 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
     .filter-refresh-icon {
       font-size: 0.85rem;
     }
-    .filter-input, .filter-select { max-width: 160px; }
-    .table-loading { padding: var(--space-md) 0; }
+    .table-loading { padding: var(--space-md) var(--space-lg); }
     .cell-date { white-space: nowrap; font-size: var(--text-body-sm); }
     .cell-actions { text-align: end; }
-    .pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); flex-wrap: wrap; }
-    .pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
-    .drawer-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(15,23,42,0.5); display: flex; justify-content: flex-end; }
-    .drawer { width: 100%; max-width: 480px; height: 100%; overflow: auto; border-radius: 0; box-shadow: -4px 0 24px rgba(0,0,0,0.15); }
-    .drawer__header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-lg); border-bottom: 1px solid var(--color-border-light); }
-    .drawer__title { margin: 0; font-size: var(--text-h1); font-weight: 600; }
-    .drawer__close { background: none; border: none; font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--color-text-muted); padding: 0; }
-    .drawer__close:hover { color: var(--color-text); }
-    .drawer__body { padding: var(--space-lg); }
     .detail-list { margin: 0; }
     .detail-list dt { font-weight: 600; font-size: var(--text-caption); color: var(--color-text-muted); margin-top: var(--space-md); margin-bottom: var(--space-2xs); }
     .detail-list dd { margin: 0; }

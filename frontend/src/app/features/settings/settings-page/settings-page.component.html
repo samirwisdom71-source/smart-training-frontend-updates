@@ -1,49 +1,73 @@
-<app-page-shell [title]="'nav.settings' | translate" [breadcrumbs]="breadcrumbs()">
-  @if (loading()) {
-    <div class="table-loading">
-      <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
-      <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
-      <div class="ds-skeleton" style="height: 48px;"></div>
+<app-page-shell
+  [title]="'nav.settings' | translate"
+  [breadcrumbs]="breadcrumbs()"
+  [fullWidth]="true"
+  [showPageTitle]="false"
+>
+  <div class="ent-admin-page ent-page-fade-in">
+    <header class="ent-admin-hero">
+      <div class="ent-admin-hero__inner">
+        <h1 class="ent-admin-hero__title">{{ 'nav.settings' | translate }}</h1>
+        <p class="ent-admin-hero__subtitle">{{ 'enterprise.adminHeroSubtitle' | translate }}</p>
+      </div>
+    </header>
+
+    <div class="ent-admin-content">
+      @if (loading()) {
+        <div class="ent-table-panel">
+          <div class="table-loading">
+            <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
+            <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
+            <div class="ds-skeleton" style="height: 48px;"></div>
+          </div>
+        </div>
+      } @else if (error()) {
+        <div class="ds-error-state">
+          <p class="ds-error-state__title">{{ error() }}</p>
+          <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
+        </div>
+      } @else if (!items().length) {
+        <div class="ent-table-panel">
+          <div class="ds-empty">
+            <p class="ds-empty__title">{{ 'settings.noSettings' | translate }}</p>
+          </div>
+        </div>
+      } @else {
+        <div class="ent-table-panel">
+          <div class="ds-table-wrap">
+            <table class="settings-table ds-table">
+              <thead>
+                <tr>
+                  <th>{{ 'settings.key' | translate }}</th>
+                  <th>{{ 'settings.value' | translate }}</th>
+                  <th>{{ 'settings.description' | translate }}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of items(); track item.id) {
+                  <tr>
+                    <td><code class="settings-code">{{ item.key }}</code></td>
+                    <td>
+                      <div class="value-cell" *appShowIfPermission="PermissionCodes.settings.manage">
+                        <input type="text" class="ds-input" [value]="item.value ?? ''" #valInput (keyup.enter)="save(item, valInput.value)" />
+                        <button type="button" class="ds-btn ds-btn--primary ds-btn--sm premium-primary-btn" [disabled]="savingKey() === item.key" (click)="save(item, valInput.value)">
+                          {{ savingKey() === item.key ? ('common.saving' | translate) : ('common.save' | translate) }}
+                        </button>
+                      </div>
+                      <div class="value-cell" *ngIf="!canManage()">
+                        <input type="text" class="ds-input" [value]="item.value ?? ''" readonly />
+                      </div>
+                    </td>
+                    <td class="ds-text-secondary">{{ description(item) }}</td>
+                    <td></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
     </div>
-  } @else if (error()) {
-    <div class="ds-error-state">
-      <p class="ds-error-state__title">{{ error() }}</p>
-      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
-    </div>
-  } @else if (!items().length) {
-    <div class="ds-empty">
-      <p class="ds-empty__title">{{ 'settings.noSettings' | translate }}</p>
-    </div>
-  } @else {
-    <table class="settings-table ds-table">
-      <thead>
-        <tr>
-          <th>{{ 'settings.key' | translate }}</th>
-          <th>{{ 'settings.value' | translate }}</th>
-          <th>{{ 'settings.description' | translate }}</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (item of items(); track item.id) {
-          <tr>
-            <td><code>{{ item.key }}</code></td>
-            <td>
-              <div class="value-cell" *appShowIfPermission="PermissionCodes.settings.manage">
-                <input type="text" class="ds-input" [value]="item.value ?? ''" #valInput (keyup.enter)="save(item, valInput.value)" />
-                <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" [disabled]="savingKey() === item.key" (click)="save(item, valInput.value)">
-                  {{ savingKey() === item.key ? ('common.saving' | translate) : ('common.save' | translate) }}
-                </button>
-              </div>
-              <div class="value-cell" *ngIf="!canManage()">
-                <input type="text" class="ds-input" [value]="item.value ?? ''" readonly />
-              </div>
-            </td>
-            <td class="ds-text-secondary">{{ description(item) }}</td>
-            <td></td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  }
+  </div>
 </app-page-shell>

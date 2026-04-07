@@ -3,6 +3,9 @@
     "title": "Smart Training & Capability Management",
     "shortTitle": "Smart Training"
   },
+  "enterprise": {
+    "adminHeroSubtitle": "Government-grade workspace for training, access, and governance."
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",

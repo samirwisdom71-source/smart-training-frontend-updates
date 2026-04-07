@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { RolesApiService } from '../../../core/api/roles/roles-api.service';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -12,20 +13,28 @@ import type { PagedResult } from '../../../core/models/api-response';
 @Component({
   selector: 'app-roles-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent],
+  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective],
   template: `
-    <app-page-shell [title]="'nav.roles' | translate" [breadcrumbs]="breadcrumbs()">
-      <div class="actions-row" actions>
+    <app-page-shell [title]="'nav.roles' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true" [showPageTitle]="false">
+      <div class="ent-admin-page ent-page-fade-in">
+        <header class="ent-admin-hero">
+          <div class="ent-admin-hero__inner">
+            <h1 class="ent-admin-hero__title">{{ 'nav.roles' | translate }}</h1>
+            <p class="ent-admin-hero__subtitle">{{ 'enterprise.adminHeroSubtitle' | translate }}</p>
+          </div>
+        </header>
+
+      <div class="actions-row">
         @if (canCreate()) {
-          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }} {{ 'table.role' | translate }}</button>
+          <button type="button" class="ds-btn ds-btn--primary ds-btn--sm premium-primary-btn" (click)="openCreate()" [appTooltip]="('common.add' | translate) + ' — ' + ('table.role' | translate)">{{ 'common.add' | translate }} {{ 'table.role' | translate }}</button>
         }
       </div>
-      <div filters>
+      <div filters class="ent-admin-filters">
         <div class="ds-filterbar">
           <div class="ds-filterbar__controls">
             <div class="ds-filterfield" style="max-width: 280px;">
               <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
-              <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (ngModelChange)="onSearchChange()" />
+              <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (ngModelChange)="onSearchChange()" [placeholder]="'common.search' | translate" />
             </div>
           </div>
           <div class="ds-filterbar__actions">
@@ -36,10 +45,13 @@ import type { PagedResult } from '../../../core/models/api-response';
         </div>
       </div>
 
+      <div class="ent-admin-content">
       @if (loading()) {
+        <div class="ent-table-panel">
         <div class="table-loading">
           <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
           <div class="ds-skeleton" style="height: 48px;"></div>
+        </div>
         </div>
       } @else if (error()) {
         <div class="ds-error-state">
@@ -47,13 +59,16 @@ import type { PagedResult } from '../../../core/models/api-response';
           <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
         </div>
       } @else if (!data()?.items?.length) {
+        <div class="ent-table-panel">
         <div class="ds-empty">
           <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p>
           @if (canCreate()) {
-            <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }}</button>
+            <button type="button" class="ds-btn ds-btn--primary ds-btn--sm premium-primary-btn" (click)="openCreate()">{{ 'common.add' | translate }}</button>
           }
         </div>
+        </div>
       } @else {
+        <div class="ent-table-panel">
         <div class="ds-table-wrap">
           <table class="ds-table">
             <thead>
@@ -75,7 +90,7 @@ import type { PagedResult } from '../../../core/models/api-response';
                         class="ds-btn ds-btn--ghost ds-btn--icon"
                         (click)="openEdit(r)"
                         [attr.aria-label]="'common.edit' | translate"
-                        [title]="'common.edit' | translate"
+                        [appTooltip]="'common.edit' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
@@ -89,7 +104,7 @@ import type { PagedResult } from '../../../core/models/api-response';
                         class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
                         (click)="confirmDelete(r)"
                         [attr.aria-label]="'common.delete' | translate"
-                        [title]="'common.delete' | translate"
+                        [appTooltip]="'common.delete' | translate"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <path d="M6 7h12M10 10v7M14 10v7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -103,22 +118,44 @@ import type { PagedResult } from '../../../core/models/api-response';
             </tbody>
           </table>
         </div>
-        <div class="pagination">
+        <div class="pagination ent-pagination">
           <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-          <span class="pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
+          <span class="ent-pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
           <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
         </div>
+        </div>
       }
+      </div>
+      </div>
     </app-page-shell>
 
     @if (showModal()) {
-      <div class="modal-overlay" (click)="closeModal()">
-        <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
-          <h3 class="modal-drawer__title">{{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'table.role' | translate }}</h3>
+      <div class="ent-modal-overlay">
+        <button type="button" class="ent-modal-backdrop" [attr.aria-label]="'common.close' | translate" (click)="closeModal()"></button>
+        <div class="ent-modal-shell modal-drawer premium-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+          <div class="premium-modal__header">
+            <div class="premium-modal__titlewrap">
+              <h3 class="premium-modal__title">{{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'table.role' | translate }}</h3>
+              <p class="premium-modal__subtitle">{{ 'nav.roles' | translate }}</p>
+            </div>
+            <button type="button" class="ds-btn ds-btn--ghost ds-btn--icon premium-modal__close" (click)="closeModal()" [attr.aria-label]="'common.close' | translate" [appTooltip]="'common.close' | translate">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
+          <div class="premium-modal__body">
           @if (modalError()) {
-            <p class="ds-field-error">{{ modalError() }}</p>
+            <div class="premium-modal__error">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 9v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M12 17h.01" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              </svg>
+              <p class="premium-modal__error-text">{{ modalError() }}</p>
+            </div>
           }
-          <form (ngSubmit)="saveRole()">
+          <form class="premium-form" (ngSubmit)="saveRole()">
             <div class="form-group">
               <label class="ds-label">{{ 'table.name' | translate }}</label>
               <input type="text" class="ds-input" [(ngModel)]="form.name" name="name" />
@@ -138,11 +175,12 @@ import type { PagedResult } from '../../../core/models/api-response';
                 }
               </div>
             </div>
-            <div class="modal-drawer__actions">
-              <button type="button" class="ds-btn ds-btn--secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
-              <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
+            <div class="premium-modal__footer">
+              <button type="button" class="ds-btn ds-btn--secondary premium-secondary-btn" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
+              <button type="submit" class="ds-btn ds-btn--primary premium-primary-btn" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
             </div>
           </form>
+          </div>
         </div>
       </div>
     }
@@ -159,27 +197,11 @@ import type { PagedResult } from '../../../core/models/api-response';
     }
   `,
   styles: [`
-    .filter-row { display: flex; gap: var(--space-md); align-items: center; flex-wrap: wrap; }
+    .actions-row { display: flex; justify-content: flex-end; margin-bottom: var(--space-sm); flex-wrap: wrap; gap: var(--space-sm); }
     .filter-search { max-width: 280px; }
-    .table-loading { padding: var(--space-md) 0; }
-    .cell-actions { text-align: end; display: flex; gap: var(--space-sm); justify-content: flex-end; }
-    .pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); flex-wrap: wrap; }
-    .pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
-    .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; padding: var(--space-lg); }
-    .modal-drawer { max-width: 480px; width: 100%; max-height: 90vh; overflow: auto; }
-    .permissions-list {
-      max-height: 200px; overflow-y: auto; border: 1px solid var(--color-border-light); border-radius: var(--radius-sm);
-      padding: var(--space-sm); background: var(--color-bg-subtle, #f8fafc);
-    }
-    .permission-item {
-      display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-xs) 0; cursor: pointer;
-      font-size: var(--text-body-sm); color: var(--color-text);
-    }
-    .permission-item input { flex-shrink: 0; }
-    .permission-label { flex: 1; }
-    .modal-drawer__title { font-size: var(--text-h1); font-weight: 600; margin: 0 0 var(--space-md); }
-    .modal-drawer form .form-group { margin-bottom: var(--space-md); }
-    .modal-drawer__actions { display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-lg); }
+    .table-loading { padding: var(--space-md) var(--space-lg); }
+    .cell-actions { text-align: end; display: flex; gap: var(--space-sm); justify-content: flex-end; flex-wrap: wrap; }
+    .permission-label { flex: 1; min-width: 0; }
   `]
 })
 export class RolesPageComponent implements OnInit {

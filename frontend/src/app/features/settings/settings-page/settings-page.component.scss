@@ -1,28 +1,57 @@
-/* Settings page */
+.table-loading {
+  padding: var(--space-md) var(--space-lg);
+}
 
 .settings-table {
   width: 100%;
   border-collapse: collapse;
 }
+
 .settings-table th,
 .settings-table td {
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   text-align: start;
-  border-bottom: 1px solid var(--color-border, #e0e0e0);
+  vertical-align: middle;
+  border-bottom: 1px solid color-mix(in srgb, var(--gulf-green-800) 8%, var(--color-border-light));
 }
-.settings-table th {
+
+.settings-code {
+  font-size: var(--text-caption);
   font-weight: 600;
-  color: var(--color-text-secondary, #666);
+  color: var(--gulf-green-800);
+  background: color-mix(in srgb, var(--gulf-gold) 8%, var(--color-bg-subtle));
+  padding: 0.2rem 0.45rem;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--gulf-gold) 16%, transparent);
 }
+
 .settings-table .value-cell {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-sm);
   align-items: center;
+  flex-wrap: wrap;
 }
+
 .settings-table .value-cell input {
   flex: 1;
-  min-width: 0;
+  min-width: 180px;
+  border-radius: 12px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
+
+.settings-table .value-cell input:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--gulf-gold) 35%, var(--color-border));
+}
+
+.settings-table .value-cell input:focus {
+  border-color: var(--gulf-gold);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--gulf-gold) 20%, transparent),
+    0 0 18px rgba(200, 164, 93, 0.12);
+}
+
 .settings-table .value-cell .ds-btn {
   flex-shrink: 0;
 }
