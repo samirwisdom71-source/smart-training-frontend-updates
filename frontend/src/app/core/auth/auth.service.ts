@@ -16,6 +16,105 @@ function unwrap<T>(res: ApiResponse<T>): T {
   throw new Error((res as { message?: string })?.message ?? 'Request failed');
 }
 
+function pickString(obj: Record<string, unknown>, keys: string[]): string {
+  for (const k of keys) {
+    const v = obj[k];
+    if (typeof v === 'string' && v.length > 0) return v;
+  }
+  return '';
+}
+
+function pickStringOrNull(obj: Record<string, unknown>, keys: string[]): string | null {
+  const s = pickString(obj, keys);
+  return s || null;
+}
+
+function coerceStringArray(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v.filter((x): x is string => typeof x === 'string');
+}
+
+function decodeJwtExpiresAtMs(token: string): number | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const json = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'));
+    const payload = JSON.parse(json) as { exp?: number };
+    return typeof payload.exp === 'number' ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveAccessExpiryMs(expiresAtIso: string | undefined, accessToken: string): number | null {
+  if (expiresAtIso) {
+    const t = new Date(expiresAtIso).getTime();
+    if (!Number.isNaN(t)) return t;
+  }
+  return decodeJwtExpiresAtMs(accessToken);
+}
+
+/** Maps common backend shapes (camelCase / PascalCase / nested `user`) to LoginResponse. */
+function normalizeLoginResponse(raw: unknown): LoginResponse {
+  if (!raw || typeof raw !== 'object') throw new Error('Invalid login response');
+  const r = raw as Record<string, unknown>;
+
+  const accessToken = pickString(r, ['accessToken', 'AccessToken', 'token', 'Token']);
+  if (!accessToken) throw new Error('No access token in login response');
+
+  const refreshToken = pickString(r, ['refreshToken', 'RefreshToken']);
+  let accessTokenExpiresAt = pickString(r, [
+    'accessTokenExpiresAt',
+    'AccessTokenExpiresAt',
+    'expiresAt',
+    'ExpiresAt',
+    'tokenExpiresAt',
+    'TokenExpiresAt',
+  ]);
+
+  const userNode = r['user'] ?? r['User'];
+  const userObj =
+    userNode && typeof userNode === 'object' ? (userNode as Record<string, unknown>) : null;
+
+  let userId = pickString(r, ['userId', 'UserId']);
+  if (!userId && userObj) userId = pickString(userObj, ['id', 'Id', 'userId', 'UserId']);
+
+  let email = pickString(r, ['email', 'Email']);
+  if (!email && userObj) email = pickString(userObj, ['email', 'Email']);
+
+  let fullName = pickString(r, ['fullName', 'FullName']);
+  if (!fullName && userObj) fullName = pickString(userObj, ['fullName', 'FullName']);
+  if (!fullName) fullName = email || 'User';
+
+  const profilePicturePath =
+    pickStringOrNull(r, ['profilePicturePath', 'ProfilePicturePath']) ??
+    (userObj ? pickStringOrNull(userObj, ['profilePicturePath', 'ProfilePicturePath']) : null);
+
+  let roles = coerceStringArray(r['roles'] ?? r['Roles']);
+  if (!roles.length && userObj) roles = coerceStringArray(userObj['roles'] ?? userObj['Roles']);
+
+  let permissions = coerceStringArray(r['permissions'] ?? r['Permissions']);
+  if (!permissions.length && userObj)
+    permissions = coerceStringArray(userObj['permissions'] ?? userObj['Permissions']);
+
+  if (!accessTokenExpiresAt) {
+    const jwtMs = decodeJwtExpiresAtMs(accessToken);
+    accessTokenExpiresAt = jwtMs ? new Date(jwtMs).toISOString() : new Date(Date.now() + 3600_000).toISOString();
+  }
+
+  return {
+    accessToken,
+    refreshToken,
+    accessTokenExpiresAt,
+    userId: userId || email || '',
+    email,
+    fullName,
+    profilePicturePath,
+    roles,
+    permissions,
+  };
+}
+
 const AUTH_KEY = 'smart_training_auth';
 const API = `${appConfig.apiUrl}/api/auth`;
 
@@ -45,18 +144,28 @@ export class AuthService {
         return;
       }
       const stored: StoredAuth = JSON.parse(raw);
-      if (stored.accessToken && stored.refreshToken && stored.user) {
-        const user = stored.user as CurrentUserDto;
-        if (!user.permissions) user.permissions = [];
-        const expiresAt = new Date(stored.expiresAt).getTime();
-        if (expiresAt > Date.now() + 60_000) {
-          this.accessToken.set(stored.accessToken);
-          this.currentUser.set(user);
-        } else {
-          this.refreshAndRestore(stored.refreshToken).subscribe(() => this.initialized.set(true));
+      if (!stored.accessToken || !stored.user) {
+        localStorage.removeItem(AUTH_KEY);
+        this.initialized.set(true);
+        return;
+      }
+      const user = stored.user as CurrentUserDto;
+      if (!user.permissions) user.permissions = [];
+      const refreshToken = stored.refreshToken ?? '';
+      const expiryMs = resolveAccessExpiryMs(stored.expiresAt, stored.accessToken);
+
+      if (expiryMs != null && expiryMs <= Date.now() + 60_000) {
+        if (refreshToken) {
+          this.refreshAndRestore(refreshToken).subscribe(() => this.initialized.set(true));
           return;
         }
+        localStorage.removeItem(AUTH_KEY);
+        this.initialized.set(true);
+        return;
       }
+
+      this.accessToken.set(stored.accessToken);
+      this.currentUser.set(user);
     } catch {
       localStorage.removeItem(AUTH_KEY);
     }
@@ -66,6 +175,7 @@ export class AuthService {
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<ApiResponse<LoginResponse>>(`${API}/login`, { email, password }).pipe(
       map(unwrap),
+      map((body) => normalizeLoginResponse(body)),
       tap((res) => this.handleAuthSuccess(res))
     );
   }
@@ -154,7 +264,7 @@ export class AuthService {
           this.accessToken.set(res.accessToken);
           this.persist({
             accessToken: res.accessToken,
-            refreshToken: res.newRefreshToken,
+            refreshToken: res.newRefreshToken || undefined,
             expiresAt: res.accessTokenExpiresAt,
             user,
           });
@@ -169,7 +279,7 @@ export class AuthService {
 
   private handleAuthSuccess(res: LoginResponse): void {
     const user: CurrentUserDto = {
-      id: res.userId,
+      id: res.userId || res.email || '',
       email: res.email ?? '',
       fullName: res.fullName,
       profilePicturePath: res.profilePicturePath ?? null,
@@ -180,7 +290,7 @@ export class AuthService {
     this.currentUser.set(user);
     this.persist({
       accessToken: res.accessToken,
-      refreshToken: res.refreshToken,
+      refreshToken: res.refreshToken || undefined,
       expiresAt: res.accessTokenExpiresAt,
       user,
     });

@@ -781,6 +781,13 @@
   animation: ent-modal-overlay-in 0.25s ease both;
 }
 
+/* Centered modal variant (e.g. audit log details): full viewport, wider panel */
+.premium-drawer-overlay.premium-drawer-overlay--centered {
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-lg);
+}
+
 .premium-drawer-backdrop {
   position: absolute;
   inset: 0;
@@ -813,6 +820,21 @@
 
 [dir='rtl'] .premium-drawer {
   border-radius: 0 20px 20px 0;
+}
+
+.premium-drawer.premium-drawer--modal {
+  width: min(100vw - 32px, 720px);
+  height: auto;
+  max-height: min(90vh, 880px);
+  border-radius: 20px;
+  border-inline-start-width: 1px;
+  box-shadow:
+    0 24px 60px rgba(15, 61, 46, 0.22),
+    0 0 1px rgba(15, 61, 46, 0.08);
+}
+
+[dir='rtl'] .premium-drawer.premium-drawer--modal {
+  border-radius: 20px;
 }
 
 .premium-drawer__header {
@@ -1106,13 +1128,22 @@
     padding: var(--space-md);
   }
 
-  .premium-drawer {
+  .premium-drawer:not(.premium-drawer--modal) {
     width: 100vw;
     border-radius: 0;
   }
 
-  [dir='rtl'] .premium-drawer {
+  [dir='rtl'] .premium-drawer:not(.premium-drawer--modal) {
     border-radius: 0;
+  }
+
+  .premium-drawer-overlay--centered {
+    padding: var(--space-md);
+  }
+
+  .premium-drawer--modal {
+    width: min(100vw - 16px, 720px);
+    max-height: 90vh;
   }
 }
 

@@ -31,7 +31,8 @@ export const AUTH_STORAGE_KEY = 'smart_training_auth';
 
 export interface StoredAuth {
   accessToken: string;
-  refreshToken: string;
-  expiresAt: string;
+  /** Optional when API does not issue refresh tokens; session still restores until access token expires. */
+  refreshToken?: string;
+  expiresAt?: string;
   user: CurrentUserDto;
 }
