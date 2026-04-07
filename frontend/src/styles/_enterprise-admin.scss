@@ -151,6 +151,42 @@
   }
 }
 
+/* Three filters in one row (knowledge library) */
+.ent-admin-filters--3col .ds-filterbar__controls {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ent-admin-filters--3col .ds-filterfield {
+  grid-column: auto;
+}
+
+@media (max-width: 1100px) {
+  .ent-admin-filters--3col .ds-filterbar__controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .ent-admin-filters--3col .ds-filterbar__controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Two filters in one row (internal experts) */
+.ent-admin-filters--2col .ds-filterbar__controls {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ent-admin-filters--2col .ds-filterfield {
+  grid-column: auto;
+}
+
+@media (max-width: 640px) {
+  .ent-admin-filters--2col .ds-filterbar__controls {
+    grid-template-columns: 1fr;
+  }
+}
+
 .ent-admin-filters .ds-filterfield__label {
   color: var(--ent-muted);
   font-weight: 600;
@@ -354,6 +390,10 @@
 
 .ent-modal-shell--sm {
   max-width: 420px;
+}
+
+.ent-modal-shell--kt {
+  max-width: min(720px, 96vw);
 }
 
 .premium-modal {

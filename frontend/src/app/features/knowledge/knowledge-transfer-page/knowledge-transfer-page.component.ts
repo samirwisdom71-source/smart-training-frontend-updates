@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { KnowledgeApiService } from '../../../core/api/knowledge/knowledge-api.service';
 import { EmployeesApiService } from '../../../core/api/employees/employees-api.service';
@@ -15,7 +16,7 @@ import { ToastService } from '../../../core/toast/toast.service';
 @Component({
   selector: 'app-knowledge-transfer-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective],
   templateUrl: './knowledge-transfer-page.component.html',
   styleUrls: ['./knowledge-transfer-page.component.scss'],
 })

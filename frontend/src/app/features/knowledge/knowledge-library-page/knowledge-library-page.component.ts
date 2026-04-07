@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { KnowledgeApiService } from '../../../core/api/knowledge/knowledge-api.service';
 import type { KnowledgeAssetListDto, KnowledgeAssetDto } from '../../../core/api/knowledge/knowledge-api.models';
@@ -16,7 +17,7 @@ import { ToastService } from '../../../core/toast/toast.service';
 @Component({
   selector: 'app-knowledge-library-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective],
   templateUrl: './knowledge-library-page.component.html',
   styleUrls: ['./knowledge-library-page.component.scss'],
 })
@@ -56,8 +57,11 @@ export class KnowledgeLibraryPageComponent implements OnInit {
   readonly loadedDetail = signal<KnowledgeAssetDto | null>(null);
   readonly loadingDetail = signal(false);
   readonly selectedFileName = signal<string | null>(null);
+  /** Highlights the drop zone while a file drag is over it. */
+  readonly fileUploadDragging = signal(false);
 
   selectedFile: File | null = null;
+  private fileDragDepth = 0;
 
   assetForm = {
     titleEn: '',
@@ -236,6 +240,8 @@ export class KnowledgeLibraryPageComponent implements OnInit {
     this.editingId.set(null);
     this.loadedDetail.set(null);
     this.loadingDetail.set(false);
+    this.fileDragDepth = 0;
+    this.fileUploadDragging.set(false);
     this.clearFileSelection();
   }
 
@@ -258,11 +264,47 @@ export class KnowledgeLibraryPageComponent implements OnInit {
     if (el) el.value = '';
   }
 
+  triggerFilePicker(): void {
+    this.fileInputRef?.nativeElement?.click();
+  }
+
+  onFileDragEnter(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.fileDragDepth++;
+    this.fileUploadDragging.set(true);
+  }
+
+  onFileDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.fileDragDepth = Math.max(0, this.fileDragDepth - 1);
+    if (this.fileDragDepth === 0) this.fileUploadDragging.set(false);
+  }
+
+  onFileDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+  }
+
+  onFileDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.fileDragDepth = 0;
+    this.fileUploadDragging.set(false);
+    const f = event.dataTransfer?.files?.[0] ?? null;
+    this.applySelectedFile(f);
+  }
+
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const f = input.files?.[0] ?? null;
-    this.selectedFile = f;
-    this.selectedFileName.set(f?.name ?? null);
+    this.applySelectedFile(input.files?.[0] ?? null);
+  }
+
+  private applySelectedFile(file: File | null): void {
+    this.selectedFile = file;
+    this.selectedFileName.set(file?.name ?? null);
   }
 
   private strOrNull(v: string): string | null {

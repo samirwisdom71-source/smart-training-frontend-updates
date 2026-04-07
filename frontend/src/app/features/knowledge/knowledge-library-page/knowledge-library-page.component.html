@@ -1,95 +1,142 @@
-<app-page-shell [title]="'nav.knowledgeLibrary' | translate" [breadcrumbs]="breadcrumbs()">
-  <div class="ds-filterbar">
-    <div class="ds-filterbar__controls">
-      <div class="ds-filterfield">
-        <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
-        <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (keyup.enter)="load()" />
+<app-page-shell
+  [title]="'nav.knowledgeLibrary' | translate"
+  [breadcrumbs]="breadcrumbs()"
+  [fullWidth]="true"
+  [showPageTitle]="false"
+>
+  <div class="ent-admin-page ent-page-fade-in">
+    <header class="ent-admin-hero">
+      <div class="ent-admin-hero__inner">
+        <h1 class="ent-admin-hero__title">{{ 'nav.knowledgeLibrary' | translate }}</h1>
+        <p class="ent-admin-hero__subtitle">{{ 'enterprise.adminHeroSubtitle' | translate }}</p>
       </div>
-      <div class="ds-filterfield">
-        <div class="ds-filterfield__label">{{ 'knowledge.competencyFramework' | translate }}</div>
-        <select class="ds-input filter-category ds-filterfield__control" [(ngModel)]="categoryFilter" (change)="load()">
-          <option value="">{{ 'common.all' | translate }}</option>
-          @for (f of frameworks(); track f.id) {
-            <option [value]="f.id">{{ frameworkLabel(f) }}</option>
+    </header>
+
+    <div class="ent-admin-filters ent-admin-filters--3col">
+      <div class="ds-filterbar">
+        <div class="ds-filterbar__controls">
+          <div class="ds-filterfield">
+            <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
+            <input
+              type="text"
+              class="ds-input filter-search ds-filterfield__control"
+              [(ngModel)]="search"
+              (keyup.enter)="load()"
+              [placeholder]="'common.search' | translate"
+            />
+          </div>
+          <div class="ds-filterfield">
+            <div class="ds-filterfield__label">{{ 'knowledge.competencyFramework' | translate }}</div>
+            <select class="ds-input filter-category ds-filterfield__control" [(ngModel)]="categoryFilter" (change)="load()">
+              <option value="">{{ 'common.all' | translate }}</option>
+              @for (f of frameworks(); track f.id) {
+                <option [value]="f.id">{{ frameworkLabel(f) }}</option>
+              }
+            </select>
+          </div>
+          <div class="ds-filterfield">
+            <div class="ds-filterfield__label">{{ 'table.status' | translate }}</div>
+            <select class="ds-input filter-status ds-filterfield__control" [(ngModel)]="isActive" (change)="load()">
+              <option [ngValue]="null">{{ 'common.all' | translate }}</option>
+              <option [ngValue]="true">{{ 'status.active' | translate }}</option>
+              <option [ngValue]="false">{{ 'status.inactive' | translate }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="ds-filterbar__actions">
+          @if (canCreate()) {
+            <button
+              type="button"
+              class="ds-btn ds-btn--primary ds-btn--sm premium-primary-btn"
+              (click)="openAddModal()"
+              [appTooltip]="('common.add' | translate) + ' — ' + ('knowledge.addKnowledgeAsset' | translate)"
+            >
+              {{ 'common.add' | translate }}
+            </button>
           }
-        </select>
-      </div>
-      <div class="ds-filterfield">
-        <div class="ds-filterfield__label">{{ 'table.status' | translate }}</div>
-        <select class="ds-input filter-status ds-filterfield__control" [(ngModel)]="isActive" (change)="load()">
-          <option [ngValue]="null">{{ 'common.all' | translate }}</option>
-          <option [ngValue]="true">{{ 'status.active' | translate }}</option>
-          <option [ngValue]="false">{{ 'status.inactive' | translate }}</option>
-        </select>
+          <button type="button" class="ds-btn ds-btn--sm ent-filter-primary" (click)="load()" [appTooltip]="'common.refresh' | translate">
+            {{ 'common.refresh' | translate }}
+          </button>
+        </div>
       </div>
     </div>
-    <div class="ds-filterbar__actions">
-      @if (canCreate()) {
-        <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openAddModal()">{{ 'common.add' | translate }}</button>
+
+    <div class="ent-admin-content">
+      @if (loading()) {
+        <div class="ent-table-panel">
+          <div class="table-loading"><div class="ds-skeleton" style="height: 120px;"></div></div>
+        </div>
+      } @else if (error()) {
+        <div class="ds-error-state">
+          <p class="ds-error-state__title">{{ error() }}</p>
+          <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
+        </div>
+      } @else if (!items().length) {
+        <div class="ent-table-panel">
+          <div class="ds-empty">
+            <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p>
+          </div>
+        </div>
+      } @else {
+        <div class="ent-table-panel">
+          <div class="ds-table-wrap">
+            <table class="ds-table">
+              <thead>
+                <tr>
+                  <th>{{ 'knowledge.title' | translate }}</th>
+                  <th>{{ 'knowledge.competencyFramework' | translate }}</th>
+                  <th>{{ 'knowledge.tags' | translate }}</th>
+                  <th>{{ 'knowledge.fileName' | translate }}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of items(); track item.id) {
+                  <tr>
+                    <td>{{ title(item) }}</td>
+                    <td>{{ categoryDisplay(item.category) }}</td>
+                    <td>{{ item.tags ?? '—' }}</td>
+                    <td>{{ item.fileName ?? '—' }}</td>
+                    <td class="cell-actions">
+                      @if (canEdit()) {
+                        <button
+                          type="button"
+                          class="ds-btn ds-btn--ghost ds-btn--icon"
+                          (click)="openEditModal(item)"
+                          [attr.aria-label]="'common.edit' | translate"
+                          [appTooltip]="'common.edit' | translate"
+                        >
+                          <svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M13.5 6.5 16 4l3 3-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                          </svg>
+                        </button>
+                      }
+                      @if (canDelete()) {
+                        <button
+                          type="button"
+                          class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
+                          (click)="confirmDelete(item)"
+                          [attr.aria-label]="'common.delete' | translate"
+                          [appTooltip]="'common.delete' | translate"
+                        >
+                          <svg class="icon-svg" viewBox="0 0 24 24">
+                            <path d="M6 19V7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                            <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M4 7h16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                          </svg>
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
       }
-      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'common.refresh' | translate }}</button>
     </div>
   </div>
-  @if (loading()) {
-    <div class="table-loading"><div class="ds-skeleton" style="height: 120px;"></div></div>
-  } @else if (error()) {
-    <div class="ds-error-state"><p>{{ error() }}</p></div>
-  } @else {
-    <div class="ds-table-wrap">
-      <table class="ds-table">
-        <thead>
-          <tr>
-            <th>{{ 'knowledge.title' | translate }}</th>
-            <th>{{ 'knowledge.competencyFramework' | translate }}</th>
-            <th>{{ 'knowledge.tags' | translate }}</th>
-            <th>{{ 'knowledge.fileName' | translate }}</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (item of items(); track item.id) {
-            <tr>
-              <td>{{ title(item) }}</td>
-              <td>{{ categoryDisplay(item.category) }}</td>
-              <td>{{ item.tags ?? '—' }}</td>
-              <td>{{ item.fileName ?? '—' }}</td>
-              <td class="cell-actions">
-                @if (canEdit()) {
-                  <button
-                    type="button"
-                    class="ds-btn ds-btn--ghost ds-btn--icon"
-                    (click)="openEditModal(item)"
-                    [attr.aria-label]="'common.edit' | translate"
-                    [title]="'common.edit' | translate"
-                  >
-                    <svg class="icon-svg" viewBox="0 0 24 24">
-                      <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-                      <path d="M13.5 6.5 16 4l3 3-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-                    </svg>
-                  </button>
-                }
-                @if (canDelete()) {
-                  <button
-                    type="button"
-                    class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
-                    (click)="confirmDelete(item)"
-                    [attr.aria-label]="'common.delete' | translate"
-                    [title]="'common.delete' | translate"
-                  >
-                    <svg class="icon-svg" viewBox="0 0 24 24">
-                      <path d="M6 19V7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6" />
-                      <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M4 7h16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-                    </svg>
-                  </button>
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    @if (!items().length) { <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p> }
-  }
+
   @if (showConfirm()) {
     <app-confirm-dialog
       [title]="'dialog.confirmDelete' | translate"
@@ -102,75 +149,153 @@
   }
 
   @if (showAddModal()) {
-    <div class="modal-overlay" (click)="closeAddModal()">
-      <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
-        <h3 class="modal-drawer__title">
-          {{ (editingId() ? 'knowledge.editKnowledgeAsset' : 'knowledge.addKnowledgeAsset') | translate }}
-        </h3>
-        @if (modalError()) {
-          <p class="ds-field-error">{{ modalError() }}</p>
-        }
-        @if (loadingDetail()) {
-          <p class="modal-hint">{{ 'common.loading' | translate }}</p>
-        } @else {
-          <form (ngSubmit)="saveAsset()">
-            <div class="form-group">
-              <label class="ds-label" for="kl-title-en">{{ 'table.titleEn' | translate }}</label>
-              <input id="kl-title-en" type="text" class="ds-input" name="titleEn" [(ngModel)]="assetForm.titleEn" autocomplete="off" />
+    <div class="ent-modal-overlay">
+      <button type="button" class="ent-modal-backdrop" [attr.aria-label]="'common.close' | translate" (click)="closeAddModal()"></button>
+      <div class="ent-modal-shell modal-drawer premium-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <div class="premium-modal__header">
+          <div class="premium-modal__titlewrap">
+            <h3 class="premium-modal__title">
+              {{ (editingId() ? 'knowledge.editKnowledgeAsset' : 'knowledge.addKnowledgeAsset') | translate }}
+            </h3>
+            <p class="premium-modal__subtitle">{{ 'nav.knowledgeLibrary' | translate }}</p>
+          </div>
+          <button
+            type="button"
+            class="ds-btn ds-btn--ghost ds-btn--icon premium-modal__close"
+            (click)="closeAddModal()"
+            [attr.aria-label]="'common.close' | translate"
+            [appTooltip]="'common.close' | translate"
+          >
+            <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+        <div class="premium-modal__body">
+          @if (modalError()) {
+            <div class="premium-modal__error">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 9v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M12 17h.01" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+              </svg>
+              <p class="premium-modal__error-text">{{ modalError() }}</p>
             </div>
-            <div class="form-group">
-              <label class="ds-label" for="kl-title-ar">{{ 'table.titleAr' | translate }}</label>
-              <input id="kl-title-ar" type="text" class="ds-input" name="titleAr" [(ngModel)]="assetForm.titleAr" autocomplete="off" />
-            </div>
-            <div class="form-group">
-              <label class="ds-label" for="kl-desc-en">{{ 'table.descriptionEn' | translate }}</label>
-              <textarea id="kl-desc-en" class="ds-textarea" name="descEn" rows="3" [(ngModel)]="assetForm.descriptionEn"></textarea>
-            </div>
-            <div class="form-group">
-              <label class="ds-label" for="kl-desc-ar">{{ 'table.descriptionAr' | translate }}</label>
-              <textarea id="kl-desc-ar" class="ds-textarea" name="descAr" rows="3" [(ngModel)]="assetForm.descriptionAr"></textarea>
-            </div>
-            <div class="form-group">
-              <label class="ds-label" for="kl-cat">{{ 'knowledge.competencyFramework' | translate }}</label>
-              <select id="kl-cat" class="ds-input" name="category" [(ngModel)]="assetForm.category">
-                <option value="">{{ 'knowledge.noCompetencyFramework' | translate }}</option>
-                @for (opt of modalCategorySelectOptions(); track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
-              @if (!frameworks().length) {
-                <p class="modal-hint modal-hint--muted">{{ 'knowledge.frameworksLoadHint' | translate }}</p>
-              }
-            </div>
-            <div class="form-group">
-              <label class="ds-label" for="kl-tags">{{ 'knowledge.tags' | translate }}</label>
-              <input id="kl-tags" type="text" class="ds-input" name="tags" [(ngModel)]="assetForm.tags" />
-            </div>
-            @if (editingId()) {
-              <div class="form-group form-group--checkbox">
-                <label class="ds-label ds-label--inline">
-                  <input type="checkbox" name="isActive" [(ngModel)]="assetForm.isActive" />
-                  {{ 'knowledge.assetIsActive' | translate }}
-                </label>
+          }
+          @if (loadingDetail()) {
+            <p class="modal-hint">{{ 'common.loading' | translate }}</p>
+          } @else {
+            <form class="premium-form" (ngSubmit)="saveAsset()">
+              <div class="form-group">
+                <label class="ds-label" for="kl-title-en">{{ 'table.titleEn' | translate }}</label>
+                <input id="kl-title-en" type="text" class="ds-input" name="titleEn" [(ngModel)]="assetForm.titleEn" autocomplete="off" />
               </div>
-              @if (loadedDetail()?.fileName) {
-                <p class="modal-hint">{{ 'knowledge.currentFile' | translate }}: {{ loadedDetail()!.fileName }}</p>
+              <div class="form-group">
+                <label class="ds-label" for="kl-title-ar">{{ 'table.titleAr' | translate }}</label>
+                <input id="kl-title-ar" type="text" class="ds-input" name="titleAr" [(ngModel)]="assetForm.titleAr" autocomplete="off" />
+              </div>
+              <div class="form-group">
+                <label class="ds-label" for="kl-desc-en">{{ 'table.descriptionEn' | translate }}</label>
+                <textarea id="kl-desc-en" class="ds-textarea" name="descEn" rows="3" [(ngModel)]="assetForm.descriptionEn"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="ds-label" for="kl-desc-ar">{{ 'table.descriptionAr' | translate }}</label>
+                <textarea id="kl-desc-ar" class="ds-textarea" name="descAr" rows="3" [(ngModel)]="assetForm.descriptionAr"></textarea>
+              </div>
+              <div class="form-group">
+                <label class="ds-label" for="kl-cat">{{ 'knowledge.competencyFramework' | translate }}</label>
+                <select id="kl-cat" class="ds-input" name="category" [(ngModel)]="assetForm.category">
+                  <option value="">{{ 'knowledge.noCompetencyFramework' | translate }}</option>
+                  @for (opt of modalCategorySelectOptions(); track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+                @if (!frameworks().length) {
+                  <p class="modal-hint modal-hint--muted">{{ 'knowledge.frameworksLoadHint' | translate }}</p>
+                }
+              </div>
+              <div class="form-group">
+                <label class="ds-label" for="kl-tags">{{ 'knowledge.tags' | translate }}</label>
+                <input id="kl-tags" type="text" class="ds-input" name="tags" [(ngModel)]="assetForm.tags" />
+              </div>
+              @if (editingId()) {
+                <div class="form-group form-group--checkbox">
+                  <label class="ds-label ds-label--inline">
+                    <input type="checkbox" name="isActive" [(ngModel)]="assetForm.isActive" />
+                    {{ 'knowledge.assetIsActive' | translate }}
+                  </label>
+                </div>
+                @if (loadedDetail()?.fileName) {
+                  <p class="modal-hint">{{ 'knowledge.currentFile' | translate }}: {{ loadedDetail()!.fileName }}</p>
+                }
               }
-            }
-            <div class="form-group">
-              <label class="ds-label" for="kl-upload">{{ 'knowledge.uploadFileFromDevice' | translate }}</label>
-              <input id="kl-upload" #fileInput type="file" (change)="onFileSelected($event)" />
-              <p class="modal-hint modal-hint--muted">{{ 'knowledge.uploadFileHint' | translate }}</p>
-            </div>
-            @if (selectedFileName()) {
-              <p class="modal-hint">{{ 'knowledge.selectedFile' | translate }}: {{ selectedFileName() }}</p>
-            }
-            <div class="modal-drawer__actions">
-              <button type="button" class="ds-btn ds-btn--secondary" (click)="closeAddModal()">{{ 'common.cancel' | translate }}</button>
-              <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving() || loadingDetail()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
-            </div>
-          </form>
-        }
+              <div class="form-group kl-file-upload">
+                <label class="ds-label" for="kl-upload">{{ 'knowledge.uploadFileFromDevice' | translate }}</label>
+                <div
+                  class="kl-file-upload__zone"
+                  [class.kl-file-upload__zone--drag]="fileUploadDragging()"
+                  (dragenter)="onFileDragEnter($event)"
+                  (dragleave)="onFileDragLeave($event)"
+                  (dragover)="onFileDragOver($event)"
+                  (drop)="onFileDrop($event)"
+                >
+                  <input
+                    id="kl-upload"
+                    #fileInput
+                    type="file"
+                    class="kl-file-upload__input"
+                    (change)="onFileSelected($event)"
+                    [attr.aria-label]="'knowledge.uploadFileFromDevice' | translate"
+                  />
+                  <div class="kl-file-upload__inner">
+                    <span class="kl-file-upload__icon" aria-hidden="true">
+                      <svg class="icon-svg" viewBox="0 0 24 24" focusable="false">
+                        <path
+                          d="M12 16V8m0 0-3 3m3-3 3 3M4 16.8V18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1.2"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.75"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </span>
+                    <div class="kl-file-upload__actions">
+                      <button type="button" class="ds-btn ds-btn--secondary kl-file-upload__browse" (click)="triggerFilePicker()">
+                        {{ 'knowledge.browseFiles' | translate }}
+                      </button>
+                      <span class="kl-file-upload__or">{{ 'knowledge.orDropFile' | translate }}</span>
+                    </div>
+                  </div>
+                </div>
+                @if (selectedFileName()) {
+                  <div class="kl-file-upload__selected">
+                    <span class="kl-file-upload__selected-label">{{ 'knowledge.selectedFile' | translate }}</span>
+                    <span class="kl-file-upload__filename" [title]="selectedFileName()!">{{ selectedFileName() }}</span>
+                    <button
+                      type="button"
+                      class="ds-btn ds-btn--ghost ds-btn--icon kl-file-upload__clear"
+                      (click)="clearFileSelection()"
+                      [attr.aria-label]="'common.clear' | translate"
+                      [appTooltip]="'common.clear' | translate"
+                    >
+                      <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      </svg>
+                    </button>
+                  </div>
+                }
+                <p class="modal-hint modal-hint--muted">{{ 'knowledge.uploadFileHint' | translate }}</p>
+              </div>
+              <div class="premium-modal__footer">
+                <button type="button" class="ds-btn ds-btn--secondary premium-secondary-btn" (click)="closeAddModal()">{{ 'common.cancel' | translate }}</button>
+                <button type="submit" class="ds-btn ds-btn--primary premium-primary-btn" [disabled]="saving() || loadingDetail()">
+                  {{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}
+                </button>
+              </div>
+            </form>
+          }
+        </div>
       </div>
     </div>
   }

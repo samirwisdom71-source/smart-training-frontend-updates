@@ -1,49 +1,5 @@
-.filter-row {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-  overflow-x: auto;
-
-  .filter-search { flex: 1 1 12rem; min-width: 10rem; }
-  .filter-category { flex: 0 1 10rem; min-width: 8rem; }
-  .filter-status { flex: 0 0 auto; width: auto; min-width: 0; }
-}
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  background: rgba(15, 23, 42, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-lg);
-}
-
-.modal-drawer {
-  max-width: 520px;
-  width: 100%;
-  max-height: 90vh;
-  overflow: auto;
-}
-
-.modal-drawer__title {
-  font-size: var(--text-h1);
-  font-weight: 600;
-  margin: 0 0 var(--space-md);
-}
-
-.modal-drawer form .form-group {
-  margin-bottom: var(--space-md);
-}
-
-.modal-drawer__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-sm);
-  margin-top: var(--space-lg);
+.table-loading {
+  padding: var(--space-md) var(--space-lg);
 }
 
 .modal-hint {
@@ -71,4 +27,124 @@
   justify-content: flex-end;
   gap: var(--space-2xs);
   flex-wrap: wrap;
+}
+
+/* Add / edit asset — premium file picker + drop zone */
+.kl-file-upload__zone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 112px;
+  padding: var(--space-md);
+  border: 1px dashed color-mix(in srgb, var(--gulf-gold) 42%, var(--color-border));
+  border-radius: var(--ent-radius-md, var(--radius-md, 12px));
+  background: color-mix(in srgb, var(--color-bg-elevated) 88%, var(--gulf-green-800) 5%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.kl-file-upload__zone:hover {
+  border-color: color-mix(in srgb, var(--gulf-gold) 58%, var(--color-border));
+}
+
+.kl-file-upload__zone--drag {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--gulf-gold) 65%, var(--gulf-green-700));
+  background: color-mix(in srgb, var(--color-bg-elevated) 78%, var(--gulf-gold) 10%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--gulf-gold) 22%, transparent),
+    0 0 24px rgba(200, 164, 93, 0.14);
+}
+
+.kl-file-upload__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
+}
+
+.kl-file-upload__inner {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  pointer-events: none;
+  text-align: center;
+}
+
+.kl-file-upload__icon {
+  display: flex;
+  color: color-mix(in srgb, var(--gulf-gold) 55%, var(--color-text-secondary));
+}
+
+.kl-file-upload__icon .icon-svg {
+  width: 36px;
+  height: 36px;
+}
+
+.kl-file-upload__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2xs);
+  max-width: 100%;
+}
+
+.kl-file-upload__browse {
+  pointer-events: auto;
+}
+
+.kl-file-upload__or {
+  font-size: var(--text-body-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+}
+
+.kl-file-upload__selected {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--ent-radius-md, var(--radius-md, 12px));
+  border: 1px solid color-mix(in srgb, var(--gulf-gold) 18%, var(--color-border));
+  background: color-mix(in srgb, var(--color-bg-elevated) 94%, var(--gulf-green-800) 3%);
+}
+
+.kl-file-upload__selected-label {
+  font-size: var(--text-body-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.kl-file-upload__filename {
+  flex: 1 1 120px;
+  min-width: 0;
+  font-size: var(--text-body-sm);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kl-file-upload__clear {
+  pointer-events: auto;
+  flex-shrink: 0;
+}
+
+.kl-file-upload__clear .icon-svg {
+  width: 18px;
+  height: 18px;
 }

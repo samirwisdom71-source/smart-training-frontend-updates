@@ -729,6 +729,8 @@
     "editKnowledgeAsset": "تعديل أصل المعرفة",
     "currentFile": "المرفق الحالي",
     "uploadFileFromDevice": "إرفاق ملف من الجهاز",
+    "browseFiles": "تصفح الملفات",
+    "orDropFile": "أو اسحب الملف وأفلته هنا",
     "uploadFileHint": "اختياري. PDF، أوفيس، صور، مضغوط، نص — بحد أقصى 50 ميجابايت.",
     "selectedFile": "الملف المختار",
     "assetIsActive": "السجل نشط",

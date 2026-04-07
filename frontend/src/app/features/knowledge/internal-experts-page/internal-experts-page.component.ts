@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { forkJoin, switchMap } from 'rxjs';
 import { KnowledgeApiService } from '../../../core/api/knowledge/knowledge-api.service';
@@ -18,7 +19,7 @@ import { ToastService } from '../../../core/toast/toast.service';
 @Component({
   selector: 'app-internal-experts-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective],
   templateUrl: './internal-experts-page.component.html',
   styleUrls: ['./internal-experts-page.component.scss'],
 })

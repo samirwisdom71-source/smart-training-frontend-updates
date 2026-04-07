@@ -725,6 +725,8 @@
     "editKnowledgeAsset": "Edit knowledge asset",
     "currentFile": "Current attachment",
     "uploadFileFromDevice": "Attach file from your device",
+    "browseFiles": "Browse files",
+    "orDropFile": "or drag and drop a file here",
     "uploadFileHint": "Optional. PDF, Office documents, images, zip, text — max 50 MB.",
     "selectedFile": "Selected file",
     "assetIsActive": "Record is active",
