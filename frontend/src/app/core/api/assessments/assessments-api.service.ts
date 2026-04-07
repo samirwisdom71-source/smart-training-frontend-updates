@@ -138,10 +138,11 @@ export class AssessmentsApiService {
     return this.http.get<ApiResponse<PagedResult<AssessmentResultListDto>>>(RESULTS_API, { params: p });
   }
 
-  getGapsPaged(params: PagedParams & { cycleId?: string; employeeId?: string; orgUnitId?: string; jobId?: string; severity?: string }): Observable<ApiResponse<PagedResult<CompetencyGapListDto>>> {
+  getGapsPaged(params: PagedParams & { cycleId?: string; employeeId?: string; orgUnitId?: string; jobId?: string; severity?: string; search?: string }): Observable<ApiResponse<PagedResult<CompetencyGapListDto>>> {
     let p = new HttpParams()
       .set('page', String(params.page ?? 1))
       .set('pageSize', String(params.pageSize ?? 10));
+    if (params.search) p = p.set('search', params.search);
     if (params.cycleId) p = p.set('cycleId', params.cycleId);
     if (params.employeeId) p = p.set('employeeId', params.employeeId);
     if (params.orgUnitId) p = p.set('orgUnitId', params.orgUnitId);

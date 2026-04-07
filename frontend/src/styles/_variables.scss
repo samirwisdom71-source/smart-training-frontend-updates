@@ -159,7 +159,9 @@
   --header-height: 64px;
   --content-max-width: 1400px;
 }
-
+.ds-filterbar{
+  margin-bottom: var(--space-sm);
+}
 @media (max-width: 768px) {
   :root {
     --sidebar-width: 220px;

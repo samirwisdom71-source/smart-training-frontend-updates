@@ -372,7 +372,9 @@
   "assessments": {
     "cyclesTitle": "Assessment cycles",
     "myTitle": "My assessments",
+    "myEmptyTitle": "No assessments assigned yet",
     "noAssessmentsHint": "Assessments are created from Assessment cycles by an administrator. Your admin must create a cycle, add scope (e.g. your job or org unit), and run \"Generate assessments\" so your assessment appears here.",
+    "submitSuccessSubtitle": "Your responses are now with your manager for review. You will be notified when the review progresses.",
     "selfTitle": "Self assessment",
     "managerTitle": "Manager reviews",
     "managerReviewTitle": "Review assessment",

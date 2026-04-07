@@ -1,6 +1,4 @@
 .filter-row { display: flex; gap: var(--space-md); align-items: center; flex-wrap: nowrap; overflow-x: auto; }
-.filter-search { max-width: 280px; }
-.filter-select { max-width: 200px; }
 .table-loading { padding: var(--space-md) 0; }
 .cell-actions { text-align: end; }
 .cell-check { width: 40px; text-align: center; }

@@ -27,11 +27,22 @@
     cursor: not-allowed;
   }
 }
-
+.ds-btn--ghost.ds-btn--sm {
+  background: var(--color-primary);
+  color: #fff;
+  border: 1px solid #fff;
+  &:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+  }
+  &:active:not(:disabled) {
+    background: var(--color-primary-active);
+  }
+}
 .ds-btn--primary {
   background: var(--color-primary);
   color: var(--color-primary-contrast);
-  border-color: var(--color-primary);
+  border: 1px solid #fff;
   &:hover:not(:disabled) {
     background: var(--color-primary-hover);
     border-color: var(--color-primary-hover);
@@ -187,7 +198,7 @@
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
-  padding: var(--space-lg);
+  // padding: var(--space-lg);
   transition:
     box-shadow 0.2s ease,
     border-color 0.2s ease,
