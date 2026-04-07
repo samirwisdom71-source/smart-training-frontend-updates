@@ -5,6 +5,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { TrainingNeedsApiService } from '../../../core/api/training-needs/training-needs-api.service';
 import { AssessmentsApiService } from '../../../core/api/assessments/assessments-api.service';
 import { OrganizationsApiService } from '../../../core/api/organizations/organizations-api.service';
@@ -22,7 +24,7 @@ import { ToastService } from '../../../core/toast/toast.service';
 @Component({
   selector: 'app-training-needs-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, TooltipDirective],
   templateUrl: './training-needs-page.component.html',
   styleUrls: ['./training-needs-page.component.scss'],
 })

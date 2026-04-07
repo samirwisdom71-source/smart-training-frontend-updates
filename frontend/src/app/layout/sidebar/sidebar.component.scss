@@ -1,5 +1,71 @@
 /* Premium Gulf sidebar — glass, gold active, smooth collapse */
 
+/*
+ * Shell layout lives on :host so it always applies to <app-sidebar> (parent layout
+ * styles alone can fail under emulated encapsulation). Up to 1024px the nav is a
+ * fixed overlay drawer; above that it stays sticky in the flex row.
+ * Breakpoint matches styles.scss app-shell rules (1200px).
+ */
+:host {
+  display: flex;
+  box-sizing: border-box;
+  width: var(--sidebar-width-expanded);
+  flex-shrink: 0;
+  background: transparent;
+  box-shadow: none;
+  transition:
+    width 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  position: sticky;
+  top: var(--header-height);
+  align-self: flex-start;
+  height: calc(100vh - var(--header-height));
+}
+
+:host(.sidebar--collapsed) {
+  width: var(--sidebar-width-collapsed);
+}
+
+@media (min-width: 769px) and (max-width: 1100px) {
+  :host:not(.sidebar--collapsed) {
+    width: min(var(--sidebar-width-expanded), 240px);
+  }
+}
+
+@media (max-width: 1200px) {
+  :host {
+    /* Overlay drawer: not in normal flow; does not reserve horizontal space beside <main> */
+    position: fixed !important;
+    top: var(--header-height);
+    bottom: 0;
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+    width: min(var(--sidebar-width-expanded), 88vw);
+    height: auto;
+    align-self: auto;
+    flex: 0 0 0;
+    min-width: 0;
+    overflow: visible;
+    z-index: 1000;
+    transform: translateX(-100%);
+    pointer-events: none;
+    box-shadow: var(--shadow-xl);
+  }
+
+  :host-context([dir='rtl']) {
+    transform: translateX(100%);
+  }
+
+  :host.drawer-open {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  :host.sidebar--collapsed {
+    width: min(var(--sidebar-width-expanded), 88vw);
+  }
+}
+
 .sidebar-inner {
   height: 100%;
   width: 100%;

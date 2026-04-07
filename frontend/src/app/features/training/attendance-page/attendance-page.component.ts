@@ -4,6 +4,7 @@ import { DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { AttendanceApiService } from '../../../core/api/attendance/attendance-api.service';
 import { TrainingProgramsApiService } from '../../../core/api/training-programs/training-programs-api.service';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -14,7 +15,7 @@ import type { TrainingSessionDto } from '../../../core/api/training-programs/tra
 @Component({
   selector: 'app-attendance-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, DatePipe, DecimalPipe, NgClass, RouterLink, PageShellComponent],
+  imports: [FormsModule, TranslateModule, DatePipe, DecimalPipe, NgClass, RouterLink, PageShellComponent, TooltipDirective],
   templateUrl: './attendance-page.component.html',
   styleUrls: ['./attendance-page.component.scss'],
 })

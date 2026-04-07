@@ -52,3 +52,46 @@
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
 }
+
+/*
+ * App shell (compact): keep <main> full-width; nav drawer is an overlay only.
+ * Global selectors so this cannot lose to flex row / encapsulation ordering.
+ */
+@media (max-width: 1200px) {
+  app-main-layout .layout-body,
+  [dir='rtl'] app-main-layout .layout-body {
+    flex-direction: column !important;
+  }
+
+  app-sidebar.sidebar {
+    position: fixed !important;
+    top: var(--header-height);
+    bottom: 0;
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+    width: min(var(--sidebar-width-expanded), 88vw) !important;
+    max-width: var(--sidebar-width-expanded);
+    height: auto;
+    flex: 0 0 0 !important;
+    min-width: 0 !important;
+    z-index: 1000;
+    transform: translateX(-100%);
+    pointer-events: none;
+    box-shadow: var(--shadow-xl);
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: visible;
+  }
+
+  [dir='rtl'] app-sidebar.sidebar:not(.drawer-open) {
+    transform: translateX(100%);
+  }
+
+  app-sidebar.sidebar.drawer-open {
+    transform: translateX(0) !important;
+    pointer-events: auto;
+  }
+
+  app-sidebar.sidebar.sidebar--collapsed {
+    width: min(var(--sidebar-width-expanded), 88vw) !important;
+  }
+}

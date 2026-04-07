@@ -6,6 +6,8 @@ import { DatePipe } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { PostTrainingReportsApiService } from '../../../core/api/post-training-reports/post-training-reports-api.service';
 import { TrainingProgramsApiService } from '../../../core/api/training-programs/training-programs-api.service';
 import { EmployeesApiService } from '../../../core/api/employees/employees-api.service';
@@ -20,7 +22,7 @@ import type { PagedResult } from '../../../core/models/api-response';
 @Component({
   selector: 'app-post-training-reports-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, DatePipe, PageShellComponent, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, DatePipe, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, TooltipDirective],
   templateUrl: './post-training-reports-page.component.html',
   styleUrls: ['./post-training-reports-page.component.scss'],
 })

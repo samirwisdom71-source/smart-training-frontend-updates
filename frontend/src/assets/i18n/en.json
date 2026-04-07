@@ -45,6 +45,7 @@
     "collapse": "Collapse",
     "expandSidebar": "Expand sidebar",
     "collapseSidebar": "Collapse sidebar",
+    "toggleNavigation": "Open navigation menu",
     "fromDate": "From date",
     "toDate": "To date"
   },
@@ -145,6 +146,30 @@
     "attendance": "Attendance",
     "certificates": "Certificates",
     "postTrainingReports": "Post-training reports"
+  },
+  "trainingHub": {
+    "programsHeroSubtitle": "Plan, publish, and govern training programs with clear capacity, delivery modes, and lifecycle status.",
+    "trainingNeedsHeroSubtitle": "Capture and prioritize development needs aligned to jobs, units, and competency gaps.",
+    "trainingPlansHeroSubtitle": "Structure budgets, periods, and plan items for enterprisewide training portfolios.",
+    "enrollmentsHeroSubtitle": "Nominate, approve, and track participants from nomination through completion.",
+    "attendanceHeroSubtitle": "Record session attendance with roster clarity and auditable evidence where required.",
+    "certificatesHeroSubtitle": "Issue and govern completion certificates with eligibility rules and issuance history.",
+    "postTrainingHeroSubtitle": "Collect structured application plans, reviews, and evidence after programs conclude.",
+    "assessmentCyclesHeroSubtitle": "Define cycles, organizational scope, and generate assessments with governance.",
+    "myAssessmentsHeroSubtitle": "Complete self-assessments within open cycles configured for your role.",
+    "managerAssessmentsHeroSubtitle": "Review, calibrate, and finalize assessments for your team.",
+    "assessmentResultsHeroSubtitle": "Explore consolidated outcomes to support reporting and workforce decisions.",
+    "gapAnalysisHeroSubtitle": "Identify severity-weighted competency gaps to prioritize learning investments.",
+    "modalProgramsSubtitle": "Programs catalog",
+    "modalTrainingNeedSubtitle": "Training need registry",
+    "modalCycleSubtitle": "Assessment cycles",
+    "modalScopeSubtitle": "Scope organizational units, jobs, and employees—then generate assessments.",
+    "modalGenerateNeedsSubtitle": "Create needs from selected competency gaps.",
+    "modalAssignPlanSubtitle": "Link approved needs to an active training plan.",
+    "modalTrainingPlanSubtitle": "Annual and periodic training plans",
+    "modalNominateSubtitle": "Nominate employees to programs in bulk.",
+    "modalCertificateGenerateSubtitle": "Select a program and eligible participants to issue certificates.",
+    "modalNewReportSubtitle": "Start a post-training report draft for a program and participant."
   },
   "mySubordinates": {
     "empty": "You have no direct reports defined in the organization structure."
@@ -332,7 +357,8 @@
     "photoTypeInvalid": "Please choose a JPEG, PNG, GIF or WebP image.",
     "noRecentActivity": "No recent activity.",
     "noCertificates": "No certificates yet",
-    "backToProfile": "Back to profile"
+    "backToProfile": "Back to profile",
+    "emailReadonlyHint": "Email cannot be changed here."
   },
   "empty": {
     "noResults": "No results found.",

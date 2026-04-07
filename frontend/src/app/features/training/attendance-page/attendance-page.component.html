@@ -1,8 +1,28 @@
-<app-page-shell [title]="'attendance.title' | translate" [breadcrumbs]="breadcrumbs()">
+<app-page-shell
+  [title]="'attendance.title' | translate"
+  [breadcrumbs]="breadcrumbs()"
+  [fullWidth]="true"
+  [showPageTitle]="false"
+>
+  <div class="ent-admin-page ent-page-fade-in attendance-hub">
+    <header class="ent-admin-hero">
+      <div class="ent-admin-hero__inner">
+        <p class="ld-training-eyebrow">{{ 'nav.learningGroup' | translate }}</p>
+        <h1 class="ent-admin-hero__title">{{ 'attendance.title' | translate }}</h1>
+        <p class="ent-admin-hero__subtitle">{{ 'trainingHub.attendanceHeroSubtitle' | translate }}</p>
+      </div>
+    </header>
+
+    <div class="ent-admin-content">
   <div filters class="att-shell-filters">
     @if (backProgramId(); as pid) {
       <div class="att-back">
-        <a [routerLink]="['/programs', pid]" class="ds-btn ds-btn--ghost ds-btn--sm back-btn">
+        <a
+          [routerLink]="['/programs', pid]"
+          class="ds-btn ds-btn--ghost ds-btn--sm back-btn"
+          [appTooltip]="'common.back' | translate"
+          tooltipPlacement="top"
+        >
           <svg class="back-btn__icon" viewBox="0 0 20 20" aria-hidden="true">
             <path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -56,6 +76,8 @@
                 type="button"
                 class="ds-btn ds-btn--ghost ds-btn--sm"
                 (click)="downloadAttachment(filePath)"
+                [appTooltip]="'certificates.attachment' | translate"
+                tooltipPlacement="top"
               >
                 {{ 'certificates.attachment' | translate }}
               </button>
@@ -153,6 +175,8 @@
               class="ds-btn ds-btn--secondary ds-btn--sm"
               [disabled]="!records().length"
               (click)="applyBulkToAll()"
+              [appTooltip]="'attendance.applyBulkToAll' | translate"
+              tooltipPlacement="top"
             >
               {{ 'attendance.applyBulkToAll' | translate }}
             </button>
@@ -161,6 +185,8 @@
               class="ds-btn ds-btn--primary ds-btn--sm"
               [disabled]="saving() || !records().length"
               (click)="saveAttendance()"
+              [appTooltip]="'attendance.saveAttendance' | translate"
+              tooltipPlacement="top"
             >
               {{ 'attendance.saveAttendance' | translate }}
             </button>
@@ -237,4 +263,6 @@
       <p class="att-panel__empty-title">{{ 'attendance.selectProgramAndSession' | translate }}</p>
     </div>
   }
+    </div>
+  </div>
 </app-page-shell>

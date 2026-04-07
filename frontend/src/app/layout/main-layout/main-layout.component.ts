@@ -11,17 +11,12 @@ import { ToastContainerComponent } from '../../core/toast/toast-container.compon
   imports: [RouterOutlet, SidebarComponent, HeaderComponent, ToastContainerComponent, TranslateModule],
   template: `
     <div class="main-layout">
-      <app-header class="header" />
+      <app-header
+        class="header"
+        [sidebarOpen]="sidebarOpen()"
+        (sidebarMenuToggle)="toggleSidebar()"
+      />
       <div class="layout-body">
-        <button
-          type="button"
-          class="sidebar-toggle"
-          (click)="toggleSidebar()"
-          [attr.aria-expanded]="sidebarOpen()"
-          aria-label="Toggle menu"
-        >
-          <span class="sidebar-toggle-icon" aria-hidden="true"></span>
-        </button>
         @if (sidebarOpen()) {
           <div
             class="sidebar-backdrop"
@@ -64,56 +59,18 @@ import { ToastContainerComponent } from '../../core/toast/toast-container.compon
     [dir='rtl'] .layout-body {
       flex-direction: row-reverse;
     }
-    .sidebar-toggle {
-      display: none;
-      position: fixed;
-      top: calc(var(--header-height) + var(--space-md));
-      inset-inline-start: var(--space-md);
-      z-index: 1001;
-      width: 44px;
-      height: 44px;
-      border-radius: var(--radius-md);
-      border: 1px solid color-mix(in srgb, var(--gulf-gold) 35%, var(--color-border));
-      background: color-mix(in srgb, var(--color-bg-elevated) 92%, var(--gulf-green-800) 8%);
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: var(--shadow-sm);
-      transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-    .sidebar-toggle:hover {
-      background: var(--color-bg-hover);
-      border-color: var(--gulf-gold);
-    }
-    .sidebar-toggle-icon {
-      width: 20px;
-      height: 2px;
-      background: var(--color-primary);
-      box-shadow: 0 6px 0 var(--color-primary), 0 -6px 0 var(--color-primary);
-    }
     .sidebar-backdrop {
       display: none;
       position: fixed;
       inset: 0;
-      z-index: 999;
+      z-index: 998;
       background: rgba(12, 47, 37, 0.55);
       backdrop-filter: blur(2px);
     }
-    .sidebar {
-      width: var(--sidebar-width-expanded);
-      flex-shrink: 0;
-      background: transparent;
-      box-shadow: none;
-      transition: width 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-      position: sticky;
-      top: var(--header-height);
-      align-self: flex-start;
-      height: calc(100vh - var(--header-height));
-      display: flex;
-    }
-    .sidebar.sidebar--collapsed {
-      width: var(--sidebar-width-collapsed);
-    }
+    /*
+     * Sidebar shell layout lives on <app-sidebar> (:host in sidebar.component.scss).
+     * Do not set position/width/flex here — it breaks the mobile fixed overlay.
+     */
     .main {
       flex: 1;
       min-width: 0;
@@ -121,37 +78,22 @@ import { ToastContainerComponent } from '../../core/toast/toast-container.compon
       padding: var(--space-md) var(--space-lg);
       overflow: auto;
     }
-    @media (min-width: 769px) and (max-width: 1100px) {
-      .sidebar:not(.sidebar--collapsed) {
-        width: min(var(--sidebar-width-expanded), 240px);
-      }
-    }
-    @media (max-width: 768px) {
-      .sidebar-toggle { display: flex; }
+    @media (max-width: 1200px) {
       .layout-body {
         position: relative;
+        flex-direction: column !important;
       }
-      .sidebar {
-        position: fixed;
-        top: var(--header-height);
-        bottom: 0;
-        inset-inline-start: 0;
-        width: min(var(--sidebar-width-expanded), 88vw);
-        z-index: 1000;
-        transform: translateX(-100%);
-        transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: var(--shadow-xl);
-      }
-      [dir='rtl'] .sidebar {
-        inset-inline-start: auto;
-        inset-inline-end: 0;
-        transform: translateX(100%);
-      }
-      .sidebar.drawer-open {
-        transform: translateX(0);
+      [dir='rtl'] .layout-body {
+        flex-direction: column !important;
       }
       .sidebar-backdrop { display: block; }
-      .main { padding: var(--space-sm) var(--space-md); }
+      .main {
+        flex: 1 1 auto;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: var(--space-sm) var(--space-md);
+      }
     }
   `]
 })

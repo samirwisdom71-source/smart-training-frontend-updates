@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { EnrollmentsApiService } from '../../../core/api/enrollments/enrollments-api.service';
 import { TrainingProgramsApiService } from '../../../core/api/training-programs/training-programs-api.service';
 import { EmployeesApiService } from '../../../core/api/employees/employees-api.service';
@@ -18,7 +20,7 @@ import type { PagedResult } from '../../../core/models/api-response';
 @Component({
   selector: 'app-enrollments-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, PageShellComponent, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, TooltipDirective],
   templateUrl: './enrollments-page.component.html',
   styleUrls: ['./enrollments-page.component.scss'],
 })

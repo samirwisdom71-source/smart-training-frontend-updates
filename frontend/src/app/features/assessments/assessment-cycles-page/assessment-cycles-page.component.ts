@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
+import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { AssessmentsApiService } from '../../../core/api/assessments/assessments-api.service';
 import type { AssessmentCycleListDto, AssessmentCycleDto, CreateAssessmentCycleRequest, UpdateAssessmentCycleRequest, AssessmentCycleScopeSummaryDto, AssessmentGenerationResultDto } from '../../../core/api/assessments/assessments-api.models';
@@ -22,23 +23,41 @@ import { ToastService } from '../../../core/toast/toast.service';
 @Component({
   selector: 'app-assessment-cycles-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, DatePipe, TooltipDirective],
+  imports: [FormsModule, TranslateModule, PageShellComponent, DatePipe, TooltipDirective, PortalToBodyDirective],
   template: `
-    <app-page-shell [title]="'assessments.cyclesTitle' | translate" [breadcrumbs]="breadcrumbs()">
-      <div class="actions-row" actions>
-        @if (canCreate()) {
-          <button
-            type="button"
-            class="ds-btn ds-btn--primary ds-btn--sm"
-            (click)="openCreate()"
-            [appTooltip]="'common.add' | translate"
-          >
-            {{ 'common.add' | translate }}
-          </button>
-        }
-      </div>
-      <div filters>
-        <div class="ds-filterbar">
+    <app-page-shell
+      [title]="'assessments.cyclesTitle' | translate"
+      [breadcrumbs]="breadcrumbs()"
+      [fullWidth]="true"
+      [showPageTitle]="false"
+    >
+      <div class="ent-admin-page ent-page-fade-in">
+        <header class="ent-admin-hero">
+          <div class="ent-admin-hero__inner">
+            <div class="ld-training-hero-top">
+              <div>
+                <p class="ld-training-eyebrow">{{ 'nav.learningGroup' | translate }}</p>
+                <h1 class="ent-admin-hero__title">{{ 'assessments.cyclesTitle' | translate }}</h1>
+                <p class="ent-admin-hero__subtitle">{{ 'trainingHub.assessmentCyclesHeroSubtitle' | translate }}</p>
+              </div>
+              <div class="ld-training-hero-actions">
+                @if (canCreate()) {
+                  <button
+                    type="button"
+                    class="ds-btn ds-btn--primary ds-btn--sm"
+                    (click)="openCreate()"
+                    [appTooltip]="'common.add' | translate"
+                    tooltipPlacement="top"
+                  >
+                    {{ 'common.add' | translate }}
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        </header>
+        <div filters>
+          <div class="ent-admin-filters ent-admin-filters--3col ds-filterbar">
           <div class="ds-filterbar__controls">
             <div class="ds-filterfield">
               <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
@@ -72,8 +91,9 @@ import { ToastService } from '../../../core/toast/toast.service';
         </div>
       </div>
 
+      <div class="ent-admin-content">
       @if (loading()) {
-        <div class="table-loading">
+        <div class="ent-table-panel table-loading">
           <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
           <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
           <div class="ds-skeleton" style="height: 48px;"></div>
@@ -91,6 +111,7 @@ import { ToastService } from '../../../core/toast/toast.service';
           }
         </div>
       } @else {
+        <div class="ent-table-panel">
         <div class="ds-table-wrap">
           <table class="ds-table">
             <thead>
@@ -117,7 +138,7 @@ import { ToastService } from '../../../core/toast/toast.service';
                       [class.ds-badge--info]="c.status === 'Draft'"
                       [class.ds-badge--success]="c.status === 'Open'"
                       [class.ds-badge--neutral]="c.status === 'Closed' || c.status === 'Archived'">
-                      {{ ('assessments.' + c.status.toLowerCase()) | translate }}
+                      {{ (('assessments.' + c.status.toLowerCase()) | translate) }}
                     </span>
                   </td>
                   <td class="cell-actions">
@@ -128,8 +149,12 @@ import { ToastService } from '../../../core/toast/toast.service';
                         (click)="openScopeDrawer(c)"
                         [attr.aria-label]="'assessments.scopeAndGenerate' | translate"
                         [appTooltip]="'assessments.scopeAndGenerate' | translate"
+                        tooltipPlacement="top"
                       >
-                        📌
+                        <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                          <path d="M12 2v3M12 19v3M2 12h3M19 12h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                        </svg>
                       </button>
                     }
                     @if (canEdit()) {
@@ -139,8 +164,17 @@ import { ToastService } from '../../../core/toast/toast.service';
                         (click)="openEdit(c)"
                         [attr.aria-label]="'common.edit' | translate"
                         [appTooltip]="'common.edit' | translate"
+                        tooltipPlacement="top"
                       >
-                        ✏️
+                        <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                          <path
+                            d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.6"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
                       </button>
                       <button
                         type="button"
@@ -149,8 +183,11 @@ import { ToastService } from '../../../core/toast/toast.service';
                         [disabled]="c.status === 'Open'"
                         [attr.aria-label]="'assessments.open' | translate"
                         [appTooltip]="'assessments.open' | translate"
+                        tooltipPlacement="top"
                       >
-                        ▶
+                        <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M8 5v14l11-7-11-7Z" fill="currentColor" />
+                        </svg>
                       </button>
                       <button
                         type="button"
@@ -160,8 +197,11 @@ import { ToastService } from '../../../core/toast/toast.service';
                         [attr.aria-label]="'assessments.closed' | translate"
                         [title]="c.status === 'Draft' ? ('assessments.closeFromOpenOnly' | translate) : ('assessments.closed' | translate)"
                         [appTooltip]="c.status === 'Draft' ? ('assessments.closeFromOpenOnly' | translate) : ('assessments.closed' | translate)"
+                        tooltipPlacement="top"
                       >
-                        ⏸
+                        <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M10 7h4v10h-4zM6 7h2v10H6zM16 7h2v10h-2z" fill="currentColor" />
+                        </svg>
                       </button>
                       <button
                         type="button"
@@ -170,8 +210,13 @@ import { ToastService } from '../../../core/toast/toast.service';
                         [disabled]="c.status === 'Archived'"
                         [attr.aria-label]="'assessments.archived' | translate"
                         [appTooltip]="'assessments.archived' | translate"
+                        tooltipPlacement="top"
                       >
-                        📦
+                        <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M4 7h16M10 7V5h4v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                          <path d="M6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7" fill="none" stroke="currentColor" stroke-width="1.6" />
+                          <path d="M9 12h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                        </svg>
                       </button>
                     }
                   </td>
@@ -180,24 +225,58 @@ import { ToastService } from '../../../core/toast/toast.service';
             </tbody>
           </table>
         </div>
-        <div class="pagination">
+        </div>
+        <div class="ent-pagination">
           <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-          <span class="pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
+          <span class="ent-pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
           <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
         </div>
       }
+      </div>
+      </div>
     </app-page-shell>
 
     @if (showModal()) {
-      <div class="modal-overlay" (click)="closeModal()">
-        <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
-          <h3 class="modal-drawer__title">
-            {{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'assessments.cyclesTitle' | translate }}
-          </h3>
+      <div class="modal-overlay" appPortalToBody>
+        <button type="button" class="modal-backdrop" [attr.aria-label]="'common.close' | translate" (click)="closeModal()"></button>
+        <div class="modal-drawer premium-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+          <div class="premium-modal__header">
+            <div class="premium-modal__titlewrap">
+              <h3 class="premium-modal__title">
+                {{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'assessments.cyclesTitle' | translate }}
+              </h3>
+              <p class="premium-modal__subtitle">{{ 'trainingHub.modalCycleSubtitle' | translate }}</p>
+            </div>
+            <button
+              type="button"
+              class="ds-btn ds-btn--ghost ds-btn--icon premium-modal__close"
+              (click)="closeModal()"
+              [attr.aria-label]="'common.close' | translate"
+              [appTooltip]="'common.close' | translate"
+            >
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
+          <div class="premium-modal__body">
           @if (modalError()) {
-            <p class="ds-field-error">{{ modalError() }}</p>
+            <div class="premium-modal__error">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 9v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M12 17h.01" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                <path
+                  d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <p class="premium-modal__error-text">{{ modalError() }}</p>
+            </div>
           }
-          <form (ngSubmit)="save()">
+          <form class="premium-form" (ngSubmit)="save()">
             <div class="form-group">
               <label class="ds-label">{{ 'table.code' | translate }}</label>
               <input type="text" class="ds-input" [(ngModel)]="form.code" name="code" />
@@ -253,29 +332,64 @@ import { ToastService } from '../../../core/toast/toast.service';
               <label class="ds-label">{{ 'table.notes' | translate }}</label>
               <textarea class="ds-textarea" [(ngModel)]="form.notes" name="notes" rows="2"></textarea>
             </div>
-            <div class="modal-drawer__actions">
-              <button type="button" class="ds-btn ds-btn--secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
-              <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving()">
+            <div class="premium-modal__footer">
+              <button type="button" class="ds-btn ds-btn--secondary premium-secondary-btn" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
+              <button type="submit" class="ds-btn ds-btn--primary premium-primary-btn" [disabled]="saving()">
                 {{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}
               </button>
             </div>
           </form>
+          </div>
         </div>
       </div>
     }
 
     @if (scopeDrawerCycle()) {
-      <div class="modal-overlay" (click)="closeScopeDrawer()">
-        <div class="scope-drawer ds-card" (click)="$event.stopPropagation()">
-          <h3 class="modal-drawer__title">{{ 'assessments.scopeAndGenerate' | translate }} — {{ getLocalizedText(scopeDrawerCycle()!.nameAr, scopeDrawerCycle()!.nameEn) }}</h3>
+      <div class="modal-overlay" appPortalToBody>
+        <button type="button" class="modal-backdrop" [attr.aria-label]="'common.close' | translate" (click)="closeScopeDrawer()"></button>
+        <div class="ent-modal-shell ent-modal-shell--wide" (click)="$event.stopPropagation()">
+        <div class="premium-modal ds-card" role="dialog" aria-modal="true">
+          <div class="premium-modal__header">
+            <div class="premium-modal__titlewrap">
+              <h3 class="premium-modal__title">{{ 'assessments.scopeAndGenerate' | translate }}</h3>
+              <p class="premium-modal__subtitle">
+                {{ getLocalizedText(scopeDrawerCycle()!.nameAr, scopeDrawerCycle()!.nameEn) }} — {{ 'trainingHub.modalScopeSubtitle' | translate }}
+              </p>
+            </div>
+            <button
+              type="button"
+              class="ds-btn ds-btn--ghost ds-btn--icon premium-modal__close"
+              (click)="closeScopeDrawer()"
+              [attr.aria-label]="'common.close' | translate"
+              [appTooltip]="'common.close' | translate"
+            >
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
+          <div class="premium-modal__body">
           @if (scopeError()) {
-            <p class="ds-field-error">{{ scopeError() }}</p>
+            <div class="premium-modal__error">
+              <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 9v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M12 17h.01" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                <path
+                  d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <p class="premium-modal__error-text">{{ scopeError() }}</p>
+            </div>
           }
           @if (scopeLoading()) {
             <p class="scope-loading">{{ 'common.loading' | translate }}</p>
           } @else if (scopeData()) {
-            <section class="scope-section">
-              <h4 class="scope-section__title">{{ 'assessments.scopeOUs' | translate }}</h4>
+            <section class="scope-section-premium">
+              <h4 class="scope-section-premium__title">{{ 'assessments.scopeOUs' | translate }}</h4>
               <div class="scope-list">
                 @for (ou of scopeData()!.organizationalUnits; track ou.id) {
                   <div class="scope-list-item">
@@ -288,7 +402,7 @@ import { ToastService } from '../../../core/toast/toast.service';
                 }
               </div>
               <div class="scope-add">
-                <div class="scope-checklist">
+                <div class="scope-checklist scope-checklist-premium">
                   <label class="scope-check-item scope-check-item--all">
                     <input
                       type="checkbox"
@@ -320,8 +434,8 @@ import { ToastService } from '../../../core/toast/toast.service';
                 </div>
               </div>
             </section>
-            <section class="scope-section">
-              <h4 class="scope-section__title">{{ 'assessments.scopeJobs' | translate }}</h4>
+            <section class="scope-section-premium">
+              <h4 class="scope-section-premium__title">{{ 'assessments.scopeJobs' | translate }}</h4>
               <div class="scope-list">
                 @for (job of scopeData()!.jobs; track job.id) {
                   <div class="scope-list-item">
@@ -334,7 +448,7 @@ import { ToastService } from '../../../core/toast/toast.service';
                 }
               </div>
               <div class="scope-add">
-                <div class="scope-checklist">
+                <div class="scope-checklist scope-checklist-premium">
                   <label class="scope-check-item scope-check-item--all">
                     <input
                       type="checkbox"
@@ -365,8 +479,8 @@ import { ToastService } from '../../../core/toast/toast.service';
                 </div>
               </div>
             </section>
-            <section class="scope-section">
-              <h4 class="scope-section__title">{{ 'assessments.scopeEmployees' | translate }}</h4>
+            <section class="scope-section-premium">
+              <h4 class="scope-section-premium__title">{{ 'assessments.scopeEmployees' | translate }}</h4>
               <div class="scope-list">
                 @for (emp of scopeData()!.employees; track emp.id) {
                   <div class="scope-list-item">
@@ -379,7 +493,7 @@ import { ToastService } from '../../../core/toast/toast.service';
                 }
               </div>
               <div class="scope-add">
-                <div class="scope-checklist">
+                <div class="scope-checklist scope-checklist-premium">
                   <label class="scope-check-item scope-check-item--all">
                     <input
                       type="checkbox"
@@ -411,7 +525,7 @@ import { ToastService } from '../../../core/toast/toast.service';
               </div>
             </section>
             @if (generationResult()) {
-              <div class="scope-result ds-card scope-result--success">
+              <div class="scope-result-premium">
                 <p><strong>{{ 'assessments.generationResult' | translate }}</strong></p>
                 <p>{{ 'assessments.totalInScope' | translate }}: {{ generationResult()!.totalEmployeesInScope }}</p>
                 <p>{{ 'assessments.assessmentsGenerated' | translate }}: {{ generationResult()!.assessmentsGenerated }}</p>
@@ -420,51 +534,33 @@ import { ToastService } from '../../../core/toast/toast.service';
                 <p>{{ 'assessments.detailRowsCreated' | translate }}: {{ generationResult()!.detailRowsCreated }}</p>
               </div>
             }
-            <div class="modal-drawer__actions">
-              <button type="button" class="ds-btn ds-btn--primary" (click)="generateAssessments()" [disabled]="generating()">
+            <div class="premium-modal__footer premium-modal__footer--stack">
+              <button type="button" class="ds-btn ds-btn--secondary premium-secondary-btn" (click)="closeScopeDrawer()">{{ 'common.close' | translate }}</button>
+              <button type="button" class="ds-btn ds-btn--primary premium-primary-btn" (click)="generateAssessments()" [disabled]="generating()">
                 {{ generating() ? ('common.loading' | translate) : ('assessments.generateAssessments' | translate) }}
               </button>
-              <button type="button" class="ds-btn ds-btn--secondary" (click)="closeScopeDrawer()">{{ 'common.close' | translate }}</button>
             </div>
           }
+          </div>
+        </div>
         </div>
       </div>
     }
   `,
   styles: [`
-    .filter-row { display: flex; gap: var(--space-md); align-items: center; flex-wrap: wrap; }
+    :host ::ng-deep .cell-actions .icon-svg {
+      width: 18px;
+      height: 18px;
+    }
     .filter-search { max-width: 280px; }
     .filter-select { max-width: 200px; }
     .table-loading { padding: var(--space-md) 0; }
     .cell-actions { text-align: end; white-space: nowrap; }
-    .pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); flex-wrap: wrap; }
-    .pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
-    .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; padding: var(--space-lg); }
-    .modal-drawer { max-width: 520px; width: 100%; max-height: 90vh; overflow: auto; }
-    .modal-drawer__title { font-size: var(--text-h1); font-weight: 600; margin: 0 0 var(--space-md); }
-    .modal-drawer form .form-group { margin-bottom: var(--space-md); }
-    .modal-drawer__actions { display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-lg); }
-    .scope-drawer { max-width: 900px; width: 100%; max-height: 90vh; overflow: auto; }
     .scope-loading { padding: var(--space-md); color: var(--color-text-secondary); }
-    .scope-section { margin-bottom: var(--space-lg); }
-    .scope-section__title { font-size: var(--text-body); font-weight: 600; margin: 0 0 var(--space-sm); }
     .scope-list { margin-bottom: var(--space-sm); }
-    .scope-list-item { display: flex; justify-content: space-between; align-items: center; padding: var(--space-xs) 0; border-bottom: 1px solid var(--color-border); }
+    .scope-list-item { display: flex; justify-content: space-between; align-items: center; padding: var(--space-xs) 0; border-bottom: 1px solid var(--color-border); gap: var(--space-sm); }
     .scope-empty { font-size: var(--text-body-sm); color: var(--color-text-secondary); padding: var(--space-sm) 0; }
     .scope-add { margin-top: var(--space-xs); }
-    .scope-select { max-width: 100%; }
-    .scope-select--multi { min-height: 140px; }
-    .scope-checklist {
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-sm);
-      background: var(--color-bg-elevated);
-      max-height: 220px;
-      overflow: auto;
-      padding: var(--space-sm);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
     .scope-check-item {
       display: flex;
       align-items: center;
@@ -484,8 +580,6 @@ import { ToastService } from '../../../core/toast/toast.service';
       cursor: not-allowed;
     }
     .scope-add-actions { margin-top: var(--space-xs); display: flex; justify-content: flex-end; }
-    .scope-result { padding: var(--space-md); margin: var(--space-md) 0; background: var(--color-success-subtle, #ecfdf5); border-radius: var(--radius-md); }
-    .scope-result--success p { margin: 0.25em 0; }
   `]
 })
 export class AssessmentCyclesPageComponent implements OnInit {

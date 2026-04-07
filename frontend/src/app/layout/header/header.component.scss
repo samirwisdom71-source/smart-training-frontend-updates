@@ -3,7 +3,8 @@
 :host {
   display: block;
   position: relative;
-  z-index: 100;
+  /* Above drawer backdrop (998) so the bar stays interactive on small screens */
+  z-index: 999;
   font-family: var(--font-display);
   background: linear-gradient(
     180deg,
@@ -52,6 +53,51 @@
   align-items: center;
   gap: var(--space-md);
   min-width: 0;
+}
+
+/* Mobile / compact: menu control lives in the header (no extra strip under the bar) */
+.header-menu-toggle {
+  display: none;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--gulf-gold) 35%, var(--color-border));
+  background: color-mix(in srgb, var(--color-bg-elevated) 92%, var(--gulf-green-800) 8%);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+  color: var(--color-primary);
+}
+
+.header-menu-toggle:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--gulf-gold);
+}
+
+.header-menu-toggle:focus-visible {
+  outline: 2px solid var(--gulf-gold);
+  outline-offset: 2px;
+}
+
+.header-menu-toggle__icon {
+  width: 20px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+  box-shadow: 0 6px 0 currentColor, 0 -6px 0 currentColor;
+}
+
+@media (max-width: 1200px) {
+  .header-menu-toggle {
+    display: inline-flex;
+  }
 }
 
 .header-brand {
@@ -299,6 +345,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .header-brand,
+  .header-menu-toggle,
   .user-trigger,
   .user-chevron {
     transition: none;

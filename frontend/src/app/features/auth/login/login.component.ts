@@ -5,6 +5,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LocaleService } from '../../../core/i18n/locale.service';
 import { LanguageSwitcherComponent } from '../../../layout/header/language-switcher/language-switcher.component';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 
 const REMEMBER_EMAIL_KEY = 'smart_training_remember_email';
 

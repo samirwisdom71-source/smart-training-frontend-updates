@@ -10,6 +10,8 @@ import { OrganizationsApiService } from '../../../core/api/organizations/organiz
 import { AuthService } from '../../../core/auth/auth.service';
 import { PermissionCodes } from '../../../core/auth/permissions';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
+import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { LocalizedTextPipe } from '../../../shared/pipes/localized-text.pipe';
 import { ToastService } from '../../../core/toast/toast.service';
 import type { AnnualTrainingPlanListDto, CreateAnnualTrainingPlanRequest, UpdateAnnualTrainingPlanRequest } from '../../../core/api/training-plans/training-plans-api.models';
@@ -18,7 +20,7 @@ import type { PagedResult } from '../../../core/models/api-response';
 @Component({
   selector: 'app-training-plans-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, DecimalPipe, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe],
+  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, DecimalPipe, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe, PortalToBodyDirective, TooltipDirective],
   templateUrl: './training-plans-page.component.html',
   styleUrls: ['./training-plans-page.component.scss'],
 })

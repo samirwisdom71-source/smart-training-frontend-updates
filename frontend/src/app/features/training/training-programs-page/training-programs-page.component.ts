@@ -5,6 +5,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { LocalizedTextPipe } from '../../../shared/pipes/localized-text.pipe';
 import { TrainingProgramsApiService } from '../../../core/api/training-programs/training-programs-api.service';
@@ -18,7 +19,7 @@ import type { PagedResult } from '../../../core/models/api-response';
 @Component({
   selector: 'app-training-programs-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, RouterLink, DatePipe, DecimalPipe, TooltipDirective, LocalizedTextPipe, PageShellComponent, ConfirmDialogComponent],
+  imports: [FormsModule, TranslateModule, RouterLink, DatePipe, DecimalPipe, TooltipDirective, LocalizedTextPipe, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective],
   templateUrl: './training-programs-page.component.html',
   styleUrls: ['./training-programs-page.component.scss'],
 })

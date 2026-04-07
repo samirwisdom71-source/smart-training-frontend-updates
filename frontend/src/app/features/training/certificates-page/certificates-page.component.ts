@@ -15,6 +15,7 @@ import type { PagedResult } from '../../../core/models/api-response';
 import type { ApiResponse } from '../../../core/models/api-response';
 import type { CertificateDto } from '../../../core/api/certificates/certificates-api.models';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
+import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
 
 export interface CertificateGenerateRow {
   id: string;
@@ -26,7 +27,7 @@ export interface CertificateGenerateRow {
 @Component({
   selector: 'app-certificates-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, DatePipe, TooltipDirective, PageShellComponent],
+  imports: [FormsModule, TranslateModule, DatePipe, TooltipDirective, PageShellComponent, PortalToBodyDirective],
   templateUrl: './certificates-page.component.html',
   styleUrls: ['./certificates-page.component.scss'],
 })

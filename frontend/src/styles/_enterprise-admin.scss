@@ -257,7 +257,6 @@
 
 /* Table panel */
 .ent-admin-content {
-  display: grid;
   gap: var(--space-md);
 }
 
@@ -587,6 +586,30 @@
   margin: 0;
 }
 
+/* Same password toggle layout inside table/panels (profile change-password, etc.) */
+.ent-table-panel .password-field-wrap {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.ent-table-panel .password-field-wrap__input {
+  width: 100%;
+  min-height: 40px;
+  padding-inline-end: 46px;
+  box-sizing: border-box;
+}
+
+.ent-table-panel .password-field-wrap__toggle {
+  position: absolute;
+  inset-inline-end: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  flex-shrink: 0;
+  margin: 0;
+}
+
 /* Audit / side drawer */
 .premium-drawer-overlay {
   position: fixed;
@@ -694,6 +717,111 @@
   padding: var(--space-lg);
   overflow: auto;
   flex: 1;
+}
+
+/* Learning & development hub surfaces (programs, training flow, assessments) */
+.ld-training-hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.ld-training-hero-top .ent-admin-hero__title {
+  margin-block-end: var(--space-xs);
+}
+
+.ld-training-eyebrow {
+  margin: 0 0 var(--space-2xs);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gulf-gold-hover);
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.18);
+}
+
+.ld-training-hero-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.ent-modal-shell--wide {
+  max-width: min(900px, 96vw);
+}
+
+.premium-modal__footer--stack {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid color-mix(in srgb, var(--gulf-green-800) 8%, var(--color-border-light));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
+
+.scope-section-premium {
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  border-radius: var(--ent-radius-md);
+  border: 1px solid color-mix(in srgb, var(--gulf-gold) 16%, var(--color-border-light));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-bg-elevated) 96%, var(--gulf-emerald) 4%) 0%,
+    rgba(255, 255, 255, 0.55) 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.scope-section-premium__title {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--text-body);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: color-mix(in srgb, var(--gulf-green-900) 92%, var(--gulf-gold) 8%);
+}
+
+.scope-checklist-premium {
+  border: 1px solid color-mix(in srgb, var(--gulf-gold) 14%, var(--color-border));
+  border-radius: var(--ent-radius-md);
+  background: color-mix(in srgb, var(--color-bg-elevated) 92%, var(--gulf-green-800) 4%);
+  max-height: 220px;
+  overflow: auto;
+  padding: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.scope-result-premium {
+  padding: var(--space-md);
+  margin-block: var(--space-md);
+  border-radius: var(--ent-radius-md);
+  border: 1px solid color-mix(in srgb, var(--gulf-gold) 22%, var(--color-border));
+  background: linear-gradient(145deg, rgba(236, 253, 245, 0.92), color-mix(in srgb, var(--color-bg-elevated) 94%, var(--gulf-emerald) 6%) 100%);
+  box-shadow: 0 10px 28px rgba(15, 61, 46, 0.08);
+}
+
+.scope-result-premium p {
+  margin: 0.3em 0;
+  font-size: var(--text-body-sm);
+}
+
+@media (max-width: 640px) {
+  .ld-training-hero-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .ld-training-hero-actions > .ds-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
 }
 
 /* Notifications compact layout */

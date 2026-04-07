@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { NotificationService } from '../../core/notifications/notification.service';
@@ -14,6 +14,15 @@ import { appConfig } from '../../config/app.config';
   template: `
     <header class="header-inner">
       <div class="header-start">
+        <button
+          type="button"
+          class="header-menu-toggle"
+          (click)="onNavMenuToggle($event)"
+          [attr.aria-expanded]="sidebarOpen()"
+          [attr.aria-label]="'common.toggleNavigation' | translate"
+        >
+          <span class="header-menu-toggle__icon" aria-hidden="true"></span>
+        </button>
         <a
           routerLink="/dashboard"
           class="header-brand"
@@ -69,11 +78,20 @@ import { appConfig } from '../../config/app.config';
   styleUrl: './header.component.scss',
 })
 export class HeaderComponent {
+  /** When true, the mobile nav drawer is open (small screens only). */
+  readonly sidebarOpen = input(false);
+  readonly sidebarMenuToggle = output<void>();
+
   constructor(
     public auth: AuthService,
     private notifications: NotificationService
   ) {}
   menuOpen = false;
+
+  onNavMenuToggle(ev: Event): void {
+    ev.stopPropagation();
+    this.sidebarMenuToggle.emit();
+  }
 
   toggleMenu(): void {
     this.menuOpen = !this.menuOpen;

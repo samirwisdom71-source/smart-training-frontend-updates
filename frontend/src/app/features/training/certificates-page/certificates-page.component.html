@@ -1,179 +1,251 @@
-<app-page-shell [title]="'certificates.title' | translate" [breadcrumbs]="breadcrumbs()">
-  <div class="actions-row" actions>
-    @if (canManage()) {
-      <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openGenerate()">{{ 'certificates.generate' | translate }}</button>
-    }
-  </div>
-  <div filters>
-    <div class="ds-filterbar">
-      <div class="ds-filterbar__controls">
-        <div class="ds-filterfield">
-          <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
-          <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (ngModelChange)="onFilterChange()" />
+<app-page-shell
+  [title]="'certificates.title' | translate"
+  [breadcrumbs]="breadcrumbs()"
+  [fullWidth]="true"
+  [showPageTitle]="false"
+>
+  <div class="ent-admin-page ent-page-fade-in">
+    <header class="ent-admin-hero">
+      <div class="ent-admin-hero__inner">
+        <div class="ld-training-hero-top">
+          <div>
+            <p class="ld-training-eyebrow">{{ 'nav.learningGroup' | translate }}</p>
+            <h1 class="ent-admin-hero__title">{{ 'certificates.title' | translate }}</h1>
+            <p class="ent-admin-hero__subtitle">{{ 'trainingHub.certificatesHeroSubtitle' | translate }}</p>
+          </div>
+          <div class="ld-training-hero-actions">
+            @if (canManage()) {
+              <button
+                type="button"
+                class="ds-btn ds-btn--primary ds-btn--sm"
+                (click)="openGenerate()"
+                [appTooltip]="'certificates.generate' | translate"
+                tooltipPlacement="top"
+              >
+                {{ 'certificates.generate' | translate }}
+              </button>
+            }
+          </div>
         </div>
-        @if (canManage()) {
+      </div>
+    </header>
+
+    <div filters>
+      <div class="ent-admin-filters ent-admin-filters--3col ds-filterbar">
+        <div class="ds-filterbar__controls">
           <div class="ds-filterfield">
-            <div class="ds-filterfield__label">{{ 'table.employee' | translate }}</div>
-            <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="employeeIdFilter" (ngModelChange)="onFilterChange()">
+            <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
+            <input type="text" class="ds-input filter-search ds-filterfield__control" [(ngModel)]="search" (ngModelChange)="onFilterChange()" />
+          </div>
+          @if (canManage()) {
+            <div class="ds-filterfield">
+              <div class="ds-filterfield__label">{{ 'table.employee' | translate }}</div>
+              <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="employeeIdFilter" (ngModelChange)="onFilterChange()">
+                <option [ngValue]="null">{{ 'common.all' | translate }}</option>
+                @for (e of employeeOptions(); track e.id) {
+                  <option [ngValue]="e.id">{{ getLocalizedText(e.fullNameAr, e.fullNameEn) }}</option>
+                }
+              </select>
+            </div>
+          }
+          <div class="ds-filterfield">
+            <div class="ds-filterfield__label">{{ 'programs.program' | translate }}</div>
+            <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="programIdFilter" (ngModelChange)="onFilterChange()">
               <option [ngValue]="null">{{ 'common.all' | translate }}</option>
-              @for (e of employeeOptions(); track e.id) { <option [ngValue]="e.id">{{ getLocalizedText(e.fullNameAr, e.fullNameEn) }}</option> }
+              @for (p of programOptions(); track p.id) {
+                <option [ngValue]="p.id">{{ getLocalizedText(p.titleAr, p.titleEn) }}</option>
+              }
             </select>
           </div>
-        }
-        <div class="ds-filterfield">
-          <div class="ds-filterfield__label">{{ 'programs.program' | translate }}</div>
-          <select class="ds-input filter-select ds-filterfield__control" [(ngModel)]="programIdFilter" (ngModelChange)="onFilterChange()">
-            <option [ngValue]="null">{{ 'common.all' | translate }}</option>
-            @for (p of programOptions(); track p.id) { <option [ngValue]="p.id">{{ getLocalizedText(p.titleAr, p.titleEn) }}</option> }
-          </select>
+        </div>
+        <div class="ds-filterbar__actions">
+          <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
+            {{ 'common.clearFilters' | translate }}
+          </button>
         </div>
       </div>
-      <div class="ds-filterbar__actions">
-        <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
-          {{ 'common.clearFilters' | translate }}
-        </button>
-      </div>
+    </div>
+
+    <div class="ent-admin-content">
+      @if (loading()) {
+        <div class="ent-table-panel table-loading"><div class="ds-skeleton" style="height: 48px"></div></div>
+      } @else if (error()) {
+        <div class="ds-error-state">
+          <p>{{ error() }}</p>
+          <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
+        </div>
+      } @else if (!data()?.items?.length) {
+        <div class="ds-empty">
+          <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p>
+        </div>
+      } @else {
+        @if (uploadError()) {
+          <div class="premium-modal__error" style="margin-bottom: var(--space-md)">
+            <p class="premium-modal__error-text" style="margin: 0">{{ uploadError() }}</p>
+          </div>
+        }
+        <div class="ent-table-panel">
+          <div class="ds-table-wrap">
+            <table class="ds-table">
+              <thead>
+                <tr>
+                  <th>{{ 'certificates.certificateNumber' | translate }}</th>
+                  <th>{{ 'programs.program' | translate }}</th>
+                  <th>{{ 'table.employee' | translate }}</th>
+                  <th>{{ 'certificates.issueDate' | translate }}</th>
+                  <th>{{ 'table.status' | translate }}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of data()!.items; track row.id) {
+                  <tr>
+                    <td>{{ row.certificateNumber }}</td>
+                    <td>{{ localizedProgramTitle(row.trainingProgramId, row.programTitleEn) }}</td>
+                    <td>{{ localizedEmployeeName(row.employeeId, row.employeeNameEn) }}</td>
+                    <td>{{ row.issueDate | date: 'short' }}</td>
+                    <td><span class="ds-badge ds-badge--success">{{ ('certificates.status.' + row.status) | translate }}</span></td>
+                    <td class="cell-actions">
+                      @if (row.filePath) {
+                        <button
+                          type="button"
+                          class="ds-btn ds-btn--ghost ds-btn--icon"
+                          (click)="downloadAttachment(row.filePath)"
+                          [attr.aria-label]="'certificates.attachment' | translate"
+                          [appTooltip]="'certificates.attachment' | translate"
+                          tooltipPlacement="top"
+                        >
+                          <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M8 17V7l8 5-8 5Z" fill="currentColor" />
+                          </svg>
+                        </button>
+                      }
+                      @if (canManage()) {
+                        <label
+                          class="ds-btn ds-btn--ghost ds-btn--icon"
+                          [class.ds-btn--disabled]="uploadingId() === row.id"
+                          [attr.aria-label]="'common.upload' | translate"
+                          [appTooltip]="'common.upload' | translate"
+                          tooltipPlacement="top"
+                          style="cursor: pointer"
+                        >
+                          <input type="file" accept="application/pdf,image/jpeg,image/png" (change)="onUploadSelected(row, $event)" style="display: none" />
+                          <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 5v10M8 9l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M5 19h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                          </svg>
+                        </label>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="ent-pagination">
+          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">
+            {{ 'common.previous' | translate }}
+          </button>
+          <span class="ent-pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
+          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">
+            {{ 'common.next' | translate }}
+          </button>
+        </div>
+      }
     </div>
   </div>
-  @if (loading()) { <div class="table-loading"><div class="ds-skeleton" style="height: 48px;"></div></div> }
-  @else if (error()) {
-    <div class="ds-error-state"><p>{{ error() }}</p><button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button></div>
-  }
-  @else if (!data()?.items?.length) { <div class="ds-empty"><p class="ds-empty__title">{{ 'table.noRows' | translate }}</p></div> }
-  @else {
-    @if (uploadError()) {
-      <div class="ds-error-state" style="margin-bottom: var(--space-md);">
-        <p class="ds-error-state__title">{{ uploadError() }}</p>
-      </div>
-    }
-    <div class="ds-table-wrap">
-      <table class="ds-table">
-        <thead>
-          <tr>
-            <th>{{ 'certificates.certificateNumber' | translate }}</th>
-            <th>{{ 'programs.program' | translate }}</th>
-            <th>{{ 'table.employee' | translate }}</th>
-            <th>{{ 'certificates.issueDate' | translate }}</th>
-            <th>{{ 'table.status' | translate }}</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of data()!.items; track row.id) {
-            <tr>
-              <td>{{ row.certificateNumber }}</td>
-              <td>{{ localizedProgramTitle(row.trainingProgramId, row.programTitleEn) }}</td>
-              <td>{{ localizedEmployeeName(row.employeeId, row.employeeNameEn) }}</td>
-              <td>{{ row.issueDate | date:'short' }}</td>
-              <td><span class="ds-badge ds-badge--success">{{ ('certificates.status.' + row.status) | translate }}</span></td>
-              <td class="cell-actions">
-                @if (row.filePath) {
-                  <button
-                    type="button"
-                    class="ds-btn ds-btn--ghost ds-btn--icon"
-                    (click)="downloadAttachment(row.filePath)"
-                    [attr.aria-label]="'certificates.attachment' | translate"
-                    [appTooltip]="'certificates.attachment' | translate"
-                    tooltipPlacement="top"
-                  >
-                    📎
-                  </button>
-                }
-                @if (canManage()) {
-                  <label
-                    class="ds-btn ds-btn--ghost ds-btn--icon"
-                    [class.ds-btn--disabled]="uploadingId() === row.id"
-                    [attr.aria-label]="'common.upload' | translate"
-                    [appTooltip]="'common.upload' | translate"
-                    tooltipPlacement="top"
-                    style="cursor:pointer"
-                  >
-                    <input type="file" accept="application/pdf,image/jpeg,image/png" (change)="onUploadSelected(row, $event)" style="display:none" />
-                    ⬆️
-                  </label>
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    <div class="pagination">
-      <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-      <span class="pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
-      <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
-    </div>
-  }
 </app-page-shell>
+
 @if (showGenerateModal()) {
-  <div class="modal-overlay" (click)="closeGenerateModal()">
-    <div class="modal-drawer modal-drawer--wide ds-card" (click)="$event.stopPropagation()">
-      <h3 class="modal-drawer__title">{{ 'certificates.generate' | translate }}</h3>
-      @if (generateError()) { <p class="ds-field-error">{{ generateError() }}</p> }
-      <div class="form-group">
-        <label class="ds-label">{{ 'programs.program' | translate }}</label>
-        <select
-          class="ds-input"
-          [(ngModel)]="generateProgramIdVal"
-          name="generateProgramId"
-          (ngModelChange)="onGenerateProgramChange()"
-        >
-          <option [ngValue]="null">—</option>
-          @for (p of programOptions(); track p.id) { <option [ngValue]="p.id">{{ getLocalizedText(p.titleAr, p.titleEn) }}</option> }
-        </select>
-      </div>
-      <div class="form-group cert-gen-recipients">
-        <div class="ds-label">{{ 'certificates.selectRecipients' | translate }}</div>
-        @if (generateLoading()) {
-          <p class="cert-gen-recipients__hint">{{ 'common.loading' | translate }}</p>
-        } @else if (!generateProgramIdVal) {
-          <p class="cert-gen-recipients__hint">{{ 'certificates.selectProgramFirst' | translate }}</p>
-        } @else if (!generateRows().length) {
-          <p class="cert-gen-recipients__hint">{{ 'certificates.noEnrollmentsForProgram' | translate }}</p>
-        } @else {
-          @if (eligibleGenerateRows().length) {
-            <label class="cert-gen-recipients__select-all">
-              <input
-                type="checkbox"
-                [checked]="allEligibleGenerateSelected()"
-                (change)="onGenerateSelectAllChange($any($event.target).checked)"
-              />
-              <span>{{ 'evaluation.selectAll' | translate }}</span>
-            </label>
+  <div class="modal-overlay" appPortalToBody>
+    <button type="button" class="modal-backdrop" [attr.aria-label]="'common.close' | translate" (click)="closeGenerateModal()"></button>
+    <div class="ent-modal-shell ent-modal-shell--wide" (click)="$event.stopPropagation()">
+      <div class="premium-modal ds-card" role="dialog" aria-modal="true">
+        <div class="premium-modal__header">
+          <div class="premium-modal__titlewrap">
+            <h3 class="premium-modal__title">{{ 'certificates.generate' | translate }}</h3>
+            <p class="premium-modal__subtitle">{{ 'trainingHub.modalCertificateGenerateSubtitle' | translate }}</p>
+          </div>
+          <button
+            type="button"
+            class="ds-btn ds-btn--ghost ds-btn--icon premium-modal__close"
+            (click)="closeGenerateModal()"
+            [attr.aria-label]="'common.close' | translate"
+            [appTooltip]="'common.close' | translate"
+          >
+            <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+        <div class="premium-modal__body">
+          @if (generateError()) {
+            <div class="premium-modal__error">
+              <p class="premium-modal__error-text">{{ generateError() }}</p>
+            </div>
           }
-          <ul class="cert-gen-recipients__list" role="list">
-            @for (r of generateRows(); track r.id) {
-              <li class="cert-gen-recipients__row">
-                <label class="cert-gen-recipients__label" [class.cert-gen-recipients__label--disabled]="r.disabled">
-                  <input
-                    type="checkbox"
-                    [checked]="isGenerateSelected(r.id)"
-                    [disabled]="r.disabled"
-                    (change)="toggleGenerateParticipant(r.id, $any($event.target).checked)"
-                  />
-                  <span class="cert-gen-recipients__name">{{ r.name }}</span>
-                  @if (r.disabled && r.hintKey) {
-                    <span class="cert-gen-recipients__badge">{{ hintText(r) }}</span>
-                  }
+          <div class="form-group">
+            <label class="ds-label">{{ 'programs.program' | translate }}</label>
+            <select class="ds-input" [(ngModel)]="generateProgramIdVal" name="generateProgramId" (ngModelChange)="onGenerateProgramChange()">
+              <option [ngValue]="null">—</option>
+              @for (p of programOptions(); track p.id) {
+                <option [ngValue]="p.id">{{ getLocalizedText(p.titleAr, p.titleEn) }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group cert-gen-recipients">
+            <div class="ds-label">{{ 'certificates.selectRecipients' | translate }}</div>
+            @if (generateLoading()) {
+              <p class="cert-gen-recipients__hint">{{ 'common.loading' | translate }}</p>
+            } @else if (!generateProgramIdVal) {
+              <p class="cert-gen-recipients__hint">{{ 'certificates.selectProgramFirst' | translate }}</p>
+            } @else if (!generateRows().length) {
+              <p class="cert-gen-recipients__hint">{{ 'certificates.noEnrollmentsForProgram' | translate }}</p>
+            } @else {
+              @if (eligibleGenerateRows().length) {
+                <label class="cert-gen-recipients__select-all checkbox-row">
+                  <input type="checkbox" [checked]="allEligibleGenerateSelected()" (change)="onGenerateSelectAllChange($any($event.target).checked)" />
+                  <span>{{ 'evaluation.selectAll' | translate }}</span>
                 </label>
-              </li>
+              }
+              <ul class="cert-gen-recipients__list roles-checkbox-list" role="list">
+                @for (r of generateRows(); track r.id) {
+                  <li class="cert-gen-recipients__row">
+                    <label class="cert-gen-recipients__label checkbox-row" [class.cert-gen-recipients__label--disabled]="r.disabled">
+                      <input
+                        type="checkbox"
+                        [checked]="isGenerateSelected(r.id)"
+                        [disabled]="r.disabled"
+                        (change)="toggleGenerateParticipant(r.id, $any($event.target).checked)"
+                      />
+                      <span class="cert-gen-recipients__name">{{ r.name }}</span>
+                      @if (r.disabled && r.hintKey) {
+                        <span class="cert-gen-recipients__badge">{{ hintText(r) }}</span>
+                      }
+                    </label>
+                  </li>
+                }
+              </ul>
+              @if (generateProgramIdVal && generateRows().length && !eligibleGenerateRows().length) {
+                <p class="cert-gen-recipients__hint">{{ 'certificates.noneEligibleForCertificate' | translate }}</p>
+              }
             }
-          </ul>
-          @if (generateProgramIdVal && generateRows().length && !eligibleGenerateRows().length) {
-            <p class="cert-gen-recipients__hint">{{ 'certificates.noneEligibleForCertificate' | translate }}</p>
-          }
-        }
-      </div>
-      <div class="modal-drawer__actions">
-        <button type="button" class="ds-btn ds-btn--secondary" (click)="closeGenerateModal()">{{ 'common.cancel' | translate }}</button>
-        <button
-          type="button"
-          class="ds-btn ds-btn--primary"
-          [disabled]="saving() || !generateProgramIdVal || !generateSelectedIds().length || !eligibleGenerateRows().length"
-          (click)="runGenerate()"
-        >
-          {{ saving() ? ('common.loading' | translate) : ('certificates.generate' | translate) }}
-        </button>
+          </div>
+          <div class="premium-modal__footer">
+            <button type="button" class="ds-btn ds-btn--secondary premium-secondary-btn" (click)="closeGenerateModal()">
+              {{ 'common.cancel' | translate }}
+            </button>
+            <button
+              type="button"
+              class="ds-btn ds-btn--primary premium-primary-btn"
+              [disabled]="saving() || !generateProgramIdVal || !generateSelectedIds().length || !eligibleGenerateRows().length"
+              (click)="runGenerate()"
+            >
+              {{ saving() ? ('common.loading' | translate) : ('certificates.generate' | translate) }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

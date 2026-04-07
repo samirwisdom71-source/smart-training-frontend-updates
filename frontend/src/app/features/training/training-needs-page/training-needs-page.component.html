@@ -1,19 +1,59 @@
-<app-page-shell [title]="'nav.trainingNeeds' | translate" [breadcrumbs]="breadcrumbs()">
-  <div class="actions-row" actions>
-    @if (canCreate()) {
-      <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }} {{ 'trainingNeeds.title' | translate }}</button>
-    }
-    @if (canGenerateFromGaps()) {
-      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="openGenerateFromGaps()">{{ 'trainingNeeds.generateFromGaps' | translate }}</button>
-    }
-    @if (canAssignToPlan()) {
-      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" [disabled]="selectedNeedIds().size === 0" (click)="openAssignModal()">
-        {{ 'trainingNeeds.assignToPlan' | translate }}
-      </button>
-    }
-  </div>
-  <div filters>
-    <div class="ds-filterbar">
+<app-page-shell
+  [title]="'nav.trainingNeeds' | translate"
+  [breadcrumbs]="breadcrumbs()"
+  [fullWidth]="true"
+  [showPageTitle]="false"
+>
+  <div class="ent-admin-page ent-page-fade-in">
+    <header class="ent-admin-hero">
+      <div class="ent-admin-hero__inner">
+        <div class="ld-training-hero-top">
+          <div>
+            <p class="ld-training-eyebrow">{{ 'nav.learningGroup' | translate }}</p>
+            <h1 class="ent-admin-hero__title">{{ 'nav.trainingNeeds' | translate }}</h1>
+            <p class="ent-admin-hero__subtitle">{{ 'trainingHub.trainingNeedsHeroSubtitle' | translate }}</p>
+          </div>
+          <div class="ld-training-hero-actions">
+            @if (canCreate()) {
+              <button
+                type="button"
+                class="ds-btn ds-btn--primary ds-btn--sm"
+                (click)="openCreate()"
+                [appTooltip]="(('common.add' | translate) + ' — ' + ('trainingNeeds.title' | translate))"
+                tooltipPlacement="top"
+              >
+                {{ 'common.add' | translate }} {{ 'trainingNeeds.title' | translate }}
+              </button>
+            }
+            @if (canGenerateFromGaps()) {
+              <button
+                type="button"
+                class="ds-btn ds-btn--secondary ds-btn--sm"
+                (click)="openGenerateFromGaps()"
+                [appTooltip]="'trainingNeeds.generateFromGaps' | translate"
+                tooltipPlacement="top"
+              >
+                {{ 'trainingNeeds.generateFromGaps' | translate }}
+              </button>
+            }
+            @if (canAssignToPlan()) {
+              <button
+                type="button"
+                class="ds-btn ds-btn--secondary ds-btn--sm"
+                [disabled]="selectedNeedIds().size === 0"
+                (click)="openAssignModal()"
+                [appTooltip]="'trainingNeeds.assignToPlan' | translate"
+                tooltipPlacement="top"
+              >
+                {{ 'trainingNeeds.assignToPlan' | translate }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    </header>
+    <div filters>
+      <div class="ent-admin-filters ds-filterbar">
       <div class="ds-filterbar__controls">
         <div class="ds-filterfield">
           <div class="ds-filterfield__label">{{ 'common.search' | translate }}</div>
@@ -63,28 +103,30 @@
         </button>
       </div>
     </div>
-  </div>
+    </div>
 
-  @if (loading()) {
-    <div class="table-loading">
-      <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
-      <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px;"></div>
-      <div class="ds-skeleton" style="height: 48px;"></div>
-    </div>
-  } @else if (error()) {
-    <div class="ds-error-state">
-      <p class="ds-error-state__title">{{ error() }}</p>
-      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
-    </div>
-  } @else if (!data()?.items?.length) {
-    <div class="ds-empty">
-      <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p>
-      @if (canCreate()) {
-        <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }}</button>
-      }
-    </div>
-  } @else {
-    <div class="ds-table-wrap">
+    <div class="ent-admin-content">
+      @if (loading()) {
+        <div class="ent-table-panel table-loading">
+          <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px"></div>
+          <div class="ds-skeleton" style="height: 48px; margin-bottom: 8px"></div>
+          <div class="ds-skeleton" style="height: 48px"></div>
+        </div>
+      } @else if (error()) {
+        <div class="ds-error-state">
+          <p class="ds-error-state__title">{{ error() }}</p>
+          <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="load()">{{ 'empty.tryAgain' | translate }}</button>
+        </div>
+      } @else if (!data()?.items?.length) {
+        <div class="ds-empty">
+          <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p>
+          @if (canCreate()) {
+            <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="openCreate()">{{ 'common.add' | translate }}</button>
+          }
+        </div>
+      } @else {
+        <div class="ent-table-panel">
+          <div class="ds-table-wrap">
       <table class="ds-table">
         <thead>
           <tr>
@@ -120,7 +162,8 @@
                       class="ds-btn ds-btn--ghost ds-btn--icon"
                       (click)="openEdit(row)"
                       [attr.aria-label]="'common.edit' | translate"
-                      [title]="'common.edit' | translate"
+                      [appTooltip]="'common.edit' | translate"
+                      tooltipPlacement="top"
                     >
                       <svg class="icon-svg" viewBox="0 0 24 24">
                         <path d="M4 17.5V20h2.5L17 9.5 14.5 7 4 17.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
@@ -133,7 +176,8 @@
                         class="ds-btn ds-btn--ghost ds-btn--icon"
                         (click)="submitNeed(row)"
                         [attr.aria-label]="'common.submit' | translate"
-                        [title]="'common.submit' | translate"
+                        [appTooltip]="'common.submit' | translate"
+                        tooltipPlacement="top"
                       >
                         <svg class="icon-svg" viewBox="0 0 24 24">
                           <path d="M5 12h14M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -147,7 +191,8 @@
                       class="ds-btn ds-btn--ghost ds-btn--icon"
                       (click)="approveNeed(row)"
                       [attr.aria-label]="'status.approved' | translate"
-                      [title]="'status.approved' | translate"
+                      [appTooltip]="'status.approved' | translate"
+                      tooltipPlacement="top"
                     >
                       <svg class="icon-svg" viewBox="0 0 24 24">
                         <path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -158,7 +203,8 @@
                       class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
                       (click)="rejectNeed(row)"
                       [attr.aria-label]="'status.rejected' | translate"
-                      [title]="'status.rejected' | translate"
+                      [appTooltip]="'status.rejected' | translate"
+                      tooltipPlacement="top"
                     >
                       <svg class="icon-svg" viewBox="0 0 24 24">
                         <path d="M6 6l12 12M18 6l-12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -172,7 +218,8 @@
                     class="ds-btn ds-btn--ghost ds-btn--icon ds-btn--danger"
                     (click)="confirmDelete(row)"
                     [attr.aria-label]="'common.delete' | translate"
-                    [title]="'common.delete' | translate"
+                    [appTooltip]="'common.delete' | translate"
+                    tooltipPlacement="top"
                   >
                     <svg class="icon-svg" viewBox="0 0 24 24">
                       <path d="M6 19V7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6" />
@@ -185,14 +232,21 @@
           }
         </tbody>
       </table>
+          </div>
+        </div>
+        <div class="ent-pagination">
+          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">
+            {{ 'common.previous' | translate }}
+          </button>
+          <span class="ent-pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
+          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">
+            {{ 'common.next' | translate }}
+          </button>
+        </div>
+      }
     </div>
-    <div class="pagination">
-      <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-      <span class="pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
-      <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
-    </div>
-  }
-  </app-page-shell>
+  </div>
+</app-page-shell>
 
   @if (showConfirm()) {
     <app-confirm-dialog
@@ -206,13 +260,46 @@
   }
 
 @if (showModal()) {
-  <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
-      <h3 class="modal-drawer__title">{{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'trainingNeeds.title' | translate }}</h3>
-      @if (modalError()) {
-        <p class="ds-field-error">{{ modalError() }}</p>
-      }
-      <form (ngSubmit)="save()">
+  <div class="modal-overlay" appPortalToBody>
+    <button type="button" class="modal-backdrop" [attr.aria-label]="'common.close' | translate" (click)="closeModal()"></button>
+    <div class="modal-drawer premium-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="premium-modal__header">
+        <div class="premium-modal__titlewrap">
+          <h3 class="premium-modal__title">
+            {{ editingId() ? ('common.edit' | translate) : ('common.add' | translate) }} {{ 'trainingNeeds.title' | translate }}
+          </h3>
+          <p class="premium-modal__subtitle">{{ 'trainingHub.modalTrainingNeedSubtitle' | translate }}</p>
+        </div>
+        <button
+          type="button"
+          class="ds-btn ds-btn--ghost ds-btn--icon premium-modal__close"
+          (click)="closeModal()"
+          [attr.aria-label]="'common.close' | translate"
+          [appTooltip]="'common.close' | translate"
+        >
+          <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+      <div class="premium-modal__body">
+        @if (modalError()) {
+          <div class="premium-modal__error">
+            <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 9v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <path d="M12 17h.01" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+              <path
+                d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <p class="premium-modal__error-text">{{ modalError() }}</p>
+          </div>
+        }
+        <form class="premium-form" (ngSubmit)="save()">
         <div class="form-group">
           <label class="ds-label">{{ 'trainingNeeds.titleEn' | translate }}</label>
           <input type="text" class="ds-input" [(ngModel)]="form.titleEn" name="titleEn" />
@@ -289,67 +376,118 @@
             }
           </select>
         </div>
-        <div class="modal-drawer__actions">
-          <button type="button" class="ds-btn ds-btn--secondary" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
-          <button type="submit" class="ds-btn ds-btn--primary" [disabled]="saving()">{{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}</button>
+        <div class="premium-modal__footer">
+          <button type="button" class="ds-btn ds-btn--secondary premium-secondary-btn" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
+          <button type="submit" class="ds-btn ds-btn--primary premium-primary-btn" [disabled]="saving()">
+            {{ saving() ? ('common.loading' | translate) : ('common.save' | translate) }}
+          </button>
         </div>
       </form>
+      </div>
     </div>
   </div>
 }
 
 @if (showGenerateModal()) {
-  <div class="modal-overlay" (click)="closeGenerateModal()">
-    <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
-      <h3 class="modal-drawer__title">{{ 'trainingNeeds.generateFromGaps' | translate }}</h3>
-      @if (generateResult()) {
-        <p class="ds-field-success">{{ generateResult() }}</p>
-      }
-      @if (loadingGaps()) {
-        <p>{{ 'common.loading' | translate }}</p>
-      } @else if (gapsForGenerate().length === 0) {
-        <p>{{ 'trainingNeeds.noGaps' | translate }}</p>
-      } @else {
-        <p class="modal-hint">{{ 'trainingNeeds.selectGapsHint' | translate }}</p>
-        <div class="gaps-list">
-          @for (g of gapsForGenerate(); track g.id) {
-            <label class="gap-row">
-              <input type="checkbox" [checked]="selectedGapIds().has(g.id)" (change)="toggleGapSelection(g.id)" />
-              <span>{{ getLocalizedText(g.employeeNameAr, g.employeeNameEn) }} – {{ getLocalizedText(g.competencyNameAr, g.competencyNameEn) }} ({{ gapSeverityLabel(g.severity) }})</span>
-            </label>
-          }
+  <div class="modal-overlay" appPortalToBody>
+    <button type="button" class="modal-backdrop" [attr.aria-label]="'common.close' | translate" (click)="closeGenerateModal()"></button>
+    <div class="modal-drawer premium-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="premium-modal__header">
+        <div class="premium-modal__titlewrap">
+          <h3 class="premium-modal__title">{{ 'trainingNeeds.generateFromGaps' | translate }}</h3>
+          <p class="premium-modal__subtitle">{{ 'trainingHub.modalGenerateNeedsSubtitle' | translate }}</p>
         </div>
-        <div class="modal-drawer__actions">
-          <button type="button" class="ds-btn ds-btn--secondary" (click)="closeGenerateModal()">{{ 'common.close' | translate }}</button>
-          <button type="button" class="ds-btn ds-btn--primary" [disabled]="saving()" (click)="runGenerateFromGaps()">{{ saving() ? ('common.loading' | translate) : ('trainingNeeds.generate' | translate) }}</button>
-        </div>
-      }
+        <button
+          type="button"
+          class="ds-btn ds-btn--ghost ds-btn--icon premium-modal__close"
+          (click)="closeGenerateModal()"
+          [attr.aria-label]="'common.close' | translate"
+          [appTooltip]="'common.close' | translate"
+        >
+          <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+      <div class="premium-modal__body">
+        @if (generateResult()) {
+          <p class="ds-field-success">{{ generateResult() }}</p>
+        }
+        @if (loadingGaps()) {
+          <p>{{ 'common.loading' | translate }}</p>
+        } @else if (gapsForGenerate().length === 0) {
+          <p>{{ 'trainingNeeds.noGaps' | translate }}</p>
+        } @else {
+          <p class="modal-hint">{{ 'trainingNeeds.selectGapsHint' | translate }}</p>
+          <div class="gaps-list roles-checkbox-list">
+            @for (g of gapsForGenerate(); track g.id) {
+              <label class="gap-row checkbox-row">
+                <input type="checkbox" [checked]="selectedGapIds().has(g.id)" (change)="toggleGapSelection(g.id)" />
+                <span
+                  >{{ getLocalizedText(g.employeeNameAr, g.employeeNameEn) }} – {{ getLocalizedText(g.competencyNameAr, g.competencyNameEn) }} ({{
+                    gapSeverityLabel(g.severity)
+                  }})</span
+                >
+              </label>
+            }
+          </div>
+          <div class="premium-modal__footer">
+            <button type="button" class="ds-btn ds-btn--secondary premium-secondary-btn" (click)="closeGenerateModal()">
+              {{ 'common.close' | translate }}
+            </button>
+            <button type="button" class="ds-btn ds-btn--primary premium-primary-btn" [disabled]="saving()" (click)="runGenerateFromGaps()">
+              {{ saving() ? ('common.loading' | translate) : ('trainingNeeds.generate' | translate) }}
+            </button>
+          </div>
+        }
+      </div>
     </div>
   </div>
 }
 
 @if (showAssignModal()) {
-  <div class="modal-overlay" (click)="closeAssignModal()">
-    <div class="modal-drawer ds-card" (click)="$event.stopPropagation()">
-      <h3 class="modal-drawer__title">{{ 'trainingNeeds.assignToPlan' | translate }}</h3>
-      @if (assignResult()) {
-        <p class="ds-field-success">{{ assignResult() }}</p>
-      }
-      <div class="form-group">
-        <label class="ds-label">{{ 'trainingPlans.plan' | translate }}</label>
-        <select class="ds-input" [(ngModel)]="selectedPlanId" name="selectedPlanId">
-          <option [ngValue]="null">—</option>
-          @for (p of planOptions(); track p.id) {
-            <option [ngValue]="p.id">{{ getLocalizedText(p.titleAr, p.titleEn) }} ({{ p.year }})</option>
-          }
-        </select>
-      </div>
-      <p class="modal-hint">{{ 'trainingNeeds.selectedNeedsCount' | translate:{ count: selectedNeedIds().size } }}</p>
-      <div class="modal-drawer__actions">
-        <button type="button" class="ds-btn ds-btn--secondary" (click)="closeAssignModal()">{{ 'common.cancel' | translate }}</button>
-        <button type="button" class="ds-btn ds-btn--primary" [disabled]="saving()" (click)="runAssignToPlan()">
-          {{ saving() ? ('common.loading' | translate) : ('trainingNeeds.assign' | translate) }}
+  <div class="modal-overlay" appPortalToBody>
+    <button type="button" class="modal-backdrop" [attr.aria-label]="'common.close' | translate" (click)="closeAssignModal()"></button>
+    <div class="modal-drawer premium-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <div class="premium-modal__header">
+        <div class="premium-modal__titlewrap">
+          <h3 class="premium-modal__title">{{ 'trainingNeeds.assignToPlan' | translate }}</h3>
+          <p class="premium-modal__subtitle">{{ 'trainingHub.modalAssignPlanSubtitle' | translate }}</p>
+        </div>
+        <button
+          type="button"
+          class="ds-btn ds-btn--ghost ds-btn--icon premium-modal__close"
+          (click)="closeAssignModal()"
+          [attr.aria-label]="'common.close' | translate"
+          [appTooltip]="'common.close' | translate"
+        >
+          <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
         </button>
+      </div>
+      <div class="premium-modal__body">
+        @if (assignResult()) {
+          <p class="ds-field-success">{{ assignResult() }}</p>
+        }
+        <div class="form-group">
+          <label class="ds-label">{{ 'trainingPlans.plan' | translate }}</label>
+          <select class="ds-input" [(ngModel)]="selectedPlanId" name="selectedPlanId">
+            <option [ngValue]="null">—</option>
+            @for (p of planOptions(); track p.id) {
+              <option [ngValue]="p.id">{{ getLocalizedText(p.titleAr, p.titleEn) }} ({{ p.year }})</option>
+            }
+          </select>
+        </div>
+        <p class="modal-hint">{{ 'trainingNeeds.selectedNeedsCount' | translate: { count: selectedNeedIds().size } }}</p>
+        <div class="premium-modal__footer">
+          <button type="button" class="ds-btn ds-btn--secondary premium-secondary-btn" (click)="closeAssignModal()">
+            {{ 'common.cancel' | translate }}
+          </button>
+          <button type="button" class="ds-btn ds-btn--primary premium-primary-btn" [disabled]="saving()" (click)="runAssignToPlan()">
+            {{ saving() ? ('common.loading' | translate) : ('trainingNeeds.assign' | translate) }}
+          </button>
+        </div>
       </div>
     </div>
   </div>

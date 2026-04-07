@@ -45,6 +45,7 @@
     "collapse": "طي",
     "expandSidebar": "توسيع القائمة",
     "collapseSidebar": "طي القائمة",
+    "toggleNavigation": "فتح قائمة التنقل",
     "fromDate": "من تاريخ",
     "toDate": "إلى تاريخ"
   },
@@ -149,6 +150,30 @@
     "attendance": "الحضور",
     "certificates": "الشهادات",
     "postTrainingReports": "تقارير ما بعد التدريب"
+  },
+  "trainingHub": {
+    "programsHeroSubtitle": "خطط وانشر وأدر البرامج التدريبية مع السعة وأنماط التقديم وحالة دورة الحياة بوضوح.",
+    "trainingNeedsHeroSubtitle": "سجّل وحوِّ أولويات الاحتياجات التدريبية بما يتوافق مع الوظائف والوحدات وفجوات الجدارات.",
+    "trainingPlansHeroSubtitle": "ابنِ الميزانيات والفترات وبنود الخطة لمحفظة التدريب على مستوى المؤسسة.",
+    "enrollmentsHeroSubtitle": "رشّح واعتمد وتتبّع المشاركين من الترشيح حتى الإكمال.",
+    "attendanceHeroSubtitle": "سجّل حضور الجلسات بقوائم واضحة وأدلة قابلة للمراجعة عند الحاجة.",
+    "certificatesHeroSubtitle": "أصدر وأدر شهادات الإكمال وفق قواعد الأهلية وسجلّ الإصدار.",
+    "postTrainingHeroSubtitle": "اجمع تقارير ما بعد التدريب المنظّمة مع خطط التطبيق والمراجعة والأدلة.",
+    "assessmentCyclesHeroSubtitle": "عرّف دورات التقييم والنطاق المؤسسي وتوليد التقييمات بضوابط الحوكمة.",
+    "myAssessmentsHeroSubtitle": "أكمل تقييمات الذات ضمن الدورات المفتوحة المرتبطة بدورك.",
+    "managerAssessmentsHeroSubtitle": "راجع ووازن وأكمل تقييمات فريقك المباشر.",
+    "assessmentResultsHeroSubtitle": "اطّلع على النتائج الموحّدة لدعم التقارير وقرارات القوى العاملة.",
+    "gapAnalysisHeroSubtitle": "حدّد فجوات الجدارات بأوزان خطورة لترتيب الاستثمار التعليمي.",
+    "modalProgramsSubtitle": "كتالوج البرامج",
+    "modalTrainingNeedSubtitle": "سجل الاحتياجات التدريبية",
+    "modalCycleSubtitle": "دورات التقييم",
+    "modalScopeSubtitle": "حدّد الوحدات والوظائف والموظفين ثم ولّد التقييمات.",
+    "modalGenerateNeedsSubtitle": "أنشئ احتياجات من فجوات الجدارات المحددة.",
+    "modalAssignPlanSubtitle": "اربط الاحتياجات المعتمدة بخطة تدريب فعّالة.",
+    "modalTrainingPlanSubtitle": "الخطط التدريبية السنوية والدورية",
+    "modalNominateSubtitle": "رشّح موظفين إلى البرامج دفعة واحدة.",
+    "modalCertificateGenerateSubtitle": "اختر البرنامج والمشاركين المؤهلين لإصدار الشهادات.",
+    "modalNewReportSubtitle": "ابدأ مسودة تقرير ما بعد التدريب لبرنامج ومشارك."
   },
   "mySubordinates": {
     "empty": "لا يوجد مرؤوسون مباشرون معرّفون تحتك في الهيكل التنظيمي."
@@ -336,7 +361,8 @@
     "photoTypeInvalid": "يرجى اختيار صورة بصيغة JPEG أو PNG أو GIF أو WebP.",
     "noRecentActivity": "لا يوجد نشاط حديث.",
     "noCertificates": "لا توجد شهادات بعد",
-    "backToProfile": "العودة للملف الشخصي"
+    "backToProfile": "العودة للملف الشخصي",
+    "emailReadonlyHint": "لا يمكن تغيير البريد من هذه الصفحة."
   },
   "empty": {
     "noResults": "لا توجد نتائج.",
