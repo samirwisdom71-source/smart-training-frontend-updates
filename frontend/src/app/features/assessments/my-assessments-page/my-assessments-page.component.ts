@@ -192,7 +192,7 @@ import type { AssessmentSummaryDto } from '../../../core/api/assessments/assessm
         padding: var(--space-md) var(--space-lg);
       }
       .cell-actions {
-        text-align: end;
+        text-align: center;
         display: flex;
         align-items: center;
         justify-content: flex-end;

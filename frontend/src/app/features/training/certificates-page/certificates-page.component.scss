@@ -2,8 +2,7 @@
 .filter-search { max-width: 280px; }
 .filter-select { max-width: 200px; }
 .table-loading { padding: var(--space-md) 0; }
-.pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); }
-.pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
+/* pagination handled by shared <app-pagination> */
 .modal-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(15,23,42,0.5); display: flex; align-items: center; justify-content: center; padding: var(--space-lg); }
 .modal-drawer { max-width: 400px; width: 100%; padding: var(--space-lg); }
 .modal-drawer--wide { max-width: min(520px, 100%); }

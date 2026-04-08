@@ -9,8 +9,7 @@
 }
 .table-loading { padding: var(--space-md) 0; }
 .cell-actions { text-align: end; }
-.pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); }
-.pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
+/* pagination handled by shared <app-pagination> */
 
 .ds-filterbar__actions {
   display: flex;

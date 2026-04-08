@@ -183,9 +183,11 @@ import type { AssessmentSummaryDto } from '../../../core/api/assessments/assessm
         padding: var(--space-md) var(--space-lg);
       }
       .cell-actions {
-        text-align: end;
+        text-align: center;
         display: flex;
-        justify-content: flex-end;
+        justify-content:center;
+        gap: var(--space-sm);
+        flex-wrap: wrap;
       }
     `,
   ],

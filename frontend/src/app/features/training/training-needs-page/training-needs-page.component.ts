@@ -7,6 +7,7 @@ import { PageShellComponent } from '../../../shared/page-shell/page-shell.compon
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { TrainingNeedsApiService } from '../../../core/api/training-needs/training-needs-api.service';
 import { AssessmentsApiService } from '../../../core/api/assessments/assessments-api.service';
 import { OrganizationsApiService } from '../../../core/api/organizations/organizations-api.service';
@@ -24,7 +25,7 @@ import { ToastService } from '../../../core/toast/toast.service';
 @Component({
   selector: 'app-training-needs-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, TooltipDirective],
+  imports: [CommonModule, FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, TooltipDirective, PaginationComponent],
   templateUrl: './training-needs-page.component.html',
   styleUrls: ['./training-needs-page.component.scss'],
 })
@@ -233,6 +234,7 @@ export class TrainingNeedsPageComponent implements OnInit {
 
   prevPage(): void { this.page.update(p => Math.max(1, p - 1)); this.load(); }
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
+  setPage(p: number): void { this.page.set(p); this.load(); }
 
   toggleNeedSelection(needId: string): void {
     this.selectedNeedIds.update(current => {

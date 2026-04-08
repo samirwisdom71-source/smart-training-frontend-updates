@@ -4,6 +4,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { RolesApiService } from '../../../core/api/roles/roles-api.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { PermissionCodes } from '../../../core/auth/permissions';
@@ -13,7 +14,7 @@ import type { PagedResult } from '../../../core/models/api-response';
 @Component({
   selector: 'app-roles-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective],
+  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective, PaginationComponent],
   template: `
     <app-page-shell [title]="'nav.roles' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true" [showPageTitle]="false">
       <div class="ent-admin-page ent-page-fade-in">
@@ -126,11 +127,12 @@ import type { PagedResult } from '../../../core/models/api-response';
             </tbody>
           </table>
         </div>
-        <div class="pagination ent-pagination">
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-          <span class="ent-pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
-        </div>
+        <app-pagination
+          [page]="page()"
+          [totalPages]="data()?.totalPages ?? 1"
+          [disabled]="loading()"
+          (pageChange)="setPage($event)"
+        />
         </div>
       }
       </div>
@@ -208,7 +210,7 @@ import type { PagedResult } from '../../../core/models/api-response';
     .actions-row { display: flex; justify-content: flex-end; margin-bottom: var(--space-sm); flex-wrap: wrap; gap: var(--space-sm); }
     .filter-search { max-width: 280px; }
     .table-loading { padding: var(--space-md) var(--space-lg); }
-    .cell-actions { text-align: end; display: flex; gap: var(--space-sm); justify-content: flex-end; flex-wrap: nowrap; align-items: center; }
+    .cell-actions { text-align: center; display: flex; gap: var(--space-sm); justify-content:center; flex-wrap: nowrap; align-items: center; }
     .permission-label { flex: 1; min-width: 0; }
   `]
 })
@@ -278,6 +280,7 @@ export class RolesPageComponent implements OnInit {
 
   prevPage(): void { this.page.update(p => Math.max(1, p - 1)); this.load(); }
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
+  setPage(p: number): void { this.page.set(p); this.load(); }
 
   openCreate(): void {
     this.editingId.set(null);

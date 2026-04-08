@@ -13,6 +13,7 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
 import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { LocalizedTextPipe } from '../../../shared/pipes/localized-text.pipe';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { ToastService } from '../../../core/toast/toast.service';
 import type { AnnualTrainingPlanListDto, CreateAnnualTrainingPlanRequest, UpdateAnnualTrainingPlanRequest } from '../../../core/api/training-plans/training-plans-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
@@ -20,7 +21,7 @@ import type { PagedResult } from '../../../core/models/api-response';
 @Component({
   selector: 'app-training-plans-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, DecimalPipe, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe, PortalToBodyDirective, TooltipDirective],
+  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, DecimalPipe, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe, PortalToBodyDirective, TooltipDirective, PaginationComponent],
   templateUrl: './training-plans-page.component.html',
   styleUrls: ['./training-plans-page.component.scss'],
 })
@@ -142,6 +143,7 @@ export class TrainingPlansPageComponent implements OnInit {
 
   prevPage(): void { this.page.update(p => Math.max(1, p - 1)); this.load(); }
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
+  setPage(p: number): void { this.page.set(p); this.load(); }
 
   openCreate(): void {
     this.editingId.set(null);

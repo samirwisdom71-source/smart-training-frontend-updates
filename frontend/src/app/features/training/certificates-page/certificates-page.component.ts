@@ -16,6 +16,7 @@ import type { ApiResponse } from '../../../core/models/api-response';
 import type { CertificateDto } from '../../../core/api/certificates/certificates-api.models';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 
 export interface CertificateGenerateRow {
   id: string;
@@ -27,7 +28,7 @@ export interface CertificateGenerateRow {
 @Component({
   selector: 'app-certificates-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, DatePipe, TooltipDirective, PageShellComponent, PortalToBodyDirective],
+  imports: [FormsModule, TranslateModule, DatePipe, TooltipDirective, PageShellComponent, PortalToBodyDirective, PaginationComponent],
   templateUrl: './certificates-page.component.html',
   styleUrls: ['./certificates-page.component.scss'],
 })
@@ -134,6 +135,10 @@ export class CertificatesPageComponent implements OnInit {
   }
   nextPage(): void {
     this.page.update((p) => p + 1);
+    this.load();
+  }
+  setPage(p: number): void {
+    this.page.set(p);
     this.load();
   }
 

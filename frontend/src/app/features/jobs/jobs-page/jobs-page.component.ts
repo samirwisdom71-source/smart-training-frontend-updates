@@ -5,6 +5,7 @@ import { PageShellComponent } from '../../../shared/page-shell/page-shell.compon
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { JobsApiService } from '../../../core/api/jobs/jobs-api.service';
 import { OrganizationsApiService } from '../../../core/api/organizations/organizations-api.service';
 import { OrganizationalUnitsApiService } from '../../../core/api/organizational-units/organizational-units-api.service';
@@ -18,7 +19,7 @@ import { ToastService } from '../../../core/toast/toast.service';
 @Component({
   selector: 'app-jobs-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective, PortalToBodyDirective],
+  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective, PortalToBodyDirective, PaginationComponent],
   template: `
     <app-page-shell [title]="'nav.jobs' | translate" [breadcrumbs]="breadcrumbs()" [showPageTitle]="false">
       <div class="jobs-page ds-animate-fade-up" data-delay="1">
@@ -169,11 +170,12 @@ import { ToastService } from '../../../core/toast/toast.service';
             </tbody>
           </table>
         </div>
-        <div class="pagination">
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-          <span class="pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
-        </div>
+        <app-pagination
+          [page]="page()"
+          [totalPages]="data()?.totalPages ?? 1"
+          [disabled]="loading()"
+          (pageChange)="setPage($event)"
+        />
       }
       </div>
     </app-page-shell>
@@ -315,7 +317,7 @@ import { ToastService } from '../../../core/toast/toast.service';
     .jobs-input { border-radius: 14px; }
 
     .table-loading { padding: var(--space-md) 0; }
-    .cell-actions { text-align: end; }
+    .cell-actions { text-align: center; }
     .status-toggle-btn { color: var(--color-text-secondary, #64748b); }
     .status-toggle-btn.status-toggle-btn--active { color: #22c55e; }
     .status-toggle-btn.status-toggle-btn--active:hover { background: rgba(34, 197, 94, 0.18); }
@@ -339,8 +341,7 @@ import { ToastService } from '../../../core/toast/toast.service';
       );
     }
 
-    .pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); flex-wrap: wrap; }
-    .pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
+    /* pagination is handled by shared <app-pagination> */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -584,6 +585,7 @@ export class JobsPageComponent implements OnInit {
 
   prevPage(): void { this.page.update(p => Math.max(1, p - 1)); this.load(); }
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
+  setPage(p: number): void { this.page.set(p); this.load(); }
 
   openCreate(): void {
     this.editingId.set(null);

@@ -3,13 +3,14 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { NotificationService } from '../../../core/notifications/notification.service';
 import type { NotificationDto, PagedResult, ApiResponse } from '../../../core/notifications/models/notification.models';
 
 @Component({
   selector: 'app-notifications-page',
   standalone: true,
-  imports: [RouterLink, TranslateModule, PageShellComponent, TooltipDirective],
+  imports: [RouterLink, TranslateModule, PageShellComponent, TooltipDirective, PaginationComponent],
   template: `
     <app-page-shell
       [title]="'notifications.title' | translate"
@@ -118,27 +119,12 @@ import type { NotificationDto, PagedResult, ApiResponse } from '../../../core/no
                 }
               </div>
               @if (paged()!.totalPages > 1) {
-                <div class="ent-pagination ent-notifications-pagination">
-                  <button
-                    type="button"
-                    class="ds-btn ds-btn--secondary"
-                    [disabled]="!paged()!.hasPreviousPage"
-                    (click)="goPage(page() - 1)"
-                    [appTooltip]="'notifications.previous' | translate"
-                  >
-                    {{ 'notifications.previous' | translate }}
-                  </button>
-                  <span class="ent-pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ paged()!.totalPages }}</span>
-                  <button
-                    type="button"
-                    class="ds-btn ds-btn--secondary"
-                    [disabled]="!paged()!.hasNextPage"
-                    (click)="goPage(page() + 1)"
-                    [appTooltip]="'notifications.next' | translate"
-                  >
-                    {{ 'notifications.next' | translate }}
-                  </button>
-                </div>
+                <app-pagination
+                  [page]="page()"
+                  [totalPages]="paged()!.totalPages"
+                  [disabled]="loading()"
+                  (pageChange)="goPage($event)"
+                />
               }
             }
           }

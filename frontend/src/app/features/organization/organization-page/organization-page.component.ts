@@ -4,6 +4,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { OrganizationsApiService } from '../../../core/api/organizations/organizations-api.service';
 import { OrganizationalUnitsApiService } from '../../../core/api/organizational-units/organizational-units-api.service';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -28,7 +29,7 @@ const OU_TYPES: OrganizationalUnitType[] = ['Sector', 'Department', 'Section', '
 @Component({
   selector: 'app-organization-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective],
+  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective, PaginationComponent],
   template: `
     <app-page-shell [title]="'nav.organization' | translate" [breadcrumbs]="breadcrumbs()" [showPageTitle]="false">
       <div class="org-page ds-animate-fade-up" data-delay="1">
@@ -214,11 +215,12 @@ const OU_TYPES: OrganizationalUnitType[] = ['Sector', 'Department', 'Section', '
               </tbody>
             </table>
           </div>
-          <div class="pagination org-pagination">
-            <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm org-pagination__btn" [disabled]="!orgData()?.hasPreviousPage" (click)="prevOrgPage()">{{ 'common.previous' | translate }}</button>
-            <span class="pagination-info">{{ 'common.page' | translate }} {{ orgPage() }} {{ 'common.of' | translate }} {{ orgData()?.totalPages ?? 1 }}</span>
-            <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm org-pagination__btn" [disabled]="!orgData()?.hasNextPage" (click)="nextOrgPage()">{{ 'common.next' | translate }}</button>
-          </div>
+          <app-pagination
+            [page]="orgPage()"
+            [totalPages]="orgData()?.totalPages ?? 1"
+            [disabled]="loadingOrg()"
+            (pageChange)="setOrgPage($event)"
+          />
         }
 
         @if (selectedOrgId()) {
@@ -637,7 +639,7 @@ const OU_TYPES: OrganizationalUnitType[] = ['Sector', 'Department', 'Section', '
     .table-loading { padding: var(--space-md) 0; }
     .org-loading .ds-skeleton { border-radius: var(--org-radius-md); }
 
-    .cell-actions { text-align: end; }
+    .cell-actions { text-align: center; }
 
     /* Table — premium surface */
     .org-table-wrap {
@@ -721,8 +723,7 @@ const OU_TYPES: OrganizationalUnitType[] = ['Sector', 'Department', 'Section', '
     .default-star--on { color: var(--gulf-gold); filter: drop-shadow(0 0 12px rgba(200, 164, 93, 0.25)); }
     .default-star__icon { width: 20px; height: 20px; display: block; }
 
-    .pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); flex-wrap: wrap; }
-    .pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
+    /* pagination is handled by shared <app-pagination> */
 
     .org-pagination__btn:hover:not(:disabled) {
       background: color-mix(in srgb, var(--gulf-gold) 10%, var(--color-bg-subtle));
@@ -1169,6 +1170,7 @@ export class OrganizationPageComponent implements OnInit {
 
   prevOrgPage(): void { this.orgPage.update(p => Math.max(1, p - 1)); this.loadOrgs(); }
   nextOrgPage(): void { this.orgPage.update(p => p + 1); this.loadOrgs(); }
+  setOrgPage(p: number): void { this.orgPage.set(p); this.loadOrgs(); }
   prevOuPage(): void { this.ouPage.update(p => Math.max(1, p - 1)); this.loadOus(); }
   nextOuPage(): void { this.ouPage.update(p => p + 1); this.loadOus(); }
 

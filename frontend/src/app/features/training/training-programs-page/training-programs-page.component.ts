@@ -8,6 +8,7 @@ import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-d
 import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { LocalizedTextPipe } from '../../../shared/pipes/localized-text.pipe';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { TrainingProgramsApiService } from '../../../core/api/training-programs/training-programs-api.service';
 import { OrganizationsApiService } from '../../../core/api/organizations/organizations-api.service';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -19,7 +20,7 @@ import type { PagedResult } from '../../../core/models/api-response';
 @Component({
   selector: 'app-training-programs-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, RouterLink, DatePipe, DecimalPipe, TooltipDirective, LocalizedTextPipe, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective],
+  imports: [FormsModule, TranslateModule, RouterLink, DatePipe, DecimalPipe, TooltipDirective, LocalizedTextPipe, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, PaginationComponent],
   templateUrl: './training-programs-page.component.html',
   styleUrls: ['./training-programs-page.component.scss'],
 })
@@ -125,6 +126,7 @@ export class TrainingProgramsPageComponent implements OnInit {
 
   prevPage(): void { this.page.update(p => Math.max(1, p - 1)); this.load(); }
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
+  setPage(p: number): void { this.page.set(p); this.load(); }
 
   setViewMode(mode: 'table' | 'cards'): void {
     this.viewMode.set(mode);

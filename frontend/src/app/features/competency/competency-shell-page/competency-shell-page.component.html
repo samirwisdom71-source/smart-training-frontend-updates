@@ -1,0 +1,50 @@
+<app-page-shell
+      [title]="'nav.competency' | translate"
+      [breadcrumbs]="[{ label: ('nav.competency' | translate) }]"
+      [showPageTitle]="false"
+    >
+      <div class="competency-hub ds-animate-fade-up" data-delay="1" [style.--competency-tab-active]="activeIndex">
+        <header class="competency-hub__hero">
+          <div class="competency-hub__hero-inner">
+            <h1 class="competency-hub__title">{{ 'nav.competency' | translate }}</h1>
+            <p class="competency-hub__subtitle">{{ 'competency.pageSubtitle' | translate }}</p>
+          </div>
+        </header>
+
+        <div class="competency-hub__tabs-wrap">
+          <nav class="competency-hub__tabs" aria-label="Competency sections">
+            <span class="competency-hub__tab-indicator" aria-hidden="true"></span>
+            <a
+              *ngFor="let tab of tabs"
+              [routerLink]="['/competency', tab.path]"
+              class="competency-hub__tab"
+              routerLinkActive="competency-hub__tab--active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
+              {{ tab.labelKey | translate }}
+            </a>
+          </nav>
+        </div>
+
+        <router-outlet></router-outlet>
+
+        <!-- <div class="wizard-nav">
+          <button
+            type="button"
+            class="ds-btn ds-btn--ghost competency-hub__wizard-btn"
+            (click)="goPrev()"
+            [disabled]="activeIndex === 0"
+          >
+            {{ 'common.previous' | translate }}
+          </button>
+          <button
+            type="button"
+            class="ds-btn ds-btn--primary competency-hub__wizard-btn"
+            (click)="goNext()"
+            [disabled]="activeIndex === tabs.length - 1"
+          >
+            {{ 'common.next' | translate }}
+          </button>
+        </div> -->
+      </div>
+    </app-page-shell>

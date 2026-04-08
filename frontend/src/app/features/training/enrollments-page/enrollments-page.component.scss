@@ -4,8 +4,7 @@
 .filter-row__filters .ds-btn { white-space: nowrap; }
 .table-loading { padding: var(--space-md) 0; }
 .cell-actions { display: flex; gap: var(--space-sm); justify-content: flex-end; align-items: center; flex-wrap: nowrap; }
-.pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); }
-.pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
+/* pagination handled by shared <app-pagination> */
 
 .back-btn {
   display: inline-flex;

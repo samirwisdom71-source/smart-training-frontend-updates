@@ -5,6 +5,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { AssessmentsApiService } from '../../../core/api/assessments/assessments-api.service';
 import type { AssessmentCycleListDto, AssessmentCycleDto, CreateAssessmentCycleRequest, UpdateAssessmentCycleRequest, AssessmentCycleScopeSummaryDto, AssessmentGenerationResultDto } from '../../../core/api/assessments/assessments-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
@@ -23,7 +24,7 @@ import { ToastService } from '../../../core/toast/toast.service';
 @Component({
   selector: 'app-assessment-cycles-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, DatePipe, TooltipDirective, PortalToBodyDirective],
+  imports: [FormsModule, TranslateModule, PageShellComponent, DatePipe, TooltipDirective, PortalToBodyDirective, PaginationComponent],
   template: `
     <app-page-shell
       [title]="'assessments.cyclesTitle' | translate"
@@ -219,11 +220,12 @@ import { ToastService } from '../../../core/toast/toast.service';
           </table>
         </div>
         </div>
-        <div class="ent-pagination">
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-          <span class="ent-pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
-        </div>
+        <app-pagination
+          [page]="page()"
+          [totalPages]="data()?.totalPages ?? 1"
+          [disabled]="loading()"
+          (pageChange)="setPage($event)"
+        />
       }
       </div>
       </div>
@@ -544,7 +546,7 @@ import { ToastService } from '../../../core/toast/toast.service';
     .filter-search { max-width: 280px; }
     .filter-select { max-width: 200px; }
     .table-loading { padding: var(--space-md) 0; }
-    .cell-actions { text-align: end; white-space: nowrap; }
+    .cell-actions { text-align: center; white-space: nowrap; justify-content:center; }
     .scope-loading { padding: var(--space-md); color: var(--color-text-secondary); }
     .scope-list { margin-bottom: var(--space-sm); }
     .scope-list-item { display: flex; justify-content: space-between; align-items: center; padding: var(--space-xs) 0; border-bottom: 1px solid var(--color-border); gap: var(--space-sm); }
@@ -715,6 +717,7 @@ export class AssessmentCyclesPageComponent implements OnInit {
 
   prevPage(): void { this.page.update(p => Math.max(1, p - 1)); this.load(); }
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
+  setPage(p: number): void { this.page.set(p); this.load(); }
 
   openCreate(): void {
     this.editingId.set(null);

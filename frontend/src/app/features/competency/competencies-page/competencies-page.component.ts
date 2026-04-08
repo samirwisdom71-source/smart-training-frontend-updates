@@ -5,6 +5,7 @@ import { PageShellComponent } from '../../../shared/page-shell/page-shell.compon
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { CompetenciesApiService } from '../../../core/api/competencies/competencies-api.service';
 import { CompetencyFrameworksApiService } from '../../../core/api/competency-frameworks/competency-frameworks-api.service';
 import { CompetencyTypesApiService } from '../../../core/api/competency-types/competency-types-api.service';
@@ -29,6 +30,7 @@ import type { PagedResult } from '../../../core/models/api-response';
     TooltipDirective,
     PortalToBodyDirective,
     LocalizedTextPipe,
+    PaginationComponent,
   ],
   templateUrl: './competencies-page.component.html',
   styleUrls: ['./competencies-page.component.scss'],
@@ -206,6 +208,7 @@ export class CompetenciesPageComponent implements OnInit {
 
   prevPage(): void { this.page.update(p => Math.max(1, p - 1)); this.load(); }
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
+  setPage(p: number): void { this.page.set(p); this.load(); }
 
   openCreate(): void {
     if (Date.now() < this.suppressCompetencyModalOpenUntil) return;

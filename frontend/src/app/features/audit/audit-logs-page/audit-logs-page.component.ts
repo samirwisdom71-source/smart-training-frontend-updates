@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { AuditApiService } from '../../../core/api/audit/audit-api.service';
 import type { AuditLogEntryViewDto, AuditListParams } from '../../../core/api/audit/audit-api.models';
 import type { ApiResponse, PagedResult } from '../../../core/models/api-response';
@@ -10,7 +11,7 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
 @Component({
   selector: 'app-audit-logs-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, TooltipDirective],
+  imports: [FormsModule, TranslateModule, PageShellComponent, TooltipDirective, PaginationComponent],
   template: `
     <app-page-shell [title]="'audit.title' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true" [showPageTitle]="false">
       <div class="ent-admin-page ent-page-fade-in">
@@ -147,11 +148,12 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
             </tbody>
           </table>
         </div>
-        <div class="pagination ent-pagination">
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-          <span class="ent-pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
-        </div>
+        <app-pagination
+          [page]="page()"
+          [totalPages]="data()?.totalPages ?? 1"
+          [disabled]="loading()"
+          (pageChange)="setPage($event)"
+        />
         </div>
       }
       </div>
@@ -161,46 +163,102 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
     @if (detailEntry()) {
       <div class="premium-drawer-overlay premium-drawer-overlay--centered">
         <button type="button" class="premium-drawer-backdrop" [attr.aria-label]="'common.close' | translate" (click)="closeDetail()"></button>
-        <div class="premium-drawer premium-drawer--modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
-          <div class="premium-drawer__header">
-            <h3 class="premium-drawer__title">{{ 'audit.detailTitle' | translate }}</h3>
-            <button type="button" class="premium-drawer__close" (click)="closeDetail()" [attr.aria-label]="'common.close' | translate" [appTooltip]="'common.close' | translate">&times;</button>
+        <div class="premium-drawer premium-drawer--modal audit-detail" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+          <div class="premium-drawer__header audit-detail__header">
+            <div class="audit-detail__titlewrap">
+              <h3 class="premium-drawer__title audit-detail__title">{{ 'audit.detailTitle' | translate }}</h3>
+              <div class="audit-detail__subtitle">
+                <span class="audit-detail__who">{{ detailEntry()!.userEmail ?? detailEntry()!.userFullName ?? ('audit.system' | translate) }}</span>
+                <span class="audit-detail__sep" aria-hidden="true">•</span>
+                <span class="audit-detail__action">{{ detailEntry()!.actionType }}</span>
+              </div>
+            </div>
+            <div class="audit-detail__headerActions">
+              <span class="ds-badge audit-detail__status" [class.ds-badge--success]="detailEntry()!.success" [class.ds-badge--error]="!detailEntry()!.success">
+                {{ detailEntry()!.success ? ('audit.success' | translate) : ('audit.failure' | translate) }}
+              </span>
+              <button type="button" class="premium-drawer__close" (click)="closeDetail()" [attr.aria-label]="'common.close' | translate" [appTooltip]="'common.close' | translate">&times;</button>
+            </div>
           </div>
-          <div class="premium-drawer__body">
-            <dl class="detail-list">
-              <dt>{{ 'audit.timestamp' | translate }}</dt>
-              <dd>{{ formatDate(detailEntry()!.timestamp) }}</dd>
-              <dt>{{ 'audit.user' | translate }}</dt>
-              <dd>{{ detailEntry()!.userEmail ?? detailEntry()!.userFullName ?? ('audit.system' | translate) }}</dd>
-              <dt>{{ 'audit.action' | translate }}</dt>
-              <dd>{{ detailEntry()!.actionType }}</dd>
-              <dt>{{ 'audit.module' | translate }}</dt>
-              <dd>{{ detailEntry()!.moduleName ?? '—' }}</dd>
-              <dt>{{ 'audit.entity' | translate }}</dt>
-              <dd>{{ detailEntry()!.entityName ?? '—' }} {{ detailEntry()!.entityId ? '(' + detailEntry()!.entityId + ')' : '' }}</dd>
-              <dt>{{ 'audit.status' | translate }}</dt>
-              <dd>{{ detailEntry()!.success ? ('audit.success' | translate) : ('audit.failure' | translate) }}</dd>
-              @if (detailEntry()!.failureReason) {
-                <dt>{{ 'audit.failureReason' | translate }}</dt>
-                <dd class="detail-error">{{ detailEntry()!.failureReason }}</dd>
-              }
-              @if (detailEntry()!.oldValuesSummary) {
-                <dt>{{ 'audit.oldValues' | translate }}</dt>
-                <dd class="detail-pre">{{ detailEntry()!.oldValuesSummary }}</dd>
-              }
-              @if (detailEntry()!.newValuesSummary) {
-                <dt>{{ 'audit.newValues' | translate }}</dt>
-                <dd class="detail-pre">{{ detailEntry()!.newValuesSummary }}</dd>
-              }
-              @if (detailEntry()!.ipAddress) {
-                <dt>{{ 'audit.ipAddress' | translate }}</dt>
-                <dd>{{ detailEntry()!.ipAddress }}</dd>
-              }
-              @if (detailEntry()!.userAgent) {
-                <dt>{{ 'audit.userAgent' | translate }}</dt>
-                <dd class="detail-pre detail-truncate">{{ detailEntry()!.userAgent }}</dd>
-              }
-            </dl>
+
+          <div class="premium-drawer__body audit-detail__body">
+            @if (detailEntry()!.failureReason) {
+              <div class="audit-detail__callout audit-detail__callout--error">
+                <div class="audit-detail__calloutTitle">{{ 'audit.failureReason' | translate }}</div>
+                <div class="audit-detail__calloutBody">{{ detailEntry()!.failureReason }}</div>
+              </div>
+            }
+
+            <div class="audit-detail__grid">
+              <section class="audit-detail__section">
+                <h4 class="audit-detail__sectionTitle">{{ 'common.details' | translate }}</h4>
+                <div class="audit-detail__kv">
+                  <div class="audit-detail__row">
+                    <div class="audit-detail__label">{{ 'audit.timestamp' | translate }}</div>
+                    <div class="audit-detail__value">{{ formatDate(detailEntry()!.timestamp) }}</div>
+                  </div>
+                  <div class="audit-detail__row">
+                    <div class="audit-detail__label">{{ 'audit.module' | translate }}</div>
+                    <div class="audit-detail__value">{{ detailEntry()!.moduleName ?? '—' }}</div>
+                  </div>
+                  <div class="audit-detail__row">
+                    <div class="audit-detail__label">{{ 'audit.entity' | translate }}</div>
+                    <div class="audit-detail__value">
+                      {{ detailEntry()!.entityName ?? '—' }}
+                      @if (detailEntry()!.entityId) {
+                        <span class="audit-detail__mono audit-detail__pill">#{{ detailEntry()!.entityId }}</span>
+                      }
+                    </div>
+                  </div>
+                  @if (detailEntry()!.ipAddress) {
+                    <div class="audit-detail__row">
+                      <div class="audit-detail__label">{{ 'audit.ipAddress' | translate }}</div>
+                      <div class="audit-detail__value audit-detail__mono">{{ detailEntry()!.ipAddress }}</div>
+                    </div>
+                  }
+                </div>
+              </section>
+
+              <section class="audit-detail__section">
+                <h4 class="audit-detail__sectionTitle">{{ 'audit.user' | translate }}</h4>
+                <div class="audit-detail__kv">
+                  <div class="audit-detail__row">
+                    <div class="audit-detail__label">{{ 'audit.user' | translate }}</div>
+                    <div class="audit-detail__value">{{ detailEntry()!.userEmail ?? detailEntry()!.userFullName ?? ('audit.system' | translate) }}</div>
+                  </div>
+                  <div class="audit-detail__row">
+                    <div class="audit-detail__label">{{ 'audit.action' | translate }}</div>
+                    <div class="audit-detail__value">{{ detailEntry()!.actionType }}</div>
+                  </div>
+                  @if (detailEntry()!.userAgent) {
+                    <div class="audit-detail__row audit-detail__row--stack">
+                      <div class="audit-detail__label">{{ 'audit.userAgent' | translate }}</div>
+                      <div class="audit-detail__value audit-detail__code audit-detail__truncate">{{ detailEntry()!.userAgent }}</div>
+                    </div>
+                  }
+                </div>
+              </section>
+            </div>
+
+            @if (detailEntry()!.oldValuesSummary || detailEntry()!.newValuesSummary) {
+              <section class="audit-detail__section audit-detail__section--changes">
+                <h4 class="audit-detail__sectionTitle">{{ 'audit.changes' | translate }}</h4>
+                <div class="audit-detail__changes">
+                  @if (detailEntry()!.oldValuesSummary) {
+                    <div class="audit-detail__changeCard">
+                      <div class="audit-detail__changeTitle">{{ 'audit.oldValues' | translate }}</div>
+                      <pre class="audit-detail__code">{{ detailEntry()!.oldValuesSummary }}</pre>
+                    </div>
+                  }
+                  @if (detailEntry()!.newValuesSummary) {
+                    <div class="audit-detail__changeCard">
+                      <div class="audit-detail__changeTitle">{{ 'audit.newValues' | translate }}</div>
+                      <pre class="audit-detail__code">{{ detailEntry()!.newValuesSummary }}</pre>
+                    </div>
+                  }
+                </div>
+              </section>
+            }
           </div>
         </div>
       </div>
@@ -218,13 +276,218 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
     }
     .table-loading { padding: var(--space-md) var(--space-lg); }
     .cell-date { white-space: nowrap; font-size: var(--text-body-sm); }
-    .cell-actions { text-align: end; }
-    .detail-list { margin: 0; }
-    .detail-list dt { font-weight: 600; font-size: var(--text-caption); color: var(--color-text-muted); margin-top: var(--space-md); margin-bottom: var(--space-2xs); }
-    .detail-list dd { margin: 0; }
-    .detail-pre { white-space: pre-wrap; word-break: break-word; font-family: var(--font-mono); font-size: var(--text-body-sm); }
-    .detail-truncate { max-height: 80px; overflow: auto; }
-    .detail-error { color: var(--color-error); }
+    .cell-actions { text-align: center; }
+
+    /* —— Audit details modal redesign —— */
+    .audit-detail__header {
+      align-items: flex-start;
+    }
+    .audit-detail__titlewrap {
+      position: relative;
+      z-index: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .audit-detail__title {
+      font-size: clamp(1.05rem, 2vw, 1.35rem);
+      line-height: 1.15;
+    }
+    .audit-detail__subtitle {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: rgba(248, 250, 248, 0.82);
+      min-width: 0;
+    }
+    .audit-detail__who {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 28rem;
+    }
+    .audit-detail__sep {
+      opacity: 0.8;
+    }
+    .audit-detail__action {
+      opacity: 0.95;
+    }
+    .audit-detail__headerActions {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-shrink: 0;
+    }
+    .audit-detail__status {
+      border-color: rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.95);
+    }
+    .audit-detail__body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+    .audit-detail__callout {
+      border-radius: 16px;
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 18%, var(--color-border-light));
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.72));
+      box-shadow: 0 10px 28px rgba(15, 61, 46, 0.06);
+      padding: 12px 14px;
+    }
+    .audit-detail__callout--error {
+      border-color: color-mix(in srgb, rgba(211, 47, 47, 0.55) 55%, var(--gulf-gold) 10%);
+      background: linear-gradient(180deg, rgba(253, 236, 234, 0.92), rgba(255, 255, 255, 0.75));
+    }
+    .audit-detail__calloutTitle {
+      font-weight: 800;
+      font-size: var(--text-body-sm);
+      color: color-mix(in srgb, var(--color-text) 80%, #b91c1c 20%);
+      margin-bottom: 4px;
+    }
+    .audit-detail__calloutBody {
+      font-size: var(--text-body-sm);
+      color: var(--color-text);
+      line-height: 1.45;
+      word-break: break-word;
+    }
+    .audit-detail__grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-md);
+    }
+    .audit-detail__section {
+      border-radius: 18px;
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 16%, var(--color-border-light));
+      background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-bg-elevated) 96%, var(--gulf-emerald) 4%) 0%,
+        rgba(255, 255, 255, 0.55) 100%
+      );
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      padding: 14px;
+    }
+    .audit-detail__sectionTitle {
+      margin: 0 0 10px;
+      font-size: 0.9rem;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      color: color-mix(in srgb, var(--gulf-green-900) 92%, var(--gulf-gold) 8%);
+    }
+    .audit-detail__kv {
+      display: grid;
+      gap: 10px;
+    }
+    .audit-detail__row {
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+    }
+    .audit-detail__row--stack {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .audit-detail__label {
+      font-size: var(--text-caption);
+      font-weight: 700;
+      color: var(--color-text-muted);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .audit-detail__value {
+      font-size: var(--text-body-sm);
+      color: var(--color-text);
+      min-width: 0;
+      word-break: break-word;
+    }
+    .audit-detail__mono {
+      font-family: var(--font-mono);
+    }
+    .audit-detail__pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 10px;
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 18%, var(--color-border));
+      background: color-mix(in srgb, var(--color-bg-elevated) 92%, var(--gulf-green-800) 4%);
+      margin-inline-start: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: color-mix(in srgb, var(--color-text) 82%, var(--gulf-green-900) 18%);
+      max-width: 100%;
+    }
+    .audit-detail__code {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: var(--font-mono);
+      font-size: var(--text-body-sm);
+      padding: 10px 12px;
+      margin: 0;
+      border-radius: 14px;
+      border: 1px solid color-mix(in srgb, var(--gulf-gold) 14%, var(--color-border));
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+    .audit-detail__truncate {
+      max-height: 96px;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .audit-detail__section--changes {
+      padding: 14px;
+    }
+    .audit-detail__changes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-md);
+    }
+    .audit-detail__changeCard {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .audit-detail__changeTitle {
+      font-size: var(--text-caption);
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+    @media (max-width: 860px) {
+      .audit-detail__grid {
+        grid-template-columns: 1fr;
+      }
+      .audit-detail__changes {
+        grid-template-columns: 1fr;
+      }
+      .audit-detail__row {
+        grid-template-columns: 140px minmax(0, 1fr);
+      }
+      .audit-detail__who {
+        max-width: 18rem;
+      }
+    }
+    @media (max-width: 520px) {
+      .audit-detail__headerActions {
+        gap: var(--space-xs);
+      }
+      .audit-detail__status {
+        display: none;
+      }
+      .audit-detail__row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+    }
   `]
 })
 export class AuditLogsPageComponent implements OnInit {
@@ -302,6 +565,7 @@ export class AuditLogsPageComponent implements OnInit {
 
   prevPage(): void { this.page.update(p => Math.max(1, p - 1)); this.load(); }
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
+  setPage(p: number): void { this.page.set(p); this.load(); }
 
   formatDate(iso: string): string {
     if (!iso) return '—';

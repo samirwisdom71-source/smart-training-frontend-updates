@@ -342,17 +342,12 @@
             </div>
           </div>
         }
-        <div class="ent-pagination">
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">
-            {{ 'common.previous' | translate }}
-          </button>
-          <span class="ent-pagination-info"
-            >{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span
-          >
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">
-            {{ 'common.next' | translate }}
-          </button>
-        </div>
+        <app-pagination
+          [page]="page()"
+          [totalPages]="data()?.totalPages ?? 1"
+          [disabled]="loading()"
+          (pageChange)="setPage($event)"
+        />
       }
     </div>
   </div>

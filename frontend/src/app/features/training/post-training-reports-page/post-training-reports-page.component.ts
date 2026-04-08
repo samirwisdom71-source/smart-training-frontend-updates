@@ -8,6 +8,7 @@ import { PageShellComponent } from '../../../shared/page-shell/page-shell.compon
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { PostTrainingReportsApiService } from '../../../core/api/post-training-reports/post-training-reports-api.service';
 import { TrainingProgramsApiService } from '../../../core/api/training-programs/training-programs-api.service';
 import { EmployeesApiService } from '../../../core/api/employees/employees-api.service';
@@ -22,7 +23,7 @@ import type { PagedResult } from '../../../core/models/api-response';
 @Component({
   selector: 'app-post-training-reports-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, DatePipe, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, TooltipDirective],
+  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, DatePipe, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, TooltipDirective, PaginationComponent],
   templateUrl: './post-training-reports-page.component.html',
   styleUrls: ['./post-training-reports-page.component.scss'],
 })
@@ -136,6 +137,10 @@ export class PostTrainingReportsPageComponent implements OnInit {
   }
   nextPage(): void {
     this.page.update(p => p + 1);
+    this.load();
+  }
+  setPage(p: number): void {
+    this.page.set(p);
     this.load();
   }
 

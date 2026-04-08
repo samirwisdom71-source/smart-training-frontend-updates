@@ -7,6 +7,7 @@ import { PageShellComponent } from '../../../shared/page-shell/page-shell.compon
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { EnrollmentsApiService } from '../../../core/api/enrollments/enrollments-api.service';
 import { TrainingProgramsApiService } from '../../../core/api/training-programs/training-programs-api.service';
 import { EmployeesApiService } from '../../../core/api/employees/employees-api.service';
@@ -20,7 +21,7 @@ import type { PagedResult } from '../../../core/models/api-response';
 @Component({
   selector: 'app-enrollments-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, TooltipDirective],
+  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, TooltipDirective, PaginationComponent],
   templateUrl: './enrollments-page.component.html',
   styleUrls: ['./enrollments-page.component.scss'],
 })
@@ -150,6 +151,7 @@ export class EnrollmentsPageComponent implements OnInit {
 
   prevPage(): void { this.page.update(p => Math.max(1, p - 1)); this.load(); }
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
+  setPage(p: number): void { this.page.set(p); this.load(); }
 
   approve(row: EnrollmentListDto): void {
     this.api.approve(row.id).subscribe({ next: () => this.load(), error: (err) => this.error.set(err.error?.message ?? 'Failed') });

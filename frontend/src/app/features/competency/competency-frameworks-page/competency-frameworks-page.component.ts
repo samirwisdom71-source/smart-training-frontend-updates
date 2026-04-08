@@ -5,6 +5,7 @@ import { PageShellComponent } from '../../../shared/page-shell/page-shell.compon
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { CompetencyFrameworkModalComponent } from '../competency-framework-modal/competency-framework-modal.component';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { CompetencyFrameworksApiService } from '../../../core/api/competency-frameworks/competency-frameworks-api.service';
 import { OrganizationsApiService } from '../../../core/api/organizations/organizations-api.service';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -18,7 +19,7 @@ import { ToastService } from '../../../core/toast/toast.service';
 @Component({
   selector: 'app-competency-frameworks-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe, TooltipDirective, CompetencyFrameworkModalComponent],
+  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe, TooltipDirective, CompetencyFrameworkModalComponent, PaginationComponent],
   template: `
     <app-page-shell [title]="'nav.competencyFrameworks' | translate" [breadcrumbs]="breadcrumbs()" [showPageTitle]="false">
       <div class="actions-row" actions>
@@ -166,11 +167,12 @@ import { ToastService } from '../../../core/toast/toast.service';
             </tbody>
           </table>
         </div>
-        <div class="pagination">
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-          <span class="pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
-        </div>
+        <app-pagination
+          [page]="page()"
+          [totalPages]="data()?.totalPages ?? 1"
+          [disabled]="loading()"
+          (pageChange)="setPage($event)"
+        />
       }
     </app-page-shell>
 
@@ -201,12 +203,11 @@ import { ToastService } from '../../../core/toast/toast.service';
     .filter-search { max-width: 280px; }
     .filter-select { max-width: 200px; }
     .table-loading { padding: var(--space-md) 0; }
-    .cell-actions { text-align: end; }
+    .cell-actions { text-align: center; }
     .status-toggle-btn { color: var(--color-text-secondary, #64748b); }
     .status-toggle-btn.status-toggle-btn--active { color: #22c55e; }
     .status-toggle-btn.status-toggle-btn--active:hover { background: rgba(34, 197, 94, 0.18); }
-    .pagination { display: flex; align-items: center; gap: var(--space-md); margin-top: var(--space-lg); flex-wrap: wrap; }
-    .pagination-info { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
+    /* pagination is handled by shared <app-pagination> */
     .premium-primary-btn {
       background: linear-gradient(145deg, var(--gulf-green-800), color-mix(in srgb, var(--gulf-green-700) 86%, var(--gulf-gold) 14%));
       border-color: color-mix(in srgb, var(--gulf-gold) 28%, transparent);
@@ -380,6 +381,7 @@ export class CompetencyFrameworksPageComponent implements OnInit {
 
   prevPage(): void { this.page.update(p => Math.max(1, p - 1)); this.load(); }
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
+  setPage(p: number): void { this.page.set(p); this.load(); }
 
   openCreate(): void {
     if (Date.now() < this.suppressFrameworkModalOpenUntil) return;

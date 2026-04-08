@@ -4,6 +4,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { UsersApiService } from '../../../core/api/users/users-api.service';
 import { RolesApiService } from '../../../core/api/roles/roles-api.service';
 import { EmployeesApiService } from '../../../core/api/employees/employees-api.service';
@@ -17,7 +18,7 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
 @Component({
   selector: 'app-users-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective],
+  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective, PaginationComponent],
   template: `
     <app-page-shell [title]="'nav.usersAndRoles' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true" [showPageTitle]="false">
       <div class="ent-admin-page ent-page-fade-in">
@@ -142,11 +143,12 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
             </tbody>
           </table>
         </div>
-        <div class="pagination ent-pagination">
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-          <span class="ent-pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
-        </div>
+        <app-pagination
+          [page]="page()"
+          [totalPages]="data()?.totalPages ?? 1"
+          [disabled]="loading()"
+          (pageChange)="setPage($event)"
+        />
         </div>
       }
       </div>
@@ -330,7 +332,7 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
       justify-content: center;
       border: 1px solid color-mix(in srgb, var(--gulf-gold) 25%, transparent);
     }
-    .cell-actions { text-align: end; display: flex; flex-wrap: nowrap; gap: var(--space-2xs); justify-content: flex-end; align-items: center; }
+    .cell-actions { text-align: center; display: flex; flex-wrap: nowrap; gap: var(--space-2xs); justify-content: flex-end; align-items: center; }
     .ds-hint { font-size: var(--text-body-sm); color: var(--color-text-secondary); margin: var(--space-xs) 0 0; }
     .checkbox-wrap { display: flex; align-items: center; gap: var(--space-sm); font-size: var(--text-body-sm); cursor: pointer; margin-bottom: var(--space-md); }
     .checkbox-wrap input { accent-color: var(--gulf-green-800); }
@@ -426,6 +428,7 @@ export class UsersPageComponent implements OnInit {
 
   prevPage(): void { this.page.update(p => Math.max(1, p - 1)); this.load(); }
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
+  setPage(p: number): void { this.page.set(p); this.load(); }
 
   initials(name: string): string {
     const parts = name.trim().split(/\s+/);

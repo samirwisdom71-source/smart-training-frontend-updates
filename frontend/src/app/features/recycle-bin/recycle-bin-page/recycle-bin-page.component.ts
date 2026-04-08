@@ -4,7 +4,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { PaginationComponent } from '../../../shared/pagination/pagination.component';
 import { RecycleBinApiService } from '../../../core/api/recycle-bin/recycle-bin-api.service';
+import { UsersApiService } from '../../../core/api/users/users-api.service';
 import { ToastService } from '../../../core/toast/toast.service';
 import type { RecycleBinItemDto, RecycleBinListParams } from '../../../core/api/recycle-bin/recycle-bin-api.models';
 import type { ApiResponse, PagedResult } from '../../../core/models/api-response';
@@ -33,7 +35,7 @@ const MODULE_OPTIONS: { value: string; labelKey: string }[] = [
 @Component({
   selector: 'app-recycle-bin-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective],
+  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective, PaginationComponent],
   template: `
     <app-page-shell [title]="'recycleBin.title' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true" [showPageTitle]="false">
       <div class="ent-admin-page ent-page-fade-in">
@@ -131,7 +133,7 @@ const MODULE_OPTIONS: { value: string; labelKey: string }[] = [
                   <td><span class="ds-badge ds-badge--neutral">{{ item.moduleName }}</span></td>
                   <td>{{ item.displayName || '—' }}</td>
                   <td class="cell-date">{{ formatDate(item.deletedAt) }}</td>
-                  <td>{{ item.deletedBy || '—' }}</td>
+                  <td>{{ deletedByDisplay(item.deletedBy) }}</td>
                   <td class="cell-actions">
                     @if (canRestore(item)) {
                       <button
@@ -153,11 +155,12 @@ const MODULE_OPTIONS: { value: string; labelKey: string }[] = [
             </tbody>
           </table>
         </div>
-        <div class="pagination ent-pagination">
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasPreviousPage" (click)="prevPage()">{{ 'common.previous' | translate }}</button>
-          <span class="ent-pagination-info">{{ 'common.page' | translate }} {{ page() }} {{ 'common.of' | translate }} {{ data()?.totalPages ?? 1 }}</span>
-          <button type="button" class="ds-btn ds-btn--ghost ds-btn--sm" [disabled]="!data()?.hasNextPage" (click)="nextPage()">{{ 'common.next' | translate }}</button>
-        </div>
+        <app-pagination
+          [page]="page()"
+          [totalPages]="data()?.totalPages ?? 1"
+          [disabled]="loading()"
+          (pageChange)="setPage($event)"
+        />
         </div>
       }
       </div>
@@ -182,11 +185,12 @@ const MODULE_OPTIONS: { value: string; labelKey: string }[] = [
     .filter-search { min-width: 0; }
     .table-loading { padding: var(--space-md) var(--space-lg); }
     .cell-date { white-space: nowrap; font-size: var(--text-body-sm); }
-    .cell-actions { text-align: end; }
+    .cell-actions { text-align: center; }
   `]
 })
 export class RecycleBinPageComponent implements OnInit {
   private readonly api = inject(RecycleBinApiService);
+  private readonly usersApi = inject(UsersApiService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
 
@@ -205,6 +209,7 @@ export class RecycleBinPageComponent implements OnInit {
 
   readonly moduleOptions = MODULE_OPTIONS;
   breadcrumbs = computed(() => [{ label: this.translate.instant('recycleBin.title') }]);
+  private readonly deletedByNameById = signal<Record<string, string>>({});
   restoreConfirmMessage = computed(() => {
     const item = this.itemToRestore();
     if (!item) return '';
@@ -243,7 +248,10 @@ export class RecycleBinPageComponent implements OnInit {
     this.api.getPaged(params).subscribe({
       next: (res) => {
         this.loading.set(false);
-        if (res.success && res.data) this.data.set(res.data);
+        if (res.success && res.data) {
+          this.data.set(res.data);
+          this.prefetchDeletedByNames(res.data.items);
+        }
         else this.error.set(res.message ?? 'Failed to load');
       },
       error: (err) => {
@@ -269,11 +277,19 @@ export class RecycleBinPageComponent implements OnInit {
 
   prevPage(): void { this.page.update(p => Math.max(1, p - 1)); this.load(); }
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
+  setPage(p: number): void { this.page.set(p); this.load(); }
 
   formatDate(iso: string | null): string {
     if (!iso) return '—';
     const d = new Date(iso);
     return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' });
+  }
+
+  deletedByDisplay(deletedBy: string | null): string {
+    if (!deletedBy) return '—';
+    if (deletedBy.includes('@')) return deletedBy; // already an email
+    if (!this.isGuidLike(deletedBy)) return deletedBy; // already a readable name
+    return this.deletedByNameById()[deletedBy] ?? deletedBy;
   }
 
   canRestore(item: RecycleBinItemDto): boolean {
@@ -314,5 +330,28 @@ export class RecycleBinPageComponent implements OnInit {
         this.toast.error(err.error?.message ?? err.error?.errors?.[0] ?? err.message ?? this.translate.instant('dialog.error'));
       }
     });
+  }
+
+  private prefetchDeletedByNames(items: RecycleBinItemDto[]): void {
+    const current = this.deletedByNameById();
+    const uniqueIds = Array.from(new Set(items.map(i => i.deletedBy).filter((v): v is string => !!v)));
+    const unresolved = uniqueIds.filter(id => this.isGuidLike(id) && !current[id]);
+    for (const id of unresolved) {
+      this.usersApi.getById(id).subscribe({
+        next: (res) => {
+          if (!res.success || !res.data) return;
+          const name = res.data.fullName || res.data.email || id;
+          this.deletedByNameById.update(map => ({ ...map, [id]: name }));
+        },
+        error: () => {
+          // ignore lookup failures; we'll fall back to the raw id
+        }
+      });
+    }
+  }
+
+  private isGuidLike(value: string): boolean {
+    // 8-4-4-4-12 hex, common for user ids
+    return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(value);
   }
 }
