@@ -2,14 +2,15 @@ import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, com
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Chart, type ChartConfiguration, registerables } from 'chart.js';
+import * as echarts from 'echarts';
+import type { ECharts, EChartsOption } from 'echarts';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { ImpactApiService } from '../../../core/api/impact/impact-api.service';
 import { TrainingProgramsApiService } from '../../../core/api/training-programs/training-programs-api.service';
 import { EmployeesApiService } from '../../../core/api/employees/employees-api.service';
 import type { ImpactComparisonDto, ImpactComparisonRowDto } from '../../../core/api/impact/impact-api.models';
-
-Chart.register(...registerables);
+import { buildGroupedBarVerticalOption } from '../../dashboard/utils/dashboard-echarts.options';
+import { getChartHostPixelSize, scheduleEChartsResize } from '../../dashboard/utils/dashboard-echarts-host';
 
 @Component({
   selector: 'app-impact-page',
@@ -24,10 +25,12 @@ export class ImpactPageComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly employeesApi = inject(EmployeesApiService);
   private readonly translate = inject(TranslateService);
 
-  @ViewChild('comparisonChart') private comparisonChartRef?: ElementRef<HTMLCanvasElement>;
-  @ViewChild('deltaChart') private deltaChartRef?: ElementRef<HTMLCanvasElement>;
-  private comparisonChart: Chart | null = null;
-  private deltaChart: Chart | null = null;
+  @ViewChild('comparisonChartHost') private comparisonChartHostRef?: ElementRef<HTMLDivElement>;
+  @ViewChild('deltaChartHost') private deltaChartHostRef?: ElementRef<HTMLDivElement>;
+  private comparisonChart: ECharts | null = null;
+  private deltaChart: ECharts | null = null;
+  private comparisonResizeObserver: ResizeObserver | null = null;
+  private deltaResizeObserver: ResizeObserver | null = null;
   private viewInitialized = false;
 
   readonly loading = signal(false);
@@ -185,12 +188,14 @@ export class ImpactPageComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.viewInitialized) return;
 
     const rows = this.comparisonChartRows();
+    this.teardownChartObservers();
+
     if (this.comparisonChart) {
-      this.comparisonChart.destroy();
+      this.comparisonChart.dispose();
       this.comparisonChart = null;
     }
     if (this.deltaChart) {
-      this.deltaChart.destroy();
+      this.deltaChart.dispose();
       this.deltaChart = null;
     }
 
@@ -200,96 +205,86 @@ export class ImpactPageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const labels = rows.map((row) => this.chartLabel(row));
 
-    const comparisonConfig: ChartConfiguration<'bar'> = {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: this.translate.instant('impact.evaluationAverage'),
-            data: rows.map((row) => row.evaluationAverageScore),
-            backgroundColor: 'rgba(37, 99, 235, 0.78)',
-            borderRadius: 8,
-          },
-          {
-            label: this.translate.instant('impact.reportCurrentAverage'),
-            data: rows.map((row) => row.reportCurrentAverageLevel),
-            backgroundColor: 'rgba(16, 185, 129, 0.78)',
-            borderRadius: 8,
-          },
-          {
-            label: this.translate.instant('impact.impactAverage'),
-            data: rows.map((row) => row.impactAverageScore),
-            backgroundColor: 'rgba(249, 115, 22, 0.78)',
-            borderRadius: 8,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom' },
+    const comparisonOption: EChartsOption = buildGroupedBarVerticalOption(
+      labels,
+      [
+        {
+          name: this.translate.instant('impact.evaluationAverage'),
+          data: rows.map((row) => row.evaluationAverageScore),
+          color: '#2563eb',
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-            suggestedMax: 5,
-          },
+        {
+          name: this.translate.instant('impact.reportCurrentAverage'),
+          data: rows.map((row) => row.reportCurrentAverageLevel),
+          color: '#10b981',
         },
-      },
-    };
+        {
+          name: this.translate.instant('impact.impactAverage'),
+          data: rows.map((row) => row.impactAverageScore),
+          color: '#f97316',
+        },
+      ],
+      { min: 0, max: 5 }
+    );
 
-    const deltaConfig: ChartConfiguration<'bar'> = {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: this.translate.instant('impact.reportImprovement'),
-            data: rows.map((row) => row.reportImprovementDelta),
-            backgroundColor: 'rgba(139, 92, 246, 0.78)',
-            borderRadius: 8,
-          },
-          {
-            label: this.translate.instant('impact.impactVsEvaluationDelta'),
-            data: rows.map((row) => this.impactVsEvaluationDelta(row)),
-            backgroundColor: 'rgba(236, 72, 153, 0.78)',
-            borderRadius: 8,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom' },
+    const deltaOption: EChartsOption = buildGroupedBarVerticalOption(
+      labels,
+      [
+        {
+          name: this.translate.instant('impact.reportImprovement'),
+          data: rows.map((row) => row.reportImprovementDelta),
+          color: '#8b5cf6',
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-          },
+        {
+          name: this.translate.instant('impact.impactVsEvaluationDelta'),
+          data: rows.map((row) => this.impactVsEvaluationDelta(row)),
+          color: '#ec4899',
         },
-      },
-    };
+      ],
+      { min: 0 }
+    );
 
-    const cmpCanvas = this.comparisonChartRef?.nativeElement;
-    const deltaCanvas = this.deltaChartRef?.nativeElement;
-    if (this.chartsExpanded() && cmpCanvas) {
-      this.comparisonChart = new Chart(cmpCanvas, comparisonConfig);
+    const cmpHost = this.comparisonChartHostRef?.nativeElement;
+    const deltaHost = this.deltaChartHostRef?.nativeElement;
+    if (this.chartsExpanded() && cmpHost) {
+      this.comparisonChart = this.initEChart(cmpHost, comparisonOption);
+      this.comparisonResizeObserver = new ResizeObserver(() => this.comparisonChart?.resize());
+      this.comparisonResizeObserver.observe(cmpHost);
     }
-    if (this.chartsExpanded() && deltaCanvas) {
-      this.deltaChart = new Chart(deltaCanvas, deltaConfig);
+    if (this.chartsExpanded() && deltaHost) {
+      this.deltaChart = this.initEChart(deltaHost, deltaOption);
+      this.deltaResizeObserver = new ResizeObserver(() => this.deltaChart?.resize());
+      this.deltaResizeObserver.observe(deltaHost);
     }
   }
 
+  private initEChart(host: HTMLDivElement, option: EChartsOption): ECharts {
+    const { width, height } = getChartHostPixelSize(host);
+    const chart = echarts.init(host, undefined, {
+      renderer: 'canvas',
+      width,
+      height,
+    });
+    chart.setOption(option, { notMerge: true });
+    scheduleEChartsResize(chart, host);
+    return chart;
+  }
+
+  private teardownChartObservers(): void {
+    this.comparisonResizeObserver?.disconnect();
+    this.comparisonResizeObserver = null;
+    this.deltaResizeObserver?.disconnect();
+    this.deltaResizeObserver = null;
+  }
+
   private destroyCharts(): void {
+    this.teardownChartObservers();
     if (this.comparisonChart) {
-      this.comparisonChart.destroy();
+      this.comparisonChart.dispose();
       this.comparisonChart = null;
     }
     if (this.deltaChart) {
-      this.deltaChart.destroy();
+      this.deltaChart.dispose();
       this.deltaChart = null;
     }
   }

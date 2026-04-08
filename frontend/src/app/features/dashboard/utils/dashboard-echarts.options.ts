@@ -5,18 +5,19 @@ import * as echarts from 'echarts';
 export const DASHBOARD_CHART_FONT = 'Cairo, "Segoe UI", system-ui, sans-serif';
 
 export const CHART_COLORS = {
-  primary: '#0a4d52',
-  accent: '#b8860b',
-  success: '#047857',
-  info: '#0369a1',
-  coral: '#c2410c',
+  primary: '#0f766e',
+  accent: '#c4a047',
+  success: '#059669',
+  info: '#0284c7',
+  coral: '#ea580c',
   /** Axis tick / category labels — strong contrast on white cards */
   axisLabel: '#475569',
   /** Legend & secondary labels */
   legendText: '#334155',
   /** @deprecated use axisLabel — kept for quick refactors */
   muted: '#64748b',
-  grid: '#e2e8f0'
+  /** Horizontal value grid */
+  grid: 'rgba(148, 163, 184, 0.35)'
 };
 
 export const PALETTE = [
@@ -25,9 +26,16 @@ export const PALETTE = [
   CHART_COLORS.success,
   CHART_COLORS.info,
   CHART_COLORS.coral,
-  '#5b21b6',
+  '#7c3aed',
   '#64748b'
 ];
+
+/** Shared animation — presentation only; does not affect data */
+const chartAnimation = (): Pick<EChartsOption, 'animationDuration' | 'animationDurationUpdate' | 'animationEasing'> => ({
+  animationDuration: 780,
+  animationDurationUpdate: 360,
+  animationEasing: 'cubicOut'
+});
 
 function hexToRgba(hex: string, alpha: number): string {
   const h = hex.replace('#', '').slice(0, 6);
@@ -49,25 +57,29 @@ function text(fontSize: number, color: string) {
 
 const tooltipAxis = (): EChartsOption['tooltip'] => ({
   trigger: 'axis',
-  backgroundColor: 'rgba(30, 41, 59, 0.95)',
-  borderWidth: 0,
-  padding: 12,
+  backgroundColor: 'rgba(15, 23, 42, 0.94)',
+  borderColor: 'rgba(148, 163, 184, 0.22)',
+  borderWidth: 1,
+  padding: [12, 14],
+  extraCssText: 'border-radius: 12px; box-shadow: 0 18px 44px rgba(15, 23, 42, 0.18);',
   textStyle: {
     fontFamily: DASHBOARD_CHART_FONT,
     fontSize: 13,
-    color: '#fff'
+    color: '#f8fafc'
   }
 });
 
 const tooltipItem = (): EChartsOption['tooltip'] => ({
   trigger: 'item',
-  backgroundColor: 'rgba(30, 41, 59, 0.95)',
-  borderWidth: 0,
-  padding: 12,
+  backgroundColor: 'rgba(15, 23, 42, 0.94)',
+  borderColor: 'rgba(148, 163, 184, 0.22)',
+  borderWidth: 1,
+  padding: [12, 14],
+  extraCssText: 'border-radius: 12px; box-shadow: 0 18px 44px rgba(15, 23, 42, 0.18);',
   textStyle: {
     fontFamily: DASHBOARD_CHART_FONT,
     fontSize: 13,
-    color: '#fff'
+    color: '#f8fafc'
   }
 });
 
@@ -109,9 +121,19 @@ export function buildLineOption(
       fontFamily: DASHBOARD_CHART_FONT,
       color: CHART_COLORS.legendText
     },
-    animationDurationUpdate: 280,
+    ...chartAnimation(),
     grid: gridCompactCartesian(),
-    tooltip: tooltipAxis(),
+    tooltip: {
+      ...tooltipAxis(),
+      axisPointer: {
+        type: 'line',
+        lineStyle: {
+          color: hexToRgba(color, 0.35),
+          width: 2,
+          type: 'dashed'
+        }
+      }
+    },
     xAxis: {
       type: 'category',
       position: 'bottom',
@@ -124,7 +146,9 @@ export function buildLineOption(
     yAxis: {
       type: 'value',
       position: 'left',
-      splitLine: { lineStyle: { color: CHART_COLORS.grid } },
+      splitLine: {
+        lineStyle: { color: CHART_COLORS.grid, type: 'dashed', width: 1 }
+      },
       axisLabel: { ...text(11, CHART_COLORS.axisLabel) }
     },
     series: [
@@ -134,9 +158,9 @@ export function buildLineOption(
         smooth: true,
         smoothMonotone: 'x',
         symbol: 'circle',
-        symbolSize: 6,
+        symbolSize: 7,
         showSymbol: true,
-        lineStyle: { color, width: 2 },
+        lineStyle: { color, width: 2.5, shadowBlur: 10, shadowColor: hexToRgba(color, 0.25), shadowOffsetY: 4 },
         itemStyle: {
           color: '#ffffff',
           borderColor: color,
@@ -163,9 +187,15 @@ export function buildBarVerticalOption(
       fontFamily: DASHBOARD_CHART_FONT,
       color: CHART_COLORS.legendText
     },
-    animationDurationUpdate: 280,
+    ...chartAnimation(),
     grid: gridCompactCartesian(),
-    tooltip: tooltipAxis(),
+    tooltip: {
+      ...tooltipAxis(),
+      axisPointer: {
+        type: 'shadow',
+        shadowStyle: { color: 'rgba(15, 23, 42, 0.06)' }
+      }
+    },
     xAxis: {
       type: 'category',
       position: 'bottom',
@@ -182,7 +212,9 @@ export function buildBarVerticalOption(
     yAxis: {
       type: 'value',
       position: 'left',
-      splitLine: { lineStyle: { color: CHART_COLORS.grid } },
+      splitLine: {
+        lineStyle: { color: CHART_COLORS.grid, type: 'dashed', width: 1 }
+      },
       axisLabel: { ...text(11, CHART_COLORS.axisLabel) }
     },
     series: [
@@ -192,12 +224,22 @@ export function buildBarVerticalOption(
         barMaxWidth: 48,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: hexToRgba(color, 0.42) },
-            { offset: 1, color: hexToRgba(color, 0.1) }
+            { offset: 0, color: hexToRgba(color, 0.55) },
+            { offset: 1, color: hexToRgba(color, 0.12) }
           ]),
           borderColor: color,
-          borderWidth: 2,
-          borderRadius: [10, 10, 0, 0]
+          borderWidth: 1,
+          borderRadius: [12, 12, 0, 0],
+          shadowBlur: 12,
+          shadowColor: hexToRgba(color, 0.18),
+          shadowOffsetY: 4
+        },
+        emphasis: {
+          focus: 'self',
+          itemStyle: {
+            shadowBlur: 18,
+            shadowOffsetY: 6
+          }
         }
       }
     ]
@@ -214,13 +256,21 @@ export function buildBarHorizontalOption(
       fontFamily: DASHBOARD_CHART_FONT,
       color: CHART_COLORS.legendText
     },
-    animationDurationUpdate: 280,
+    ...chartAnimation(),
     grid: gridCompactHorizontal(),
-    tooltip: tooltipAxis(),
+    tooltip: {
+      ...tooltipAxis(),
+      axisPointer: {
+        type: 'shadow',
+        shadowStyle: { color: 'rgba(15, 23, 42, 0.06)' }
+      }
+    },
     xAxis: {
       type: 'value',
       position: 'bottom',
-      splitLine: { lineStyle: { color: CHART_COLORS.grid } },
+      splitLine: {
+        lineStyle: { color: CHART_COLORS.grid, type: 'dashed', width: 1 }
+      },
       axisLabel: { ...text(11, CHART_COLORS.axisLabel) }
     },
     yAxis: {
@@ -243,12 +293,22 @@ export function buildBarHorizontalOption(
         barMaxWidth: 28,
         itemStyle: {
           color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
-            { offset: 0, color: hexToRgba(color, 0.42) },
+            { offset: 0, color: hexToRgba(color, 0.55) },
             { offset: 1, color: hexToRgba(color, 0.12) }
           ]),
           borderColor: color,
-          borderWidth: 2,
-          borderRadius: [0, 10, 10, 0]
+          borderWidth: 1,
+          borderRadius: [0, 12, 12, 0],
+          shadowBlur: 10,
+          shadowColor: hexToRgba(color, 0.16),
+          shadowOffsetX: 3
+        },
+        emphasis: {
+          focus: 'self',
+          itemStyle: {
+            shadowBlur: 16,
+            shadowOffsetX: 5
+          }
         }
       }
     ]
@@ -266,9 +326,15 @@ export function buildBarVerticalSimpleOption(
       fontFamily: DASHBOARD_CHART_FONT,
       color: CHART_COLORS.legendText
     },
-    animationDurationUpdate: 280,
+    ...chartAnimation(),
     grid: gridCompactCartesian(),
-    tooltip: tooltipAxis(),
+    tooltip: {
+      ...tooltipAxis(),
+      axisPointer: {
+        type: 'shadow',
+        shadowStyle: { color: 'rgba(15, 23, 42, 0.06)' }
+      }
+    },
     xAxis: {
       type: 'category',
       position: 'bottom',
@@ -284,7 +350,9 @@ export function buildBarVerticalSimpleOption(
     yAxis: {
       type: 'value',
       position: 'left',
-      splitLine: { lineStyle: { color: CHART_COLORS.grid } },
+      splitLine: {
+        lineStyle: { color: CHART_COLORS.grid, type: 'dashed', width: 1 }
+      },
       axisLabel: { ...text(11, CHART_COLORS.axisLabel) }
     },
     series: [
@@ -293,10 +361,13 @@ export function buildBarVerticalSimpleOption(
         data: values,
         barMaxWidth: 40,
         itemStyle: {
-          color: hexToRgba(color, 0.28),
+          color: hexToRgba(color, 0.32),
           borderColor: color,
           borderWidth: 1,
-          borderRadius: [6, 6, 0, 0]
+          borderRadius: [8, 8, 0, 0],
+          shadowBlur: 8,
+          shadowColor: hexToRgba(color, 0.12),
+          shadowOffsetY: 3
         }
       }
     ]
@@ -315,12 +386,17 @@ export function buildRadarOption(
       fontFamily: DASHBOARD_CHART_FONT,
       color: CHART_COLORS.legendText
     },
-    animationDurationUpdate: 280,
+    ...chartAnimation(),
     tooltip: tooltipItem(),
     radar: {
       indicator: labels.map(name => ({ name, max })),
-      splitLine: { lineStyle: { color: CHART_COLORS.grid } },
-      splitArea: { show: false },
+      splitLine: { lineStyle: { color: CHART_COLORS.grid, type: 'dashed' } },
+      splitArea: {
+        show: true,
+        areaStyle: {
+          color: ['rgba(148, 163, 184, 0.06)', 'rgba(148, 163, 184, 0.02)']
+        }
+      },
       axisLine: { lineStyle: { color: CHART_COLORS.grid } },
       axisName: {
         color: CHART_COLORS.axisLabel,
@@ -373,15 +449,19 @@ export function buildPolarAreaRoseOption(
       fontFamily: DASHBOARD_CHART_FONT,
       color: CHART_COLORS.legendText
     },
-    animationDurationUpdate: 280,
+    ...chartAnimation(),
     tooltip: tooltipItem(),
     legend: {
       bottom: 0,
       left: 'center',
+      icon: 'circle',
+      itemWidth: 8,
+      itemHeight: 8,
       textStyle: {
         fontFamily: DASHBOARD_CHART_FONT,
         fontSize: 12,
-        color: CHART_COLORS.legendText
+        color: CHART_COLORS.legendText,
+        padding: [0, 0, 0, 4]
       },
       itemGap: 12
     },
@@ -389,9 +469,10 @@ export function buildPolarAreaRoseOption(
       {
         type: 'pie',
         roseType: 'area',
-        radius: [16, '66%'],
+        radius: [18, '66%'],
         center: ['50%', '44%'],
         label: { show: false },
+        padAngle: 2,
         data
       }
     ]
@@ -420,7 +501,7 @@ export function buildDoughnutOption(
       fontFamily: DASHBOARD_CHART_FONT,
       color: CHART_COLORS.legendText
     },
-    animationDurationUpdate: 280,
+    ...chartAnimation(),
     tooltip: tooltipItem(),
     legend: {
       orient: 'horizontal',
@@ -443,6 +524,7 @@ export function buildDoughnutOption(
         radius: [`${cutoutInnerPercent}%`, `${cutoutOuterPercent}%`],
         center: ['50%', '42%'],
         avoidLabelOverlap: true,
+        padAngle: 2,
         label: { show: false },
         emphasis: {
           scale: true,
@@ -473,16 +555,20 @@ export function buildPieOption(
       fontFamily: DASHBOARD_CHART_FONT,
       color: CHART_COLORS.legendText
     },
-    animationDurationUpdate: 280,
+    ...chartAnimation(),
     tooltip: tooltipItem(),
     legend: {
       orient: 'horizontal',
       bottom: 0,
       left: 'center',
+      icon: 'circle',
+      itemWidth: 8,
+      itemHeight: 8,
       textStyle: {
         fontFamily: DASHBOARD_CHART_FONT,
         fontSize: 12,
-        color: CHART_COLORS.legendText
+        color: CHART_COLORS.legendText,
+        padding: [0, 0, 0, 4]
       },
       itemGap: 14
     },
@@ -491,10 +577,109 @@ export function buildPieOption(
         type: 'pie',
         radius: ['0%', '62%'],
         center: ['50%', '42%'],
+        padAngle: 1.5,
         label: { show: false },
         data
       }
     ]
+  };
+}
+
+/** Grouped vertical bars (e.g. Impact comparison) — same series semantics as Chart.js grouped bar */
+export interface GroupedBarSeriesInput {
+  name: string;
+  /** Values as returned from the API; null/undefined gaps are preserved for display */
+  data: (number | null | undefined)[];
+  /** Hex or css color — used for gradient + shadow */
+  color: string;
+}
+
+export function buildGroupedBarVerticalOption(
+  categories: string[],
+  seriesList: GroupedBarSeriesInput[],
+  yAxis?: { min?: number; max?: number }
+): EChartsOption {
+  const legendRows = seriesList.length > 2 ? 1 : 0;
+  return {
+    textStyle: {
+      fontFamily: DASHBOARD_CHART_FONT,
+      color: CHART_COLORS.legendText
+    },
+    ...chartAnimation(),
+    grid: {
+      left: 52,
+      right: 18,
+      top: 22,
+      bottom: 88 + legendRows * 14,
+      containLabel: false
+    },
+    tooltip: {
+      ...tooltipAxis(),
+      axisPointer: {
+        type: 'shadow',
+        shadowStyle: { color: 'rgba(15, 23, 42, 0.07)' }
+      }
+    },
+    legend: {
+      bottom: 4,
+      left: 'center',
+      icon: 'roundRect',
+      itemWidth: 12,
+      itemHeight: 8,
+      itemGap: 18,
+      textStyle: {
+        fontFamily: DASHBOARD_CHART_FONT,
+        fontSize: 12,
+        color: CHART_COLORS.legendText
+      }
+    },
+    xAxis: {
+      type: 'category',
+      position: 'bottom',
+      data: categories,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: {
+        ...text(11, CHART_COLORS.axisLabel),
+        rotate: categories.length > 6 ? 32 : 0,
+        interval: 0,
+        hideOverlap: true
+      }
+    },
+    yAxis: {
+      type: 'value',
+      position: 'left',
+      min: yAxis?.min,
+      max: yAxis?.max,
+      splitLine: {
+        lineStyle: { color: CHART_COLORS.grid, type: 'dashed', width: 1 }
+      },
+      axisLabel: { ...text(11, CHART_COLORS.axisLabel) }
+    },
+    series: seriesList.map(s => ({
+      name: s.name,
+      type: 'bar' as const,
+      data: s.data.map(v => (v == null || Number.isNaN(v as number) ? null : v)),
+      barMaxWidth: 22,
+      barGap: '12%',
+      itemStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: hexToRgba(s.color, 0.92) },
+          { offset: 1, color: hexToRgba(s.color, 0.38) }
+        ]),
+        borderRadius: [8, 8, 2, 2],
+        shadowBlur: 10,
+        shadowColor: hexToRgba(s.color, 0.22),
+        shadowOffsetY: 3
+      },
+      emphasis: {
+        focus: 'series',
+        itemStyle: {
+          shadowBlur: 16,
+          shadowOffsetY: 5
+        }
+      }
+    }))
   };
 }
 

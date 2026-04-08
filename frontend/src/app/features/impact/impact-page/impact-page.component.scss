@@ -876,10 +876,18 @@
   box-sizing: border-box;
 }
 
-.impact-chart-card__canvas canvas {
-  display: block;
-  width: 100% !important;
-  max-width: 100%;
+.impact-echarts-wrap {
+  position: relative;
+  width: 100%;
+  height: min(380px, 48vh);
+  min-height: 300px;
+}
+
+.impact-echarts-host {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
 }
 
 /* —— KPI skeleton —— */

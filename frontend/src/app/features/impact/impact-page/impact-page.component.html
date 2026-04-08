@@ -171,7 +171,9 @@
                         <p class="impact-chart-inline-head__hint">{{ 'impact.overviewChartHint' | translate }}</p>
                       </div>
                       <div class="impact-chart-card__canvas">
-                        <canvas #comparisonChart></canvas>
+                        <div class="impact-echarts-wrap" dir="ltr">
+                          <div class="impact-echarts-host" #comparisonChartHost></div>
+                        </div>
                       </div>
                     </div>
                     <div class="impact-chart-disclosure__panel impact-chart-disclosure__panel--split">
@@ -180,7 +182,9 @@
                         <p class="impact-chart-inline-head__hint">{{ 'impact.deltaChartHint' | translate }}</p>
                       </div>
                       <div class="impact-chart-card__canvas">
-                        <canvas #deltaChart></canvas>
+                        <div class="impact-echarts-wrap" dir="ltr">
+                          <div class="impact-echarts-host" #deltaChartHost></div>
+                        </div>
                       </div>
                     </div>
                   </div>

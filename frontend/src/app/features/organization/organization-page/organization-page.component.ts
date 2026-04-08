@@ -218,7 +218,7 @@ const OU_TYPES: OrganizationalUnitType[] = ['Sector', 'Department', 'Section', '
           <app-pagination
             [page]="orgPage()"
             [totalPages]="orgData()?.totalPages ?? 1"
-            [disabled]="loadingOrg()"
+            [disabled]="loading()"
             (pageChange)="setOrgPage($event)"
           />
         }
