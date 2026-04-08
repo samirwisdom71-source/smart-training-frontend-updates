@@ -1,4 +1,4 @@
-import { Component, HostListener, input, output } from '@angular/core';
+import { Component, HostListener, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { NotificationService } from '../../core/notifications/notification.service';
@@ -6,13 +6,15 @@ import { NotificationBellComponent } from './notification-bell/notification-bell
 import { LanguageSwitcherComponent } from './language-switcher/language-switcher.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { appConfig } from '../../config/app.config';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [NotificationBellComponent, LanguageSwitcherComponent, TranslateModule, RouterLink],
+  imports: [NotificationBellComponent, LanguageSwitcherComponent, TranslateModule, RouterLink, ConfirmDialogComponent],
   template: `
-    <header class="header-inner">
+    <div class="header-bar">
+      <header class="header-inner">
       <div class="header-start">
         <button
           type="button"
@@ -65,7 +67,7 @@ import { appConfig } from '../../config/app.config';
             @if (menuOpen) {
               <div class="user-menu">
                 <a routerLink="/profile" class="user-menu__item">{{ 'nav.profile' | translate }}</a>
-                <button type="button" class="user-menu__item user-menu__item--danger" (click)="logout()">
+                <button type="button" class="user-menu__item user-menu__item--danger" (click)="openLogoutConfirm()">
                   {{ 'auth.logout' | translate }}
                 </button>
               </div>
@@ -74,6 +76,21 @@ import { appConfig } from '../../config/app.config';
         }
       </div>
     </header>
+    </div>
+
+    @if (logoutConfirmOpen()) {
+      <app-confirm-dialog
+        variant="signOut"
+        [title]="'auth.logoutConfirmTitle' | translate"
+        [message]="'auth.logoutConfirmMessage' | translate"
+        [confirmLabel]="'auth.logout' | translate"
+        [cancelLabel]="'common.cancel' | translate"
+        [busy]="logoutBusy()"
+        [busyLabel]="'auth.loggingOut' | translate"
+        (confirm)="confirmLogout()"
+        (cancel)="cancelLogout()"
+      />
+    }
   `,
   styleUrl: './header.component.scss',
 })
@@ -87,6 +104,8 @@ export class HeaderComponent {
     private notifications: NotificationService
   ) {}
   menuOpen = false;
+  readonly logoutConfirmOpen = signal(false);
+  readonly logoutBusy = signal(false);
 
   onNavMenuToggle(ev: Event): void {
     ev.stopPropagation();
@@ -104,8 +123,20 @@ export class HeaderComponent {
     }
   }
 
-  logout(): void {
+  openLogoutConfirm(): void {
     this.menuOpen = false;
+    this.logoutBusy.set(false);
+    this.logoutConfirmOpen.set(true);
+  }
+
+  cancelLogout(): void {
+    if (this.logoutBusy()) return;
+    this.logoutConfirmOpen.set(false);
+  }
+
+  confirmLogout(): void {
+    if (this.logoutBusy()) return;
+    this.logoutBusy.set(true);
     this.notifications.disconnectHub();
     this.auth.logout();
   }

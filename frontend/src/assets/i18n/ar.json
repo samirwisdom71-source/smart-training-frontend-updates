@@ -54,6 +54,9 @@
   "auth": {
     "login": "تسجيل الدخول",
     "logout": "تسجيل الخروج",
+    "logoutConfirmTitle": "تسجيل الخروج؟",
+    "logoutConfirmMessage": "ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى حسابك.",
+    "loggingOut": "جارٍ تسجيل الخروج...",
     "email": "البريد الإلكتروني",
     "password": "كلمة المرور",
     "currentPassword": "كلمة المرور الحالية",

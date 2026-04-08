@@ -96,7 +96,7 @@ $login-ease: cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
   color: var(--gulf-text);
   border: 1px solid rgba(200, 164, 93, 0.35);
-  background: rgba(12, 47, 37, 0.45);
+  background: rgba(12, 47, 37, 0.877);
   backdrop-filter: blur(12px);
   transition:
     border-color 0.2s $login-ease,
@@ -111,7 +111,7 @@ $login-ease: cubic-bezier(0.4, 0, 0.2, 1);
 
 .login-back:hover {
   border-color: rgba(214, 185, 122, 0.55);
-  background: rgba(18, 74, 57, 0.55);
+  background: rgba(1, 51, 36, 0.89);
   transform: translateY(-2px);
 }
 

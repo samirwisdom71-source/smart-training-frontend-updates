@@ -54,6 +54,9 @@
   "auth": {
     "login": "Sign in",
     "logout": "Logout",
+    "logoutConfirmTitle": "Sign out?",
+    "logoutConfirmMessage": "You will need to sign in again to access your account.",
+    "loggingOut": "Signing out...",
     "email": "Email",
     "password": "Password",
     "currentPassword": "Current password",
