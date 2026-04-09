@@ -11,7 +11,11 @@ import type { AssessmentDto, SaveManagerReviewRequest } from '../../../core/api/
   standalone: true,
   imports: [RouterModule, FormsModule, TranslateModule, PageShellComponent],
   template: `
-    <app-page-shell [title]="'assessments.managerReviewTitle' | translate" [breadcrumbs]="breadcrumbs()">
+    <app-page-shell
+      [title]="'assessments.managerReviewTitle' | translate"
+      [breadcrumbs]="breadcrumbs()"
+      [showBack]="true"
+    >
       <div content>
         @if (loading()) {
           <div class="table-loading">

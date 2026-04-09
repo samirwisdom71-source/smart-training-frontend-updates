@@ -20,11 +20,29 @@ import type { PositionListDto } from '../../../core/api/positions/positions-api.
 import type { JobListDto } from '../../../core/api/jobs/jobs-api.models';
 import type { OrganizationalUnitListDto } from '../../../core/api/organizational-units/organizational-units-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-employees-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective, PaginationComponent],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    TooltipDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   template: `
     <app-page-shell [title]="'nav.employees' | translate" [breadcrumbs]="breadcrumbs()" [showPageTitle]="false">
       <div class="employees-page ds-animate-fade-up" data-delay="1">
@@ -75,6 +93,7 @@ import type { PagedResult } from '../../../core/models/api-response';
             </div>
           </div>
           <div class="ds-filterbar__actions">
+            <app-data-view-toggle />
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm employees-secondary-btn" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
@@ -101,6 +120,7 @@ import type { PagedResult } from '../../../core/models/api-response';
           }
         </div>
       } @else {
+        @if (dataViewPref.mode() === 'table') {
         <div class="ds-table-wrap employees-table-wrap">
           <table class="ds-table employees-table">
             <thead>
@@ -188,6 +208,56 @@ import type { PagedResult } from '../../../core/models/api-response';
             </tbody>
           </table>
         </div>
+        } @else {
+          <div class="lux-dc-page-pad">
+            <app-lux-data-card-grid>
+              @for (e of data()!.items; track e.id) {
+                <app-lux-data-card [title]="getEmployeeDisplayName(e)" [subtitle]="e.employeeNumber" [interactive]="true">
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.email' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ e.email ?? '—' }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.status' | translate }}</span>
+                      <span class="lux-dc-meta__value">
+                        <span class="ds-badge" [class.ds-badge--success]="e.status === 'Active'" [class.ds-badge--neutral]="e.status !== 'Active'">
+                          {{ e.status === 'Active' ? ('status.active' | translate) : e.status === 'Inactive' ? ('status.inactive' | translate) : e.status }}
+                        </span>
+                      </span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.jobTitle' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ getLocalizedText(e.jobTitleAr, e.jobTitleEn) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.organizationalUnit' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ getLocalizedOuName(e.organizationalUnitId, e.organizationalUnitNameAr, e.organizationalUnitNameEn) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.manager' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ getLocalizedText(e.managerNameAr, e.managerNameEn) }}</span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="lux-dc-actions-inherit">
+                    @if (canEdit()) {
+                      <app-lux-action-icon kind="edit" [label]="'common.edit' | translate" (activate)="openEdit(e)" />
+                      <app-lux-action-icon
+                        kind="toggle"
+                        [activeHighlight]="e.status === 'Active'"
+                        [label]="'org.setStatus' | translate"
+                        (activate)="setStatus(e)"
+                      />
+                    }
+                    @if (canDelete()) {
+                      <app-lux-action-icon kind="delete" [danger]="true" [label]="'common.delete' | translate" (activate)="confirmDelete(e)" />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"
@@ -570,6 +640,9 @@ import type { PagedResult } from '../../../core/models/api-response';
       border-color: var(--gulf-gold);
       box-shadow: 0 10px 26px rgba(15, 61, 46, 0.12), 0 0 22px rgba(200, 164, 93, 0.18);
     }
+
+    .lux-dc-page-pad { padding: var(--space-md) 0; }
+    .lux-dc-actions-inherit { display: contents; }
   `]
 })
 export class EmployeesPageComponent implements OnInit {
@@ -581,6 +654,7 @@ export class EmployeesPageComponent implements OnInit {
   private readonly rolesApi = inject(RolesApiService);
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
 

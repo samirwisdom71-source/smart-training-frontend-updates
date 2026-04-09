@@ -49,7 +49,10 @@
     "collapseSidebar": "طي القائمة",
     "toggleNavigation": "فتح قائمة التنقل",
     "fromDate": "من تاريخ",
-    "toDate": "إلى تاريخ"
+    "toDate": "إلى تاريخ",
+    "viewTable": "جدول",
+    "viewCards": "كروت",
+    "dataViewGroup": "تخطيط القائمة"
   },
   "auth": {
     "login": "تسجيل الدخول",

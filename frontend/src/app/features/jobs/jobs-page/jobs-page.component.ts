@@ -15,11 +15,30 @@ import type { JobListDto, CreateJobRequest, UpdateJobRequest } from '../../../co
 import type { OrganizationalUnitListDto } from '../../../core/api/organizational-units/organizational-units-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
 import { ToastService } from '../../../core/toast/toast.service';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-jobs-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective, PortalToBodyDirective, PaginationComponent],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    TooltipDirective,
+    PortalToBodyDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   template: `
     <app-page-shell [title]="'nav.jobs' | translate" [breadcrumbs]="breadcrumbs()" [showPageTitle]="false">
       <div class="jobs-page ds-animate-fade-up" data-delay="1">
@@ -61,6 +80,7 @@ import { ToastService } from '../../../core/toast/toast.service';
             </div>
           </div>
           <div class="ds-filterbar__actions">
+            <app-data-view-toggle />
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm jobs-secondary-btn" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
@@ -87,6 +107,7 @@ import { ToastService } from '../../../core/toast/toast.service';
           }
         </div>
       } @else {
+        @if (dataViewPref.mode() === 'table') {
         <div class="ds-table-wrap jobs-table-wrap">
           <table class="ds-table jobs-table">
             <thead>
@@ -170,6 +191,52 @@ import { ToastService } from '../../../core/toast/toast.service';
             </tbody>
           </table>
         </div>
+        } @else {
+          <div class="lux-dc-page-pad">
+            <app-lux-data-card-grid>
+              @for (j of data()!.items; track j.id) {
+                <app-lux-data-card
+                  [title]="getLocalizedText(j.titleAr, j.titleEn)"
+                  [subtitle]="j.code"
+                  [interactive]="true"
+                >
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.gradeLevel' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ j.gradeLevel ?? '—' }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.organizationalUnit' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ getLocalizedOuNameFromJob(j) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.status' | translate }}</span>
+                      <span class="lux-dc-meta__value">
+                        <span class="ds-badge" [class.ds-badge--success]="j.isActive" [class.ds-badge--neutral]="!j.isActive">
+                          {{ j.isActive ? ('status.active' | translate) : ('status.inactive' | translate) }}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="lux-dc-actions-inherit">
+                    @if (canEdit()) {
+                      <app-lux-action-icon kind="edit" [label]="'common.edit' | translate" (activate)="openEdit(j)" />
+                      <app-lux-action-icon
+                        kind="toggle"
+                        [activeHighlight]="j.isActive"
+                        [label]="'org.setStatus' | translate"
+                        (activate)="setStatus(j)"
+                      />
+                    }
+                    @if (canDelete()) {
+                      <app-lux-action-icon kind="delete" [danger]="true" [label]="'common.delete' | translate" (activate)="confirmDelete(j)" />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"
@@ -445,6 +512,9 @@ import { ToastService } from '../../../core/toast/toast.service';
       .premium-modal__footer { flex-direction: column-reverse; align-items: stretch; }
       .modal-overlay { padding: var(--space-md); }
     }
+
+    .lux-dc-page-pad { padding: var(--space-md) 0; }
+    .lux-dc-actions-inherit { display: contents; }
   `]
 })
 export class JobsPageComponent implements OnInit {
@@ -454,6 +524,7 @@ export class JobsPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<JobListDto> | null>(null);
   readonly loading = signal(false);

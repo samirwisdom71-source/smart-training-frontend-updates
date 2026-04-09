@@ -1,4 +1,8 @@
-<app-page-shell [title]="'postTrainingReports.review' | translate" [breadcrumbs]="breadcrumbs()">
+<app-page-shell
+  [title]="'postTrainingReports.review' | translate"
+  [breadcrumbs]="breadcrumbs()"
+  [showBack]="true"
+>
   @if (loading()) {
     <div class="ptr-review ptr-review--loading">
       <div class="ptr-skeleton-hero ds-skeleton"></div>

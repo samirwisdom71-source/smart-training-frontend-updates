@@ -1,4 +1,8 @@
-<app-page-shell [title]="'evaluation.summary' | translate" [breadcrumbs]="breadcrumbs()">
+<app-page-shell
+  [title]="'evaluation.summary' | translate"
+  [breadcrumbs]="breadcrumbs()"
+  [showBack]="true"
+>
   @if (programId()) {
     <p class="program-name">{{ 'evaluation.program' | translate }}: {{ programTitle() }}</p>
     @if (loading()) {

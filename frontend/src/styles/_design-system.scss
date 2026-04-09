@@ -42,10 +42,10 @@
 .ds-btn--primary {
   background: var(--color-primary);
   color: var(--color-primary-contrast);
-  border: 1px solid #fff;
+  border: 1px solid #043d02;
   &:hover:not(:disabled) {
     background: var(--color-primary-hover);
-    border-color: var(--color-primary-hover);
+    border: 1px solid #fff;
   }
   &:active:not(:disabled) {
     background: var(--color-primary-active);

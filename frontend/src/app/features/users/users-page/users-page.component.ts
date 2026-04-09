@@ -14,11 +14,29 @@ import type { UserDto, CreateUserRequest, UpdateUserRequest } from '../../../cor
 import type { RoleListDto } from '../../../core/api/roles/roles-api.models';
 import type { EmployeeListDto } from '../../../core/api/employees/employees-api.models';
 import type { ApiResponse, PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-users-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective, PaginationComponent],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    TooltipDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   template: `
     <app-page-shell [title]="'nav.usersAndRoles' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true" [showPageTitle]="false">
       <div class="ent-admin-page ent-page-fade-in">
@@ -43,6 +61,7 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
             </div>
           </div>
           <div class="ds-filterbar__actions">
+            <app-data-view-toggle />
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
@@ -75,6 +94,7 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
         </div>
       } @else {
         <div class="ent-table-panel">
+        @if (dataViewPref.mode() === 'table') {
         <div class="ds-table-wrap">
           <table class="ds-table">
             <thead>
@@ -143,6 +163,43 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
             </tbody>
           </table>
         </div>
+        } @else {
+          <div class="lux-dc-page-pad">
+            <app-lux-data-card-grid>
+              @for (u of data()!.items; track u.id) {
+                <app-lux-data-card [title]="u.fullName" [subtitle]="u.email" [interactive]="true">
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.role' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ u.roleNames ?? '—' }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.manager' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ u.managerName ?? '—' }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.status' | translate }}</span>
+                      <span class="lux-dc-meta__value">
+                        <span class="ds-badge" [class.ds-badge--success]="u.isActive" [class.ds-badge--neutral]="!u.isActive">
+                          {{ u.isActive ? ('status.active' | translate) : ('status.inactive' | translate) }}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="lux-dc-actions-inherit">
+                    @if (canEdit()) {
+                      <app-lux-action-icon kind="user" [label]="'users.setManager' | translate" (activate)="openSetManager(u)" />
+                      <app-lux-action-icon kind="edit" [label]="'common.edit' | translate" (activate)="openEdit(u)" />
+                    }
+                    @if (canDelete()) {
+                      <app-lux-action-icon kind="delete" [danger]="true" [label]="'common.delete' | translate" (activate)="confirmDelete(u)" />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"
@@ -336,6 +393,8 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
     .ds-hint { font-size: var(--text-body-sm); color: var(--color-text-secondary); margin: var(--space-xs) 0 0; }
     .checkbox-wrap { display: flex; align-items: center; gap: var(--space-sm); font-size: var(--text-body-sm); cursor: pointer; margin-bottom: var(--space-md); }
     .checkbox-wrap input { accent-color: var(--gulf-green-800); }
+    .lux-dc-page-pad { padding: var(--space-md); }
+    .lux-dc-actions-inherit { display: contents; }
   `]
 })
 export class UsersPageComponent implements OnInit {
@@ -344,6 +403,7 @@ export class UsersPageComponent implements OnInit {
   private readonly employeesApi = inject(EmployeesApiService);
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<UserDto> | null>(null);
   readonly loading = signal(false);

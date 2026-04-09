@@ -1,4 +1,9 @@
-<app-page-shell [title]="'evaluation.submitEvaluation' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true">
+<app-page-shell
+  [title]="'evaluation.submitEvaluation' | translate"
+  [breadcrumbs]="breadcrumbs()"
+  [fullWidth]="true"
+  [showBack]="true"
+>
   @if (programId(); as pid) {
     <div class="eval-page">
       @if (success()) {

@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
@@ -16,11 +16,34 @@ import { PermissionCodes } from '../../../core/auth/permissions';
 import { ToastService } from '../../../core/toast/toast.service';
 import type { TrainingProgramListDto, CreateTrainingProgramRequest, UpdateTrainingProgramRequest } from '../../../core/api/training-programs/training-programs-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-training-programs-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, RouterLink, DatePipe, DecimalPipe, TooltipDirective, LocalizedTextPipe, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, PaginationComponent],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    RouterLink,
+    DatePipe,
+    DecimalPipe,
+    TooltipDirective,
+    LocalizedTextPipe,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    PortalToBodyDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   templateUrl: './training-programs-page.component.html',
   styleUrls: ['./training-programs-page.component.scss'],
 })
@@ -30,6 +53,8 @@ export class TrainingProgramsPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<TrainingProgramListDto> | null>(null);
   readonly loading = signal(false);
@@ -53,8 +78,6 @@ export class TrainingProgramsPageComponent implements OnInit {
   readonly executorTypeOptions: string[] = ['Internal', 'ExternalPartner'];
   /** Stored in DB as program Location when not Online-only. */
   readonly programLocationScopeOptions: string[] = ['InsideCircle', 'OutsideCircle'];
-
-  readonly viewMode = signal<'table' | 'cards'>('table');
 
   form: CreateTrainingProgramRequest = {
     organizationId: '',
@@ -128,10 +151,6 @@ export class TrainingProgramsPageComponent implements OnInit {
   nextPage(): void { this.page.update(p => p + 1); this.load(); }
   setPage(p: number): void { this.page.set(p); this.load(); }
 
-  setViewMode(mode: 'table' | 'cards'): void {
-    this.viewMode.set(mode);
-  }
-
   programStatusLabel(status: string | null | undefined): string {
     switch (status) {
       case 'Draft':
@@ -195,6 +214,10 @@ export class TrainingProgramsPageComponent implements OnInit {
   openScientificMaterials(relativePath: string): void {
     const url = this.api.fileUrl(relativePath);
     window.open(url, '_blank', 'noopener');
+  }
+
+  openProgramDetail(id: string): void {
+    void this.router.navigate(['/programs', id]);
   }
 
   openCreate(): void {

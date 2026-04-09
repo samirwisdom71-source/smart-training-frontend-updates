@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { ConfirmDialogComponent } from '../../../shared/confirm-dialog/confirm-dialog.component';
+import { LocalizedTextPipe } from '../../../shared/pipes/localized-text.pipe';
 import { TrainingPlansApiService } from '../../../core/api/training-plans/training-plans-api.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { PermissionCodes } from '../../../core/auth/permissions';
@@ -14,7 +15,7 @@ import type { AnnualTrainingPlanDto, TrainingPlanItemDto, AddTrainingPlanItemReq
 @Component({
   selector: 'app-training-plan-detail-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, DecimalPipe, PageShellComponent, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, DecimalPipe, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe],
   templateUrl: './training-plan-detail-page.component.html',
   styleUrls: ['./training-plan-detail-page.component.scss'],
 })
@@ -214,5 +215,19 @@ export class TrainingPlanDetailPageComponent implements OnInit {
   rejectPlan(): void {
     const id = this.planId();
     this.api.reject(id).subscribe({ next: () => this.load(id), error: (err) => this.error.set(err.error?.message ?? 'Failed') });
+  }
+
+  planStatusClass(status: string): string {
+    if (status === 'Approved') return 'ds-badge--success';
+    if (status === 'Submitted') return 'ds-badge--info';
+    if (status === 'Rejected') return 'ds-badge--danger';
+    return 'ds-badge--neutral';
+  }
+
+  itemStatusClass(status: string): string {
+    if (status === 'Approved' || status === 'Completed') return 'ds-badge--success';
+    if (status === 'Submitted' || status === 'InProgress') return 'ds-badge--info';
+    if (status === 'Rejected' || status === 'Cancelled') return 'ds-badge--danger';
+    return 'ds-badge--neutral';
   }
 }

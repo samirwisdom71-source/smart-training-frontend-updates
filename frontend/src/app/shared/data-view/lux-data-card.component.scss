@@ -1,0 +1,218 @@
+.lux-dc-card {
+  --lux-dc-border: color-mix(in srgb, var(--color-border) 78%, var(--gulf-gold) 22%);
+  --lux-dc-border-hover: color-mix(in srgb, var(--gulf-gold) 52%, var(--gulf-green-800) 18%);
+  --lux-dc-ring-hover: color-mix(in srgb, var(--gulf-gold) 38%, var(--color-border) 62%);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  box-sizing: border-box;
+  border-radius: 20px;
+  font-family: var(--font-sans, 'Cairo', 'Segoe UI', system-ui, sans-serif);
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-surface-elevated, var(--color-bg)) 98.5%, var(--gulf-gold) 1.5%) 0%,
+    color-mix(in srgb, var(--color-surface-elevated, var(--color-bg)) 96%, var(--gulf-gold) 3.5%) 100%
+  );
+  /* Full perimeter — one continuous rounded border on all sides */
+  border: 1px solid var(--lux-dc-border);
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+  transition:
+    border-color 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    outline-color 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.28s ease;
+  box-shadow: none;
+  filter: none;
+}
+
+/* Top jewel accent — sits along the top inside the rounded border */
+.lux-dc-card::before {
+  content: '';
+  position: absolute;
+  inset-inline: 14px;
+  top: 1px;
+  z-index: 1;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--gulf-green-800) 55%, var(--gulf-gold) 45%) 0%,
+    color-mix(in srgb, var(--gulf-gold) 70%, var(--color-primary-muted)) 50%,
+    color-mix(in srgb, var(--gulf-green-800) 40%, var(--gulf-gold) 60%) 100%
+  );
+  opacity: 0.65;
+  pointer-events: none;
+  transition: opacity 0.28s ease, inset-inline 0.28s ease;
+}
+
+/* Inner hairline ring: full rounded rectangle */
+.lux-dc-card::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: calc(20px - 3px);
+  pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--gulf-gold) 14%, transparent);
+  opacity: 0.5;
+  z-index: 0;
+  transition:
+    opacity 0.28s ease,
+    border-color 0.28s ease,
+    inset 0.28s ease;
+}
+
+.lux-dc-card--interactive {
+  cursor: default;
+}
+
+.lux-dc-card__inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: calc(var(--space-md) + 4px) var(--space-md) var(--space-sm);
+}
+
+.lux-dc-card__head {
+  margin-bottom: var(--space-sm);
+}
+
+.lux-dc-card__title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  line-height: 1.35;
+  font-family: inherit;
+}
+
+.lux-dc-card__subtitle {
+  margin: 6px 0 0;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: color-mix(in srgb, var(--color-text-secondary) 80%, var(--gulf-gold) 20%);
+  line-height: 1.4;
+  font-family: inherit;
+}
+
+.lux-dc-card__body {
+  flex: 1;
+  min-height: 0;
+}
+
+.lux-dc-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: var(--space-md);
+  padding-top: var(--space-sm);
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 88%, var(--gulf-gold) 12%);
+  transition: border-color 0.28s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lux-dc-card--interactive:hover {
+    transform: translateY(-2px);
+    border-color: var(--lux-dc-border-hover);
+    outline-color: var(--lux-dc-ring-hover);
+    outline-offset: -2px;
+    background: linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--color-surface-elevated, var(--color-bg)) 96%, var(--gulf-gold) 4%) 0%,
+      color-mix(in srgb, var(--color-surface-elevated, var(--color-bg)) 93%, var(--gulf-gold) 6.5%) 100%
+    );
+  }
+
+  .lux-dc-card--interactive:hover::before {
+    opacity: 1;
+    inset-inline: 10px;
+  }
+
+  .lux-dc-card--interactive:hover::after {
+    opacity: 0.85;
+    inset: 2px;
+    border-radius: calc(20px - 2px);
+    border-color: color-mix(in srgb, var(--gulf-gold) 26%, transparent);
+  }
+
+  .lux-dc-card--interactive:hover .lux-dc-card__actions {
+    border-top-color: color-mix(in srgb, var(--gulf-gold) 22%, var(--color-border));
+  }
+}
+
+.lux-dc-card--interactive:focus-within {
+  border-color: var(--lux-dc-border-hover);
+  outline-color: var(--color-border-focus, color-mix(in srgb, var(--gulf-gold) 45%, var(--color-border)));
+  outline-offset: -2px;
+}
+
+.lux-dc-card--interactive:focus-within::before {
+  opacity: 1;
+}
+
+.lux-dc-card--interactive:focus-within::after {
+  opacity: 0.9;
+  border-color: color-mix(in srgb, var(--gulf-gold) 30%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lux-dc-card--interactive:hover,
+  .lux-dc-card--interactive:focus-within {
+    transform: none;
+  }
+}
+
+/* Optional body helpers (use inside projected body) */
+.lux-dc-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 2px 0;
+}
+
+.lux-dc-meta__row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+  gap: var(--space-sm);
+  align-items: baseline;
+  padding-bottom: 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 94%, transparent);
+}
+
+.lux-dc-meta__row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+@media (max-width: 480px) {
+  .lux-dc-meta__row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding-bottom: 8px;
+  }
+}
+
+.lux-dc-meta__label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text-secondary) 72%, var(--gulf-gold) 28%);
+  font-family: inherit;
+}
+
+.lux-dc-meta__value {
+  font-size: var(--text-body-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  word-break: break-word;
+  font-family: inherit;
+}

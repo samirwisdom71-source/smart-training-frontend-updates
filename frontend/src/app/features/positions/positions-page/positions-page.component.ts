@@ -16,11 +16,29 @@ import type { JobListDto } from '../../../core/api/jobs/jobs-api.models';
 import type { OrganizationalUnitListDto } from '../../../core/api/organizational-units/organizational-units-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
 import { ToastService } from '../../../core/toast/toast.service';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-positions-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective, PaginationComponent],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    TooltipDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   template: `
     <app-page-shell [title]="'nav.positions' | translate" [breadcrumbs]="breadcrumbs()" [showPageTitle]="false">
       <div class="positions-page ds-animate-fade-up" data-delay="1">
@@ -71,6 +89,7 @@ import { ToastService } from '../../../core/toast/toast.service';
             </div>
           </div>
           <div class="ds-filterbar__actions">
+            <app-data-view-toggle />
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm positions-secondary-btn" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
@@ -97,6 +116,7 @@ import { ToastService } from '../../../core/toast/toast.service';
           }
         </div>
       } @else {
+        @if (dataViewPref.mode() === 'table') {
         <div class="ds-table-wrap positions-table-wrap">
           <table class="ds-table positions-table">
             <thead>
@@ -199,6 +219,61 @@ import { ToastService } from '../../../core/toast/toast.service';
             </tbody>
           </table>
         </div>
+        } @else {
+          <div class="lux-dc-page-pad">
+            <app-lux-data-card-grid>
+              @for (p of data()!.items; track p.id) {
+                <app-lux-data-card
+                  [title]="getLocalizedJobTitleForPosition(p)"
+                  [subtitle]="p.code"
+                  [interactive]="true"
+                >
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.organizationalUnit' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ getLocalizedOuName(p.organizationalUnitId, p.organizationalUnitNameAr, p.organizationalUnitNameEn) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.reportsTo' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ getReportsToPositionLabel(p) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.status' | translate }}</span>
+                      <span class="lux-dc-meta__value">
+                        <span class="ds-badge" [class.ds-badge--success]="p.isActive" [class.ds-badge--neutral]="!p.isActive">
+                          {{ p.isActive ? ('status.active' | translate) : ('status.inactive' | translate) }}
+                        </span>
+                      </span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.isVacant' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ p.isVacant ? ('common.yes' | translate) : ('common.no' | translate) }}</span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="lux-dc-actions-inherit">
+                    @if (canEdit()) {
+                      <app-lux-action-icon
+                        kind="user"
+                        [label]="(p.isVacant ? 'positions.setOccupied' : 'positions.setVacant') | translate"
+                        (activate)="toggleVacant(p)"
+                      />
+                      <app-lux-action-icon kind="edit" [label]="'common.edit' | translate" (activate)="openEdit(p)" />
+                      <app-lux-action-icon
+                        kind="toggle"
+                        [activeHighlight]="p.isActive"
+                        [label]="'org.setStatus' | translate"
+                        (activate)="setStatus(p)"
+                      />
+                    }
+                    @if (canDelete()) {
+                      <app-lux-action-icon kind="delete" [danger]="true" [label]="'common.delete' | translate" (activate)="confirmDelete(p)" />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"
@@ -477,6 +552,9 @@ import { ToastService } from '../../../core/toast/toast.service';
     .vacant-btn.vacant-btn--vacant { color: var(--color-warning, #f59e0b); }
     .vacant-label { font-size: var(--text-body-sm); color: var(--color-text-secondary); }
     .vacant-label.vacant-label--yes { color: var(--color-warning, #f59e0b); font-weight: 500; }
+
+    .lux-dc-page-pad { padding: var(--space-md) 0; }
+    .lux-dc-actions-inherit { display: contents; }
   `]
 })
 export class PositionsPageComponent implements OnInit {
@@ -487,6 +565,7 @@ export class PositionsPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<PositionListDto> | null>(null);
   readonly loading = signal(false);

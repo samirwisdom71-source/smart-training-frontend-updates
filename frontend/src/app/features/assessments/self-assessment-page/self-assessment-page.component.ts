@@ -25,6 +25,7 @@ import type { AssessmentDto, SaveSelfAssessmentRequest } from '../../../core/api
       [breadcrumbs]="breadcrumbs()"
       [fullWidth]="true"
       [showPageTitle]="false"
+      [showBack]="true"
     >
       <div class="ent-admin-page ent-page-fade-in">
         @if (loading()) {

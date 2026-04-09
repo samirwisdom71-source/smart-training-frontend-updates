@@ -1,0 +1,70 @@
+.lux-dc-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, var(--gulf-gold) 12%);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+  color: color-mix(in srgb, var(--color-text) 88%, var(--gulf-green-800) 12%);
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+  box-shadow: none;
+}
+
+.lux-dc-action__glyph {
+  display: flex;
+  width: 22px;
+  height: 22px;
+}
+
+.lux-dc-action__glyph svg {
+  width: 100%;
+  height: 100%;
+}
+
+.lux-dc-action:hover:not(:disabled) {
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--gulf-gold) 35%, var(--color-border));
+  background: color-mix(in srgb, var(--gulf-gold) 10%, var(--color-bg));
+  transform: translateY(-1px);
+}
+
+.lux-dc-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.lux-dc-action--danger:not(:disabled) {
+  color: color-mix(in srgb, var(--color-danger, #b91c1c) 92%, var(--color-text));
+  border-color: color-mix(in srgb, var(--color-danger, #b91c1c) 28%, var(--color-border));
+}
+
+.lux-dc-action--danger:hover:not(:disabled) {
+  color: var(--color-danger, #b91c1c);
+  background: color-mix(in srgb, var(--color-danger, #b91c1c) 10%, var(--color-bg));
+}
+
+.lux-dc-action:focus-visible {
+  outline: 2px solid var(--color-border-focus, var(--gulf-gold));
+  outline-offset: 2px;
+}
+
+.lux-dc-action--on:not(:disabled) {
+  color: #16a34a;
+  border-color: color-mix(in srgb, #16a34a 38%, var(--color-border));
+  background: color-mix(in srgb, #16a34a 8%, var(--color-bg));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lux-dc-action:hover:not(:disabled) {
+    transform: none;
+  }
+}

@@ -49,7 +49,10 @@
     "collapseSidebar": "Collapse sidebar",
     "toggleNavigation": "Open navigation menu",
     "fromDate": "From date",
-    "toDate": "To date"
+    "toDate": "To date",
+    "viewTable": "Table",
+    "viewCards": "Cards",
+    "dataViewGroup": "List layout"
   },
   "auth": {
     "login": "Sign in",

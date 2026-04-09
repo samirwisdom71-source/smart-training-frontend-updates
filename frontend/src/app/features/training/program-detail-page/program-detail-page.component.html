@@ -2,6 +2,7 @@
   [title]="(program()?.titleAr | localizedText:program()?.titleEn:('nav.programs' | translate))"
   [breadcrumbs]="breadcrumbs()"
   [showPageTitle]="false"
+  [showBack]="true"
 >
   @if (loading()) {
     <div class="program-detail program-detail--loading">

@@ -10,11 +10,29 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { PermissionCodes } from '../../../core/auth/permissions';
 import type { RoleListDto, RoleDto, CreateRoleRequest, PermissionDto } from '../../../core/api/roles/roles-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-roles-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective, PaginationComponent],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    TooltipDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   template: `
     <app-page-shell [title]="'nav.roles' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true" [showPageTitle]="false">
       <div class="ent-admin-page ent-page-fade-in">
@@ -39,6 +57,7 @@ import type { PagedResult } from '../../../core/models/api-response';
             </div>
           </div>
           <div class="ds-filterbar__actions">
+            <app-data-view-toggle />
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
@@ -70,6 +89,7 @@ import type { PagedResult } from '../../../core/models/api-response';
         </div>
       } @else {
         <div class="ent-table-panel">
+        @if (dataViewPref.mode() === 'table') {
         <div class="ds-table-wrap">
           <table class="ds-table">
             <thead>
@@ -127,6 +147,30 @@ import type { PagedResult } from '../../../core/models/api-response';
             </tbody>
           </table>
         </div>
+        } @else {
+          <div class="lux-dc-page-pad">
+            <app-lux-data-card-grid>
+              @for (r of data()!.items; track r.id) {
+                <app-lux-data-card [title]="r.name" [interactive]="true">
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.permissions' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ r.description ?? '—' }}</span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="lux-dc-actions-inherit">
+                    @if (canEdit()) {
+                      <app-lux-action-icon kind="edit" [label]="'common.edit' | translate" (activate)="openEdit(r)" />
+                    }
+                    @if (canDelete()) {
+                      <app-lux-action-icon kind="delete" [danger]="true" [label]="'common.delete' | translate" (activate)="confirmDelete(r)" />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"
@@ -212,12 +256,15 @@ import type { PagedResult } from '../../../core/models/api-response';
     .table-loading { padding: var(--space-md) var(--space-lg); }
     .cell-actions { text-align: center; display: flex; gap: var(--space-sm); justify-content:center; flex-wrap: nowrap; align-items: center; }
     .permission-label { flex: 1; min-width: 0; }
+    .lux-dc-page-pad { padding: var(--space-md); }
+    .lux-dc-actions-inherit { display: contents; }
   `]
 })
 export class RolesPageComponent implements OnInit {
   private readonly api = inject(RolesApiService);
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<RoleListDto> | null>(null);
   readonly loading = signal(false);
