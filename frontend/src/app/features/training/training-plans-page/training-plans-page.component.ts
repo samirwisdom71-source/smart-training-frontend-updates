@@ -17,11 +17,34 @@ import { PaginationComponent } from '../../../shared/pagination/pagination.compo
 import { ToastService } from '../../../core/toast/toast.service';
 import type { AnnualTrainingPlanListDto, CreateAnnualTrainingPlanRequest, UpdateAnnualTrainingPlanRequest } from '../../../core/api/training-plans/training-plans-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-training-plans-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, DecimalPipe, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe, PortalToBodyDirective, TooltipDirective, PaginationComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslateModule,
+    RouterLink,
+    DecimalPipe,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    LocalizedTextPipe,
+    PortalToBodyDirective,
+    TooltipDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   templateUrl: './training-plans-page.component.html',
   styleUrls: ['./training-plans-page.component.scss'],
 })
@@ -31,6 +54,7 @@ export class TrainingPlansPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<AnnualTrainingPlanListDto> | null>(null);
   readonly loading = signal(false);

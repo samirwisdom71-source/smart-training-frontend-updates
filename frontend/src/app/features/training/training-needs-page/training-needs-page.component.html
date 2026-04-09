@@ -98,6 +98,7 @@
         </div>
       </div>
       <div class="ds-filterbar__actions">
+        <app-data-view-toggle />
         <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
           {{ 'common.clearFilters' | translate }}
         </button>
@@ -125,6 +126,7 @@
           }
         </div>
       } @else {
+        @if (dataViewPref.mode() === 'table') {
         <div class="ent-table-panel">
           <div class="ds-table-wrap">
       <table class="ds-table">
@@ -242,6 +244,59 @@
       </table>
           </div>
         </div>
+        } @else {
+          <div class="ent-table-panel" style="padding: var(--space-md)">
+            <app-lux-data-card-grid>
+              @for (row of data()!.items; track row.id) {
+                <app-lux-data-card [interactive]="false">
+                  <div luxCardHeader class="need-lux-head">
+                    <input
+                      type="checkbox"
+                      [checked]="selectedNeedIds().has(row.id)"
+                      (change)="toggleNeedSelection(row.id)"
+                      [attr.aria-label]="getLocalizedText(row.titleAr, row.titleEn)"
+                    />
+                    <span class="need-lux-head__title">{{ getLocalizedText(row.titleAr, row.titleEn) }}</span>
+                    <span class="ds-badge" [ngClass]="statusBadgeClass(row.status)">{{
+                      ('status.' + (row.status.charAt(0).toLowerCase() + row.status.slice(1))) | translate
+                    }}</span>
+                  </div>
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.employee' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ localizedTableEmployee(row) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.job' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ localizedTableJob(row) }}</span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="program-lux-actions">
+                    @if (canEdit()) {
+                      @if (row.status === 'Draft' || row.status === 'Rejected') {
+                        <app-lux-action-icon kind="edit" [label]="'common.edit' | translate" (activate)="openEdit(row)" />
+                        @if (row.status === 'Draft') {
+                          <app-lux-action-icon kind="link" [label]="'common.submit' | translate" (activate)="submitNeed(row)" />
+                        }
+                      }
+                      @if (row.status === 'Submitted') {
+                        <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="approveNeed(row)">
+                          {{ 'status.approved' | translate }}
+                        </button>
+                        <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm ds-btn--danger" (click)="rejectNeed(row)">
+                          {{ 'status.rejected' | translate }}
+                        </button>
+                      }
+                    }
+                    @if (canDelete() && (row.status === 'Draft' || row.status === 'Rejected')) {
+                      <app-lux-action-icon kind="delete" [danger]="true" [label]="'common.delete' | translate" (activate)="confirmDelete(row)" />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"

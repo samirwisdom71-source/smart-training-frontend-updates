@@ -67,6 +67,7 @@
           </div>
         </div>
         <div class="ds-filterbar__actions">
+          <app-data-view-toggle />
           <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
             {{ 'common.clearFilters' | translate }}
           </button>
@@ -90,6 +91,7 @@
           }
         </div>
       } @else {
+        @if (dataViewPref.mode() === 'table') {
         <div class="ent-table-panel">
           <div class="ds-table-wrap">
             <table class="ds-table">
@@ -288,6 +290,147 @@
             </table>
           </div>
         </div>
+        } @else {
+          <div class="ent-table-panel" style="padding: var(--space-md)">
+            <app-lux-data-card-grid>
+              @for (row of data()!.items; track row.id) {
+                <app-lux-data-card [interactive]="false">
+                  <div luxCardHeader class="tpl-lux-head">
+                    <a [routerLink]="['/training-plans', row.id]" class="tpl-lux-head__title">{{
+                      row.titleAr | localizedText: row.titleEn
+                    }}</a>
+                    <span class="ds-badge" [ngClass]="statusBadgeClass(row.status)">
+                      @switch (row.status) {
+                        @case ('Draft') {
+                          {{ 'status.draft' | translate }}
+                        }
+                        @case ('Submitted') {
+                          {{ 'status.submitted' | translate }}
+                        }
+                        @case ('Approved') {
+                          {{ 'status.approved' | translate }}
+                        }
+                        @case ('Rejected') {
+                          {{ 'status.rejected' | translate }}
+                        }
+                        @default {
+                          {{ row.status }}
+                        }
+                      }
+                    </span>
+                  </div>
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'trainingPlans.year' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ row.year }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'trainingPlans.planType' | translate }}</span>
+                      <span class="lux-dc-meta__value">
+                        @switch (row.planType) {
+                          @case ('Annual') {
+                            {{ 'trainingPlans.typeAnnual' | translate }}
+                          }
+                          @case ('SemiAnnual') {
+                            {{ 'trainingPlans.typeSemiAnnual' | translate }}
+                          }
+                          @case ('Quarterly') {
+                            {{ 'trainingPlans.typeQuarterly' | translate }}
+                          }
+                          @case ('Monthly') {
+                            {{ 'trainingPlans.typeMonthly' | translate }}
+                          }
+                          @default {
+                            {{ row.planType || '—' }}
+                          }
+                        }
+                      </span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'trainingPlans.period' | translate }}</span>
+                      <span class="lux-dc-meta__value">
+                        @if (row.planType && row.planType !== 'Annual') {
+                          {{ row.startDate ?? '—' }} - {{ row.endDate ?? '—' }}
+                        } @else {
+                          —
+                        }
+                      </span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'trainingPlans.budget' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ row.budget != null ? (row.budget | number: '1.0-2') : '—' }}</span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="tpl-lux-actions">
+                    @if (canEdit()) {
+                      @if (row.status === 'Draft' || row.status === 'Rejected') {
+                        <app-lux-action-icon kind="edit" [label]="'common.edit' | translate" (activate)="openEdit(row)" />
+                        <a
+                          [routerLink]="['/training-plans', row.id]"
+                          class="ds-btn ds-btn--ghost ds-btn--icon"
+                          [attr.aria-label]="'common.details' | translate"
+                          [appTooltip]="'common.details' | translate"
+                          tooltipPlacement="top"
+                        >
+                          <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M10 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                            <path
+                              d="M21 12s-3.6 7-9 7-9-7-9-7 3.6-7 9-7 9 7 9 7Z"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.6"
+                              stroke-linejoin="round"
+                            />
+                          </svg>
+                        </a>
+                        @if (row.status === 'Draft' && canSubmit()) {
+                          <app-lux-action-icon kind="link" [label]="'common.submit' | translate" (activate)="submitPlan(row)" />
+                        }
+                      }
+                    }
+                    @if (row.status === 'Submitted' && canApprove()) {
+                      <app-lux-action-icon kind="view" [label]="'status.approved' | translate" (activate)="approvePlan(row)" />
+                      <app-lux-action-icon
+                        kind="delete"
+                        [danger]="true"
+                        [label]="'status.rejected' | translate"
+                        (activate)="rejectPlan(row)"
+                      />
+                    }
+                    @if (row.status !== 'Draft' && row.status !== 'Rejected') {
+                      <a
+                        [routerLink]="['/training-plans', row.id]"
+                        class="ds-btn ds-btn--ghost ds-btn--icon"
+                        [attr.aria-label]="'common.details' | translate"
+                        [appTooltip]="'common.details' | translate"
+                        tooltipPlacement="top"
+                      >
+                        <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M10 12a2 2 0 1 0 4 0 2 2 0 0 0-4 0Z" fill="none" stroke="currentColor" stroke-width="1.6" />
+                          <path
+                            d="M21 12s-3.6 7-9 7-9-7-9-7 3.6-7 9-7 9 7 9 7Z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.6"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </a>
+                    }
+                    @if (canDelete()) {
+                      <app-lux-action-icon
+                        kind="delete"
+                        [danger]="true"
+                        [label]="'common.delete' | translate"
+                        (activate)="confirmDelete(row)"
+                      />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"

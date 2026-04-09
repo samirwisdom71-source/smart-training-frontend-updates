@@ -59,6 +59,7 @@
           </div>
         </div>
         <div class="ds-filterbar__actions">
+          <app-data-view-toggle />
           <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
             {{ 'common.clearFilters' | translate }}
           </button>
@@ -84,6 +85,7 @@
             <p class="premium-modal__error-text" style="margin: 0">{{ uploadError() }}</p>
           </div>
         }
+        @if (dataViewPref.mode() === 'table') {
         <div class="ent-table-panel">
           <div class="ds-table-wrap">
             <table class="ds-table">
@@ -143,6 +145,59 @@
             </table>
           </div>
         </div>
+        } @else {
+          <div class="ent-table-panel" style="padding: var(--space-md)">
+            <app-lux-data-card-grid>
+              @for (row of data()!.items; track row.id) {
+                <app-lux-data-card [interactive]="false">
+                  <div luxCardHeader class="cert-lux-head">
+                    <span class="cert-lux-head__title">{{ row.certificateNumber }}</span>
+                    <span class="ds-badge ds-badge--success">{{ ('certificates.status.' + row.status) | translate }}</span>
+                  </div>
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'programs.program' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ localizedProgramTitle(row.trainingProgramId, row.programTitleEn) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.employee' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ localizedEmployeeName(row.employeeId, row.employeeNameEn) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'certificates.issueDate' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ row.issueDate | date: 'short' }}</span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="cert-lux-actions">
+                    @if (row.filePath) {
+                      <app-lux-action-icon
+                        kind="document"
+                        [label]="'certificates.attachment' | translate"
+                        (activate)="downloadAttachment(row.filePath)"
+                      />
+                    }
+                    @if (canManage()) {
+                      <label
+                        class="ds-btn ds-btn--ghost ds-btn--icon"
+                        [class.ds-btn--disabled]="uploadingId() === row.id"
+                        [attr.aria-label]="'common.upload' | translate"
+                        [appTooltip]="'common.upload' | translate"
+                        tooltipPlacement="top"
+                        style="cursor: pointer"
+                      >
+                        <input type="file" accept="application/pdf,image/jpeg,image/png" (change)="onUploadSelected(row, $event)" style="display: none" />
+                        <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M12 5v10M8 9l4-4 4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                          <path d="M5 19h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+                        </svg>
+                      </label>
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"

@@ -87,6 +87,7 @@
           </div>
         </div>
         <div class="ds-filterbar__actions">
+          <app-data-view-toggle />
           <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
             {{ 'common.clearFilters' | translate }}
           </button>
@@ -107,6 +108,7 @@
           <p class="ds-empty__title">{{ 'table.noRows' | translate }}</p>
         </div>
       } @else {
+        @if (dataViewPref.mode() === 'table') {
         <div class="ent-table-panel">
           <div class="ds-table-wrap">
             <table class="ds-table">
@@ -223,6 +225,62 @@
             </table>
           </div>
         </div>
+        } @else {
+          <div class="ent-table-panel" style="padding: var(--space-md)">
+            <app-lux-data-card-grid>
+              @for (row of data()!.items; track row.id) {
+                <app-lux-data-card [interactive]="false">
+                  <div luxCardHeader class="enr-lux-head">
+                    <span class="enr-lux-head__title">{{ localizedProgramTitle(row.trainingProgramId, row.programTitleEn) }}</span>
+                    <span class="ds-badge" [ngClass]="statusBadgeClass(row.status)">{{ ('enrollments.status.' + row.status) | translate }}</span>
+                  </div>
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.employee' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ localizedEmployeeName(row.employeeId, row.employeeNameEn) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'enrollments.nominationSource' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ row.nominationSource }}</span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="enr-lux-actions">
+                    @if (row.status === 'Nominated' && canApprove()) {
+                      <button type="button" class="ds-btn ds-btn--primary ds-btn--sm" (click)="approve(row)">
+                        {{ 'enrollments.approveButton' | translate }}
+                      </button>
+                      <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm ds-btn--danger" (click)="reject(row)">
+                        {{ 'enrollments.rejectButton' | translate }}
+                      </button>
+                    }
+                    @if (row.status === 'Approved' && canEdit()) {
+                      <app-lux-action-icon kind="link" [label]="'enrollments.enroll' | translate" (activate)="enroll(row)" />
+                    }
+                    @if ((row.status === 'Enrolled' || row.status === 'Nominated') && canEdit()) {
+                      <app-lux-action-icon
+                        kind="delete"
+                        [danger]="true"
+                        [label]="'enrollments.cancel' | translate"
+                        (activate)="cancel(row)"
+                      />
+                    }
+                    @if (row.status === 'Enrolled' && canEdit()) {
+                      <app-lux-action-icon kind="view" [label]="'status.completed' | translate" (activate)="complete(row)" />
+                    }
+                    @if (canDelete()) {
+                      <app-lux-action-icon
+                        kind="delete"
+                        [danger]="true"
+                        [label]="'common.delete' | translate"
+                        (activate)="confirmDelete(row)"
+                      />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"

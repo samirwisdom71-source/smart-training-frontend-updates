@@ -17,11 +17,32 @@ import { ToastService } from '../../../core/toast/toast.service';
 import type { EnrollmentListDto } from '../../../core/api/enrollments/enrollments-api.models';
 import type { NominateEnrollmentsBulkRequest } from '../../../core/api/enrollments/enrollments-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-enrollments-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, TooltipDirective, PaginationComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslateModule,
+    RouterLink,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    PortalToBodyDirective,
+    TooltipDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   templateUrl: './enrollments-page.component.html',
   styleUrls: ['./enrollments-page.component.scss'],
 })
@@ -33,6 +54,7 @@ export class EnrollmentsPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<EnrollmentListDto> | null>(null);
   readonly loading = signal(false);

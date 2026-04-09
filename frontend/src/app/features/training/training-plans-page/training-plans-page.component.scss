@@ -11,3 +11,34 @@
 .modal-drawer__title { font-size: var(--text-h1); font-weight: 600; margin: 0 0 var(--space-md); }
 .modal-drawer form .form-group { margin-bottom: var(--space-md); }
 .modal-drawer__actions { display: flex; justify-content: flex-end; gap: var(--space-sm); margin-top: var(--space-lg); }
+
+.tpl-lux-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.tpl-lux-head__title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  font-size: var(--text-body);
+  line-height: 1.3;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.tpl-lux-head__title:hover {
+  color: color-mix(in srgb, var(--gulf-green-800) 75%, var(--color-text));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tpl-lux-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: center;
+}

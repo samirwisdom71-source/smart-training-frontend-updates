@@ -21,11 +21,31 @@ import type { TrainingNeedListDto, TrainingNeedDto, CreateTrainingNeedRequest, U
 import type { CompetencyGapListDto } from '../../../core/api/assessments/assessments-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
 import { ToastService } from '../../../core/toast/toast.service';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-training-needs-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, TooltipDirective, PaginationComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    PortalToBodyDirective,
+    TooltipDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   templateUrl: './training-needs-page.component.html',
   styleUrls: ['./training-needs-page.component.scss'],
 })
@@ -40,6 +60,7 @@ export class TrainingNeedsPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<TrainingNeedListDto> | null>(null);
   readonly loading = signal(false);

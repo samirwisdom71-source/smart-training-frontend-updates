@@ -20,11 +20,30 @@ import type { EmployeeListDto } from '../../../core/api/employees/employees-api.
 import { AuthService } from '../../../core/auth/auth.service';
 import { PermissionCodes } from '../../../core/auth/permissions';
 import { ToastService } from '../../../core/toast/toast.service';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-assessment-cycles-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, DatePipe, TooltipDirective, PortalToBodyDirective, PaginationComponent],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    DatePipe,
+    TooltipDirective,
+    PortalToBodyDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   template: `
     <app-page-shell
       [title]="'assessments.cyclesTitle' | translate"
@@ -85,6 +104,7 @@ import { ToastService } from '../../../core/toast/toast.service';
             </div>
           </div>
           <div class="ds-filterbar__actions">
+            <app-data-view-toggle />
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
@@ -112,6 +132,7 @@ import { ToastService } from '../../../core/toast/toast.service';
           }
         </div>
       } @else {
+        @if (dataViewPref.mode() === 'table') {
         <div class="ent-table-panel">
         <div class="ds-table-wrap">
           <table class="ds-table">
@@ -220,6 +241,73 @@ import { ToastService } from '../../../core/toast/toast.service';
           </table>
         </div>
         </div>
+        } @else {
+          <div class="ent-table-panel" style="padding: var(--space-md)">
+            <app-lux-data-card-grid>
+              @for (c of data()!.items; track c.id) {
+                <app-lux-data-card [interactive]="false">
+                  <div luxCardHeader class="cycle-lux-head">
+                    <span class="cycle-lux-head__title">{{ getLocalizedText(c.nameAr, c.nameEn) }}</span>
+                    <span class="ds-badge"
+                      [class.ds-badge--info]="c.status === 'Draft'"
+                      [class.ds-badge--success]="c.status === 'Open'"
+                      [class.ds-badge--neutral]="c.status === 'Closed' || c.status === 'Archived'">
+                      {{ (('assessments.' + c.status.toLowerCase()) | translate) }}
+                    </span>
+                  </div>
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.code' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ c.code }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.organization' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ getLocalizedOrgName(c.organizationId, c.organizationNameEn) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'assessments.startDate' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ c.startDate | date }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'assessments.endDate' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ c.endDate | date }}</span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="cycle-lux-actions">
+                    @if (canEdit() && (c.status === 'Draft' || c.status === 'Open')) {
+                      <app-lux-action-icon
+                        kind="settings"
+                        [label]="'assessments.scopeAndGenerate' | translate"
+                        (activate)="openScopeDrawer(c)"
+                      />
+                    }
+                    @if (canEdit()) {
+                      <app-lux-action-icon kind="edit" [label]="'common.edit' | translate" (activate)="openEdit(c)" />
+                      <app-lux-action-icon
+                        kind="link"
+                        [label]="'assessments.open' | translate"
+                        [disabled]="c.status === 'Open'"
+                        (activate)="changeStatus(c, 'Open')"
+                      />
+                      <app-lux-action-icon
+                        kind="toggle"
+                        [label]="'assessments.closed' | translate"
+                        [disabled]="c.status === 'Closed' || c.status === 'Draft'"
+                        (activate)="changeStatus(c, 'Closed')"
+                      />
+                      <app-lux-action-icon
+                        kind="document"
+                        [label]="'assessments.archived' | translate"
+                        [disabled]="c.status === 'Archived'"
+                        (activate)="changeStatus(c, 'Archived')"
+                      />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"
@@ -571,6 +659,27 @@ import { ToastService } from '../../../core/toast/toast.service';
       cursor: not-allowed;
     }
     .scope-add-actions { margin-top: var(--space-xs); display: flex; justify-content: flex-end; }
+    .cycle-lux-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-sm);
+    }
+    .cycle-lux-head__title {
+      flex: 1;
+      min-width: 0;
+      font-weight: 700;
+      font-size: var(--text-body);
+      line-height: 1.3;
+    }
+    .cycle-lux-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+      align-items: center;
+      justify-content: flex-end;
+    }
   `]
 })
 export class AssessmentCyclesPageComponent implements OnInit {
@@ -582,6 +691,7 @@ export class AssessmentCyclesPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<AssessmentCycleListDto> | null>(null);
   readonly loading = signal(false);

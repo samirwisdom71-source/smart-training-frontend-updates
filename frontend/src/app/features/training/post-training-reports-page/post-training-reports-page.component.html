@@ -67,6 +67,7 @@
           </div>
         </div>
         <div class="ds-filterbar__actions">
+          <app-data-view-toggle />
           <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
             {{ 'common.clearFilters' | translate }}
           </button>
@@ -93,6 +94,7 @@
           }
         </div>
       } @else {
+        @if (dataViewPref.mode() === 'table') {
         <div class="ent-table-panel">
           <div class="ds-table-wrap">
             <table class="ds-table">
@@ -160,6 +162,56 @@
             </table>
           </div>
         </div>
+        } @else {
+          <div class="ent-table-panel" style="padding: var(--space-md)">
+            <app-lux-data-card-grid>
+              @for (row of data()!.items; track row.id) {
+                <app-lux-data-card [interactive]="false">
+                  <div luxCardHeader class="ptr-lux-head">
+                    <span class="ptr-lux-head__title">{{ localizedProgramTitle(row.trainingProgramId, row.programTitleEn) }}</span>
+                    <span class="ds-badge" [ngClass]="statusBadgeClass(row.status)">{{ ('postTrainingReports.status.' + row.status) | translate }}</span>
+                  </div>
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.employee' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ localizedEmployeeName(row.employeeId, row.employeeNameEn) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'postTrainingReports.submittedAt' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ row.submittedAt ? (row.submittedAt | date: 'short') : '—' }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'postTrainingReports.attachment' | translate }}</span>
+                      <span class="lux-dc-meta__value">
+                        @if (row.attachmentFilePath) {
+                          <button type="button" class="ptr-list-attachment-link" (click)="downloadRowAttachment(row)">
+                            {{ row.attachmentOriginalFileName || ('postTrainingReports.downloadAttachment' | translate) }}
+                          </button>
+                        } @else {
+                          —
+                        }
+                      </span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="ptr-lux-actions">
+                    <app-lux-action-icon
+                      kind="view"
+                      [label]="'common.details' | translate"
+                      (activate)="openReportReview(row)"
+                    />
+                    @if ((row.status === 'Submitted' || row.status === 'Reviewed') && canAnalyze()) {
+                      <app-lux-action-icon
+                        kind="document"
+                        [label]="'postTrainingReports.archive' | translate"
+                        (activate)="archive(row)"
+                      />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"

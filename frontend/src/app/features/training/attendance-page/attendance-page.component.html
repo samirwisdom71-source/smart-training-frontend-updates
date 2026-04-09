@@ -205,9 +205,13 @@
       } @else {
         <section class="att-roster" aria-labelledby="att-roster-heading">
           <div class="att-roster__head">
-            <h3 id="att-roster-heading" class="att-roster__title">{{ 'attendance.rosterTitle' | translate }}</h3>
-            <span class="att-roster__count">{{ records().length }}</span>
+            <div class="att-roster__head-main">
+              <h3 id="att-roster-heading" class="att-roster__title">{{ 'attendance.rosterTitle' | translate }}</h3>
+              <span class="att-roster__count">{{ records().length }}</span>
+            </div>
+            <app-data-view-toggle />
           </div>
+          @if (dataViewPref.mode() === 'table') {
           <div class="ds-table-wrap att-table-wrap">
             <table class="ds-table att-table">
               <thead>
@@ -254,6 +258,45 @@
               </tbody>
             </table>
           </div>
+          } @else {
+            <div class="att-cards-wrap">
+              <app-lux-data-card-grid>
+                @for (r of records(); track r.id) {
+                  <app-lux-data-card [interactive]="false">
+                    <div luxCardHeader class="att-card-lux-head">
+                      <span class="att-card-lux-head__name">{{ getLocalizedText(r.employeeNameAr, r.employeeNameEn) }}</span>
+                      <span class="att-status" [ngClass]="'att-status--' + attendanceStatusModifier(r.attendanceStatus)">
+                        {{ attendanceStatusKey(r.attendanceStatus) | translate }}
+                      </span>
+                    </div>
+                    <div class="lux-dc-meta">
+                      <div class="lux-dc-meta__row">
+                        <span class="lux-dc-meta__label">{{ 'attendance.percent' | translate }}</span>
+                        <span class="lux-dc-meta__value">{{
+                          r.attendancePercent != null ? (r.attendancePercent | number: '1.0-0') : '—'
+                        }}</span>
+                      </div>
+                    </div>
+                    @if (canManage()) {
+                      <div luxCardActions class="att-card-lux-actions">
+                        <select
+                          class="ds-input ds-input--sm att-row-select"
+                          [ngModel]="r.attendanceStatus"
+                          (ngModelChange)="patchRecordStatus(r.id, $event)"
+                        >
+                          <option value="Present">{{ 'attendance.present' | translate }}</option>
+                          <option value="Absent">{{ 'attendance.absent' | translate }}</option>
+                          <option value="Late">{{ 'attendance.late' | translate }}</option>
+                          <option value="Excused">{{ 'attendance.excused' | translate }}</option>
+                          <option value="Unknown">{{ 'attendance.unknown' | translate }}</option>
+                        </select>
+                      </div>
+                    }
+                  </app-lux-data-card>
+                }
+              </app-lux-data-card-grid>
+            </div>
+          }
         </section>
       }
     }

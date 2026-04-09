@@ -17,6 +17,13 @@ import type { CertificateDto } from '../../../core/api/certificates/certificates
 import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
 import { PortalToBodyDirective } from '../../../shared/portal/portal-to-body.directive';
 import { PaginationComponent } from '../../../shared/pagination/pagination.component';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 export interface CertificateGenerateRow {
   id: string;
@@ -28,7 +35,19 @@ export interface CertificateGenerateRow {
 @Component({
   selector: 'app-certificates-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, DatePipe, TooltipDirective, PageShellComponent, PortalToBodyDirective, PaginationComponent],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    DatePipe,
+    TooltipDirective,
+    PageShellComponent,
+    PortalToBodyDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   templateUrl: './certificates-page.component.html',
   styleUrls: ['./certificates-page.component.scss'],
 })
@@ -38,6 +57,7 @@ export class CertificatesPageComponent implements OnInit {
   private readonly employeesApi = inject(EmployeesApiService);
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<CertificateListDto> | null>(null);
   readonly loading = signal(false);

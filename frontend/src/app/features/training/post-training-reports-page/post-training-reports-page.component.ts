@@ -19,11 +19,33 @@ import { ToastService } from '../../../core/toast/toast.service';
 import type { PostTrainingReportListDto } from '../../../core/api/post-training-reports/post-training-reports-api.models';
 import type { EmployeeListDto } from '../../../core/api/employees/employees-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-post-training-reports-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, RouterLink, DatePipe, PageShellComponent, ConfirmDialogComponent, PortalToBodyDirective, TooltipDirective, PaginationComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TranslateModule,
+    RouterLink,
+    DatePipe,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    PortalToBodyDirective,
+    TooltipDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   templateUrl: './post-training-reports-page.component.html',
   styleUrls: ['./post-training-reports-page.component.scss'],
 })
@@ -36,6 +58,7 @@ export class PostTrainingReportsPageComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<PostTrainingReportListDto> | null>(null);
   readonly loading = signal(false);
@@ -217,6 +240,10 @@ export class PostTrainingReportsPageComponent implements OnInit {
         this.toast.error(err.error?.message ?? err.message ?? this.translate.instant('dialog.error'));
       },
     });
+  }
+
+  openReportReview(row: PostTrainingReportListDto): void {
+    void this.router.navigate(['/post-training-reports', 'review', row.id]);
   }
 
   getLocalizedText(ar?: string | null, en?: string | null): string {

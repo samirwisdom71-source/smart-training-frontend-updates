@@ -1,15 +1,31 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { AssessmentsApiService } from '../../../core/api/assessments/assessments-api.service';
 import type { AssessmentSummaryDto } from '../../../core/api/assessments/assessments-api.models';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-manager-assessments-page',
   standalone: true,
-  imports: [RouterModule, FormsModule, TranslateModule, PageShellComponent],
+  imports: [
+    RouterModule,
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   template: `
     <app-page-shell
       [title]="'assessments.managerTitle' | translate"
@@ -82,6 +98,7 @@ import type { AssessmentSummaryDto } from '../../../core/api/assessments/assessm
               </div>
             </div>
             <div class="ds-filterbar__actions">
+              <app-data-view-toggle />
               <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
                 {{ 'common.clearFilters' | translate }}
               </button>
@@ -121,6 +138,7 @@ import type { AssessmentSummaryDto } from '../../../core/api/assessments/assessm
               </div>
             </div>
           } @else {
+            @if (dataViewPref.mode() === 'table') {
             <div class="ent-table-panel">
               <div class="ds-table-wrap">
                 <table class="ds-table">
@@ -172,6 +190,40 @@ import type { AssessmentSummaryDto } from '../../../core/api/assessments/assessm
                 </table>
               </div>
             </div>
+            } @else {
+              <div class="ent-table-panel" style="padding: var(--space-md)">
+                <app-lux-data-card-grid>
+                  @for (a of filteredRows(); track a.id) {
+                    <app-lux-data-card [interactive]="false">
+                      <div luxCardHeader class="mgr-list-lux-head">
+                        <span class="mgr-list-lux-head__title">{{ a.employeeNameEn }}</span>
+                        <span
+                          class="ds-badge"
+                          [class.ds-badge--info]="a.status === 'NotStarted' || a.status === 'InProgress'"
+                          [class.ds-badge--success]="a.status === 'Finalized'"
+                          [class.ds-badge--neutral]="a.status === 'Submitted' || a.status === 'ManagerReviewed'"
+                        >
+                          {{ getStatusLabel(a.status) }}
+                        </span>
+                      </div>
+                      <div class="lux-dc-meta">
+                        <div class="lux-dc-meta__row">
+                          <span class="lux-dc-meta__label">{{ 'assessments.cycleName' | translate }}</span>
+                          <span class="lux-dc-meta__value">{{ a.cycleNameEn }}</span>
+                        </div>
+                      </div>
+                      <div luxCardActions class="mgr-list-lux-actions">
+                        <app-lux-action-icon
+                          kind="view"
+                          [label]="'common.details' | translate"
+                          (activate)="openManagerReview(a.id)"
+                        />
+                      </div>
+                    </app-lux-data-card>
+                  }
+                </app-lux-data-card-grid>
+              </div>
+            }
           }
         </div>
       </div>
@@ -189,12 +241,34 @@ import type { AssessmentSummaryDto } from '../../../core/api/assessments/assessm
         gap: var(--space-sm);
         flex-wrap: wrap;
       }
+      .mgr-list-lux-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-sm);
+      }
+      .mgr-list-lux-head__title {
+        flex: 1;
+        min-width: 0;
+        font-weight: 700;
+        font-size: var(--text-body);
+        line-height: 1.3;
+      }
+      .mgr-list-lux-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-xs);
+        align-items: center;
+      }
     `,
   ],
 })
 export class ManagerAssessmentsPageComponent implements OnInit {
   private readonly api = inject(AssessmentsApiService);
   private readonly translate = inject(TranslateService);
+  private readonly router = inject(Router);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly items = signal<AssessmentSummaryDto[]>([]);
   readonly loading = signal(false);
@@ -305,5 +379,9 @@ export class ManagerAssessmentsPageComponent implements OnInit {
     const key = 'assessments.status' + status;
     const t = this.translate.instant(key);
     return t !== key ? t : status;
+  }
+
+  openManagerReview(id: string): void {
+    void this.router.navigate(['/assessments/manager', id]);
   }
 }

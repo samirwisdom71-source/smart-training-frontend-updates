@@ -14,11 +14,17 @@ import type { EmployeeListDto } from '../../../core/api/employees/employees-api.
 import type { OrganizationalUnitListDto } from '../../../core/api/organizational-units/organizational-units-api.models';
 import type { JobListDto } from '../../../core/api/jobs/jobs-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-gap-analysis-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, LocalizedTextPipe],
+  imports: [FormsModule, TranslateModule, PageShellComponent, LocalizedTextPipe, DataViewToggleComponent, LuxDataCardComponent, LuxDataCardGridComponent],
   template: `
     <app-page-shell
       [title]="'assessments.gapsTitle' | translate"
@@ -107,6 +113,7 @@ import type { PagedResult } from '../../../core/models/api-response';
               </div>
             </div>
             <div class="ds-filterbar__actions">
+              <app-data-view-toggle />
               <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
                 {{ 'common.clearFilters' | translate }}
               </button>
@@ -137,6 +144,7 @@ import type { PagedResult } from '../../../core/models/api-response';
               </div>
             </div>
           } @else {
+            @if (dataViewPref.mode() === 'table') {
             <div class="ent-table-panel">
               <div class="ds-table-wrap">
                 <table class="ds-table">
@@ -193,11 +201,75 @@ import type { PagedResult } from '../../../core/models/api-response';
                 </table>
               </div>
             </div>
+            } @else {
+              <div class="ent-table-panel" style="padding: var(--space-md)">
+                <app-lux-data-card-grid>
+                  @for (g of data()!.items; track g.id) {
+                    <app-lux-data-card [interactive]="false">
+                      <div luxCardHeader class="gap-lux-head">
+                        <span class="gap-lux-head__title">{{ g.competencyNameAr | localizedText:g.competencyNameEn }}</span>
+                        <span
+                          class="ds-badge"
+                          [class.ds-badge--neutral]="g.severity === 'Low'"
+                          [class.ds-badge--info]="g.severity === 'Medium'"
+                          [class.ds-badge--danger]="g.severity === 'High'"
+                        >
+                          @switch (g.severity) {
+                            @case ('Low') {
+                              {{ 'assessments.gapLow' | translate }}
+                            }
+                            @case ('Medium') {
+                              {{ 'assessments.gapMedium' | translate }}
+                            }
+                            @case ('High') {
+                              {{ 'assessments.gapHigh' | translate }}
+                            }
+                            @default {
+                              {{ g.severity || '—' }}
+                            }
+                          }
+                        </span>
+                      </div>
+                      <div class="lux-dc-meta">
+                        <div class="lux-dc-meta__row">
+                          <span class="lux-dc-meta__label">{{ 'assessments.employee' | translate }}</span>
+                          <span class="lux-dc-meta__value">{{ g.employeeNameAr | localizedText:g.employeeNameEn }}</span>
+                        </div>
+                        <div class="lux-dc-meta__row">
+                          <span class="lux-dc-meta__label">{{ 'table.job' | translate }}</span>
+                          <span class="lux-dc-meta__value">{{ localizedJobTitle(g) }}</span>
+                        </div>
+                        <div class="lux-dc-meta__row">
+                          <span class="lux-dc-meta__label">{{ 'table.code' | translate }}</span>
+                          <span class="lux-dc-meta__value">{{ g.competencyCode }}</span>
+                        </div>
+                        <div class="lux-dc-meta__row">
+                          <span class="lux-dc-meta__label">{{ 'table.type' | translate }}</span>
+                          <span class="lux-dc-meta__value">{{ g.competencyTypeNameAr | localizedText:g.competencyTypeNameEn }}</span>
+                        </div>
+                        <div class="lux-dc-meta__row">
+                          <span class="lux-dc-meta__label">{{ 'assessments.requiredLevel' | translate }}</span>
+                          <span class="lux-dc-meta__value">{{ g.requiredLevelCode }} ({{ g.requiredLevelNumber }})</span>
+                        </div>
+                        <div class="lux-dc-meta__row">
+                          <span class="lux-dc-meta__label">{{ 'assessments.finalLevel' | translate }}</span>
+                          <span class="lux-dc-meta__value">{{ g.currentFinalLevelCode ?? '—' }}</span>
+                        </div>
+                        <div class="lux-dc-meta__row">
+                          <span class="lux-dc-meta__label">{{ 'assessments.gap' | translate }}</span>
+                          <span class="lux-dc-meta__value">{{ g.gapAmount }}</span>
+                        </div>
+                      </div>
+                    </app-lux-data-card>
+                  }
+                </app-lux-data-card-grid>
+              </div>
+            }
           }
         </div>
       </div>
     </app-page-shell>
-  `,
+    `,
   styles: [
     `
       .table-loading {
@@ -206,6 +278,20 @@ import type { PagedResult } from '../../../core/models/api-response';
       .filter-select--employee {
         max-width: none;
         min-width: 0;
+      }
+      .gap-lux-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--space-sm);
+        margin-bottom: var(--space-sm);
+      }
+      .gap-lux-head__title {
+        flex: 1;
+        min-width: 0;
+        font-weight: 700;
+        font-size: var(--text-body);
+        line-height: 1.3;
       }
     `,
   ],
@@ -217,6 +303,7 @@ export class GapAnalysisPageComponent implements OnInit {
   private readonly ouApi = inject(OrganizationalUnitsApiService);
   private readonly jobsApi = inject(JobsApiService);
   private readonly translate = inject(TranslateService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<CompetencyGapListDto> | null>(null);
   readonly cycleOptions = signal<AssessmentCycleListDto[]>([]);

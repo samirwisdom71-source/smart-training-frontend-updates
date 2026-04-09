@@ -97,3 +97,26 @@
 .ptr-list-attachment-empty {
   color: var(--color-text-secondary);
 }
+
+.ptr-lux-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.ptr-lux-head__title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  font-size: var(--text-body);
+  line-height: 1.3;
+}
+
+.ptr-lux-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: center;
+}

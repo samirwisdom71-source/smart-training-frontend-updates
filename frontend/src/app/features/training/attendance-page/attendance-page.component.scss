@@ -384,6 +384,42 @@
   justify-content: space-between;
   gap: var(--space-md);
   margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.att-roster__head-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.att-cards-wrap {
+  margin-top: var(--space-sm);
+}
+
+.att-card-lux-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.att-card-lux-head__name {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.35;
+}
+
+.att-card-lux-actions {
+  width: 100%;
+}
+
+.att-card-lux-actions .att-row-select {
+  width: 100%;
+  max-width: 100%;
 }
 
 .att-roster__title {

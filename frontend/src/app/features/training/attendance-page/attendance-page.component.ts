@@ -11,11 +11,29 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { PermissionCodes } from '../../../core/auth/permissions';
 import type { AttendanceRecordDto, BulkAttendanceItemDto } from '../../../core/api/attendance/attendance-api.models';
 import type { TrainingSessionDto } from '../../../core/api/training-programs/training-programs-api.models';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-attendance-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, DatePipe, DecimalPipe, NgClass, RouterLink, PageShellComponent, TooltipDirective],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    DatePipe,
+    DecimalPipe,
+    NgClass,
+    RouterLink,
+    PageShellComponent,
+    TooltipDirective,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+  ],
   templateUrl: './attendance-page.component.html',
   styleUrls: ['./attendance-page.component.scss'],
 })
@@ -25,6 +43,7 @@ export class AttendancePageComponent implements OnInit {
   private readonly programsApi = inject(TrainingProgramsApiService);
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly programOptions = signal<{ id: string; titleEn: string; titleAr: string }[]>([]);
   readonly sessions = signal<TrainingSessionDto[]>([]);
