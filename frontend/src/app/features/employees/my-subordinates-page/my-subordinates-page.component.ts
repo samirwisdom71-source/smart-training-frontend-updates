@@ -3,11 +3,17 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PageShellComponent } from '../../../shared/page-shell/page-shell.component';
 import { EmployeesApiService } from '../../../core/api/employees/employees-api.service';
 import type { EmployeeListDto } from '../../../core/api/employees/employees-api.models';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-my-subordinates-page',
   standalone: true,
-  imports: [TranslateModule, PageShellComponent],
+  imports: [TranslateModule, PageShellComponent, DataViewToggleComponent, LuxDataCardComponent, LuxDataCardGridComponent],
   template: `
     <app-page-shell
       [title]="'nav.mySubordinates' | translate"
@@ -22,6 +28,15 @@ import type { EmployeeListDto } from '../../../core/api/employees/employees-api.
             <p class="ent-admin-hero__subtitle">{{ 'enterprise.adminHeroSubtitle' | translate }}</p>
           </div>
         </header>
+
+        <div filters class="ent-admin-filters">
+          <div class="ds-filterbar">
+            <div class="ds-filterbar__controls"></div>
+            <div class="ds-filterbar__actions">
+              <app-data-view-toggle />
+            </div>
+          </div>
+        </div>
 
         <div class="ent-admin-content">
           @if (loading()) {
@@ -45,6 +60,7 @@ import type { EmployeeListDto } from '../../../core/api/employees/employees-api.
             </div>
           } @else {
             <div class="ent-table-panel">
+              @if (dataViewPref.mode() === 'table') {
               <div class="ds-table-wrap">
                 <table class="ds-table">
                   <thead>
@@ -71,6 +87,40 @@ import type { EmployeeListDto } from '../../../core/api/employees/employees-api.
                   </tbody>
                 </table>
               </div>
+              } @else {
+                <div class="lux-dc-page-pad">
+                  <app-lux-data-card-grid>
+                    @for (e of items(); track e.id) {
+                      <app-lux-data-card
+                        [title]="getEmployeeDisplayName(e)"
+                        [subtitle]="e.employeeNumber"
+                        [interactive]="true"
+                      >
+                        <div class="lux-dc-meta">
+                          <div class="lux-dc-meta__row">
+                            <span class="lux-dc-meta__label">{{ 'table.email' | translate }}</span>
+                            <span class="lux-dc-meta__value">{{ e.email ?? '—' }}</span>
+                          </div>
+                          <div class="lux-dc-meta__row">
+                            <span class="lux-dc-meta__label">{{ 'table.status' | translate }}</span>
+                            <span class="lux-dc-meta__value">
+                              <span class="ds-badge" [class.ds-badge--success]="e.status === 'Active'" [class.ds-badge--neutral]="e.status !== 'Active'">{{ e.status }}</span>
+                            </span>
+                          </div>
+                          <div class="lux-dc-meta__row">
+                            <span class="lux-dc-meta__label">{{ 'table.jobTitle' | translate }}</span>
+                            <span class="lux-dc-meta__value">{{ e.jobTitleEn ?? '—' }}</span>
+                          </div>
+                          <div class="lux-dc-meta__row">
+                            <span class="lux-dc-meta__label">{{ 'table.organizationalUnit' | translate }}</span>
+                            <span class="lux-dc-meta__value">{{ getLocalizedText(e.organizationalUnitNameAr, e.organizationalUnitNameEn) }}</span>
+                          </div>
+                        </div>
+                      </app-lux-data-card>
+                    }
+                  </app-lux-data-card-grid>
+                </div>
+              }
             </div>
           }
         </div>
@@ -79,11 +129,14 @@ import type { EmployeeListDto } from '../../../core/api/employees/employees-api.
   `,
   styles: [`
     .table-loading { padding: var(--space-md) var(--space-lg); }
+    .lux-dc-page-pad { padding: var(--space-md); }
+    .ent-admin-filters .ds-filterbar__controls:empty { display: none; }
   `]
 })
 export class MySubordinatesPageComponent implements OnInit {
   private readonly api = inject(EmployeesApiService);
   private readonly translate = inject(TranslateService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly items = signal<EmployeeListDto[]>([]);
   readonly loading = signal(false);

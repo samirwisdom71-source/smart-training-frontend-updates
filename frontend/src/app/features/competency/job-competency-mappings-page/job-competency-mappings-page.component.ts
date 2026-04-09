@@ -21,11 +21,31 @@ import type { CompetencyListDto } from '../../../core/api/competencies/competenc
 import type { ProficiencyLevelListDto } from '../../../core/api/proficiency-levels/proficiency-levels-api.models';
 import type { CompetencyFrameworkListDto } from '../../../core/api/competency-frameworks/competency-frameworks-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-job-competency-mappings-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe, TooltipDirective, PortalToBodyDirective, PaginationComponent],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    LocalizedTextPipe,
+    TooltipDirective,
+    PortalToBodyDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   template: `
     <app-page-shell [title]="'nav.jobCompetencyMappings' | translate" [breadcrumbs]="breadcrumbs()" [showPageTitle]="false">
       <div class="actions-row" actions>
@@ -67,6 +87,7 @@ import type { PagedResult } from '../../../core/models/api-response';
             </div>
           </div>
           <div class="ds-filterbar__actions">
+            <app-data-view-toggle />
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
@@ -89,6 +110,7 @@ import type { PagedResult } from '../../../core/models/api-response';
           }
         </div>
       } @else {
+        @if (dataViewPref.mode() === 'table') {
         <div class="ds-table-wrap">
           <table class="ds-table">
             <thead>
@@ -174,6 +196,45 @@ import type { PagedResult } from '../../../core/models/api-response';
             </tbody>
           </table>
         </div>
+        } @else {
+          <div class="lux-dc-page-pad">
+            <app-lux-data-card-grid>
+              @for (m of data()!.items; track m.id) {
+                <app-lux-data-card [title]="mappingJobTitle(m)" [subtitle]="mappingCompetencyTitle(m)" [interactive]="true">
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'competency.requiredLevel' | translate }}</span>
+                      <span class="lux-dc-meta__value">L{{ m.levelNumber }} ({{ m.requiredProficiencyLevelCode ?? '—' }})</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'competency.importanceWeight' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ m.importanceWeight ?? '—' }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'competency.mandatory' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ m.isMandatory ? ('common.yes' | translate) : ('common.no' | translate) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.status' | translate }}</span>
+                      <span class="lux-dc-meta__value">
+                        <span class="ds-badge" [class.ds-badge--success]="m.isActive" [class.ds-badge--neutral]="!m.isActive">{{ m.isActive ? ('status.active' | translate) : ('status.inactive' | translate) }}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="lux-dc-actions-inherit">
+                    @if (canEdit()) {
+                      <app-lux-action-icon kind="edit" [label]="'common.edit' | translate" (activate)="openEdit(m)" />
+                      <app-lux-action-icon kind="toggle" [activeHighlight]="m.isActive" [label]="'org.setStatus' | translate" (activate)="setStatus(m)" />
+                    }
+                    @if (canDelete()) {
+                      <app-lux-action-icon kind="delete" [danger]="true" [label]="'common.delete' | translate" (activate)="confirmDelete(m)" />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"
@@ -407,9 +468,12 @@ import type { PagedResult } from '../../../core/models/api-response';
     }
     .premium-modal__error .icon-svg { width: 18px; height: 18px; color: #b91c1c; margin-top: 2px; }
     .premium-modal__error-text { margin: 0; font-size: var(--text-body-sm); color: color-mix(in srgb, var(--color-text) 80%, #b91c1c 20%); line-height: 1.4; }
+    .lux-dc-page-pad { padding: var(--space-md) 0; }
+    .lux-dc-actions-inherit { display: contents; }
   `]
 })
 export class JobCompetencyMappingsPageComponent implements OnInit {
+  readonly dataViewPref = inject(DataViewPreferenceService);
   private readonly api = inject(JobCompetencyMappingsApiService);
   private readonly jobApi = inject(JobsApiService);
   private readonly competencyApi = inject(CompetenciesApiService);
@@ -456,6 +520,24 @@ export class JobCompetencyMappingsPageComponent implements OnInit {
   canDelete = () => this.auth.hasPermission(PermissionCodes.jobCompetency.delete);
 
   breadcrumbs = computed(() => [{ label: this.translate.instant('nav.competency') }, { label: this.translate.instant('nav.jobCompetencyMappings') }]);
+
+  displayName(nameEn: string | null | undefined, nameAr: string | null | undefined): string {
+    const lang = this.translate.currentLang ?? 'en';
+    const primary = (lang === 'ar' ? nameAr : nameEn) ?? '';
+    const fallback = (lang === 'ar' ? nameEn : nameAr) ?? '';
+    const value = primary.trim() || fallback.trim();
+    return value || '—';
+  }
+
+  mappingJobTitle(m: JobCompetencyMappingListDto): string {
+    const n = this.displayName(m.jobTitleEn, m.jobTitleAr ?? null);
+    return n !== '—' ? n : (m.jobCode ?? '—');
+  }
+
+  mappingCompetencyTitle(m: JobCompetencyMappingListDto): string {
+    const n = this.displayName(m.competencyNameEn, m.competencyNameAr ?? null);
+    return n !== '—' ? n : (m.competencyCode ?? '—');
+  }
 
   ngOnInit(): void {
     this.loadJobOptions();

@@ -10,6 +10,13 @@ import { UsersApiService } from '../../../core/api/users/users-api.service';
 import { ToastService } from '../../../core/toast/toast.service';
 import type { RecycleBinItemDto, RecycleBinListParams } from '../../../core/api/recycle-bin/recycle-bin-api.models';
 import type { ApiResponse, PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 const MODULE_OPTIONS: { value: string; labelKey: string }[] = [
   { value: '', labelKey: 'recycleBin.allModules' },
@@ -35,7 +42,18 @@ const MODULE_OPTIONS: { value: string; labelKey: string }[] = [
 @Component({
   selector: 'app-recycle-bin-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, TooltipDirective, PaginationComponent],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    TooltipDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   template: `
     <app-page-shell [title]="'recycleBin.title' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true" [showPageTitle]="false">
       <div class="ent-admin-page ent-page-fade-in">
@@ -83,6 +101,7 @@ const MODULE_OPTIONS: { value: string; labelKey: string }[] = [
             </div>
           </div>
           <div class="ds-filterbar__actions">
+            <app-data-view-toggle />
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
@@ -116,6 +135,7 @@ const MODULE_OPTIONS: { value: string; labelKey: string }[] = [
         </div>
       } @else {
         <div class="ent-table-panel">
+        @if (dataViewPref.mode() === 'table') {
         <div class="ds-table-wrap">
           <table class="ds-table">
             <thead>
@@ -155,6 +175,31 @@ const MODULE_OPTIONS: { value: string; labelKey: string }[] = [
             </tbody>
           </table>
         </div>
+        } @else {
+          <div class="lux-dc-page-pad">
+            <app-lux-data-card-grid>
+              @for (item of data()!.items; track item.entityId + item.deletedAt) {
+                <app-lux-data-card [title]="item.displayName || item.entityId" [subtitle]="item.moduleName" [interactive]="true">
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'recycleBin.deletedAt' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ formatDate(item.deletedAt) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'recycleBin.deletedBy' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ deletedByDisplay(item.deletedBy) }}</span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="lux-dc-actions-inherit">
+                    @if (canRestore(item)) {
+                      <app-lux-action-icon kind="restore" [label]="'recycleBin.restore' | translate" (activate)="openRestoreConfirm(item)" />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"
@@ -186,6 +231,8 @@ const MODULE_OPTIONS: { value: string; labelKey: string }[] = [
     .table-loading { padding: var(--space-md) var(--space-lg); }
     .cell-date { white-space: nowrap; font-size: var(--text-body-sm); }
     .cell-actions { text-align: center; }
+    .lux-dc-page-pad { padding: var(--space-md); }
+    .lux-dc-actions-inherit { display: contents; }
   `]
 })
 export class RecycleBinPageComponent implements OnInit {
@@ -193,6 +240,7 @@ export class RecycleBinPageComponent implements OnInit {
   private readonly usersApi = inject(UsersApiService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<RecycleBinItemDto> | null>(null);
   readonly loading = signal(false);

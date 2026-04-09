@@ -15,11 +15,31 @@ import type { CompetencyFrameworkListDto, CreateCompetencyFrameworkRequest, Upda
 import type { OrganizationListDto } from '../../../core/api/organizations/organizations-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
 import { ToastService } from '../../../core/toast/toast.service';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-competency-frameworks-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe, TooltipDirective, CompetencyFrameworkModalComponent, PaginationComponent],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    LocalizedTextPipe,
+    TooltipDirective,
+    CompetencyFrameworkModalComponent,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   template: `
     <app-page-shell [title]="'nav.competencyFrameworks' | translate" [breadcrumbs]="breadcrumbs()" [showPageTitle]="false">
       <div class="actions-row" actions>
@@ -60,6 +80,7 @@ import { ToastService } from '../../../core/toast/toast.service';
             </div>
           </div>
           <div class="ds-filterbar__actions">
+            <app-data-view-toggle />
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
@@ -86,6 +107,7 @@ import { ToastService } from '../../../core/toast/toast.service';
           }
         </div>
       } @else {
+        @if (dataViewPref.mode() === 'table') {
         <div class="ds-table-wrap">
           <table class="ds-table">
             <thead>
@@ -167,6 +189,37 @@ import { ToastService } from '../../../core/toast/toast.service';
             </tbody>
           </table>
         </div>
+        } @else {
+          <div class="lux-dc-page-pad">
+            <app-lux-data-card-grid>
+              @for (f of data()!.items; track f.id) {
+                <app-lux-data-card [title]="displayName(f.nameEn, f.nameAr)" [subtitle]="f.code" [interactive]="true">
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.organization' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ f.organizationNameAr | localizedText:f.organizationNameEn }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.status' | translate }}</span>
+                      <span class="lux-dc-meta__value">
+                        <span class="ds-badge" [class.ds-badge--success]="f.isActive" [class.ds-badge--neutral]="!f.isActive">{{ f.isActive ? ('status.active' | translate) : ('status.inactive' | translate) }}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="lux-dc-actions-inherit">
+                    @if (canEdit()) {
+                      <app-lux-action-icon kind="edit" [label]="'common.edit' | translate" (activate)="openEdit(f)" />
+                      <app-lux-action-icon kind="toggle" [activeHighlight]="f.isActive" [label]="'org.setStatus' | translate" (activate)="setStatus(f)" />
+                    }
+                    @if (canDelete()) {
+                      <app-lux-action-icon kind="delete" [danger]="true" [label]="'common.delete' | translate" (activate)="confirmDelete(f)" />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"
@@ -237,9 +290,12 @@ import { ToastService } from '../../../core/toast/toast.service';
     .premium-icon-btn:hover:not(:disabled) {
       background: color-mix(in srgb, var(--gulf-gold) 10%, var(--color-bg-subtle));
     }
+    .lux-dc-page-pad { padding: var(--space-md) 0; }
+    .lux-dc-actions-inherit { display: contents; }
   `]
 })
 export class CompetencyFrameworksPageComponent implements OnInit {
+  readonly dataViewPref = inject(DataViewPreferenceService);
   private readonly api = inject(CompetencyFrameworksApiService);
   private readonly orgApi = inject(OrganizationsApiService);
   private readonly auth = inject(AuthService);

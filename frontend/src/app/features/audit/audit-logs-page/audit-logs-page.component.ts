@@ -7,11 +7,28 @@ import { PaginationComponent } from '../../../shared/pagination/pagination.compo
 import { AuditApiService } from '../../../core/api/audit/audit-api.service';
 import type { AuditLogEntryViewDto, AuditListParams } from '../../../core/api/audit/audit-api.models';
 import type { ApiResponse, PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-audit-logs-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, TooltipDirective, PaginationComponent],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    TooltipDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   template: `
     <app-page-shell [title]="'audit.title' | translate" [breadcrumbs]="breadcrumbs()" [fullWidth]="true" [showPageTitle]="false">
       <div class="ent-admin-page ent-page-fade-in">
@@ -65,6 +82,7 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
             </div>
           </div>
           <div class="ds-filterbar__actions">
+            <app-data-view-toggle />
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
@@ -98,6 +116,7 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
         </div>
       } @else {
         <div class="ent-table-panel">
+        @if (dataViewPref.mode() === 'table') {
         <div class="ds-table-wrap">
           <table class="ds-table">
             <thead>
@@ -148,6 +167,37 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
             </tbody>
           </table>
         </div>
+        } @else {
+          <div class="lux-dc-page-pad">
+            <app-lux-data-card-grid>
+              @for (e of data()!.items; track e.id) {
+                <app-lux-data-card [title]="e.actionType" [subtitle]="formatDate(e.timestamp)" [interactive]="true">
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'audit.user' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ e.userEmail ?? e.userFullName ?? ('audit.system' | translate) }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'audit.module' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ e.moduleName ?? '—' }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'audit.status' | translate }}</span>
+                      <span class="lux-dc-meta__value">
+                        <span class="ds-badge" [class.ds-badge--success]="e.success" [class.ds-badge--error]="!e.success">
+                          {{ e.success ? ('audit.success' | translate) : ('audit.failure' | translate) }}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="lux-dc-actions-inherit">
+                    <app-lux-action-icon kind="view" [label]="'common.details' | translate" (activate)="openDetail(e)" />
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"
@@ -277,6 +327,8 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
     .table-loading { padding: var(--space-md) var(--space-lg); }
     .cell-date { white-space: nowrap; font-size: var(--text-body-sm); }
     .cell-actions { text-align: center; }
+    .lux-dc-page-pad { padding: var(--space-md); }
+    .lux-dc-actions-inherit { display: contents; }
 
     /* —— Audit details modal redesign —— */
     .audit-detail__header {
@@ -493,6 +545,7 @@ import type { ApiResponse, PagedResult } from '../../../core/models/api-response
 export class AuditLogsPageComponent implements OnInit {
   private readonly api = inject(AuditApiService);
   private readonly translate = inject(TranslateService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<AuditLogEntryViewDto> | null>(null);
   readonly loading = signal(false);

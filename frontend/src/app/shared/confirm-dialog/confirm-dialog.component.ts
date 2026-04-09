@@ -1,10 +1,12 @@
 import { Component, output, input, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
+import { PortalToBodyDirective } from '../portal/portal-to-body.directive';
 
 @Component({
   selector: 'app-confirm-dialog',
   standalone: true,
   imports: [TranslateModule],
+  hostDirectives: [PortalToBodyDirective],
   template: `
     <div
       class="confirm-overlay"
@@ -69,7 +71,8 @@ import { TranslateModule } from '@ngx-translate/core';
         left: 0;
         right: 0;
         bottom: 0;
-        z-index: 200000;
+        /* Above premium modals (.modal-overlay / 2147483647); portaled to body avoids transform/stacking traps */
+        z-index: 2147483647;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -90,7 +93,7 @@ import { TranslateModule } from '@ngx-translate/core';
         max-width: 420px;
         max-height: min(88vh, 640px);
         overflow: auto;
-        padding: var(--space-xl);
+        padding: 15PX;
         border-radius: 20px;
         background: linear-gradient(
           165deg,
@@ -161,10 +164,10 @@ import { TranslateModule } from '@ngx-translate/core';
       .confirm-dialog__actions {
         display: flex;
         flex-wrap: wrap;
-        justify-content: flex-end;
+        justify-content: center;
         gap: var(--space-sm);
         align-items: center;
-        padding-top: var(--space-xs);
+        padding-top: 10PX;
         border-top: 1px solid color-mix(in srgb, var(--gulf-green-800) 8%, transparent);
       }
 

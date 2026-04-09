@@ -17,6 +17,13 @@ import type { CompetencyListDto, CreateCompetencyRequest, UpdateCompetencyReques
 import type { CompetencyFrameworkListDto } from '../../../core/api/competency-frameworks/competency-frameworks-api.models';
 import type { CompetencyTypeListDto } from '../../../core/api/competency-types/competency-types-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-competencies-page',
@@ -31,12 +38,17 @@ import type { PagedResult } from '../../../core/models/api-response';
     PortalToBodyDirective,
     LocalizedTextPipe,
     PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
   ],
   templateUrl: './competencies-page.component.html',
   styleUrls: ['./competencies-page.component.scss'],
     
 })
 export class CompetenciesPageComponent implements OnInit {
+  readonly dataViewPref = inject(DataViewPreferenceService);
   private readonly api = inject(CompetenciesApiService);
   private readonly frameworkApi = inject(CompetencyFrameworksApiService);
   private readonly typeApi = inject(CompetencyTypesApiService);

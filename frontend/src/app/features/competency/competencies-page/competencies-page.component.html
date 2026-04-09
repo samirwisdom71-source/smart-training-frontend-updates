@@ -46,6 +46,7 @@
             </div>
           </div>
           <div class="ds-filterbar__actions">
+            <app-data-view-toggle />
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
@@ -68,6 +69,7 @@
           }
         </div>
       } @else {
+        @if (dataViewPref.mode() === 'table') {
         <div class="ds-table-wrap">
           <table class="ds-table">
             <thead>
@@ -153,6 +155,45 @@
             </tbody>
           </table>
         </div>
+        } @else {
+          <div class="lux-dc-page-pad">
+            <app-lux-data-card-grid>
+              @for (c of data()!.items; track c.id) {
+                <app-lux-data-card [title]="displayName(c.nameEn, c.nameAr)" [subtitle]="c.code" [interactive]="true">
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'competency.type' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ c.competencyTypeNameAr | localizedText:c.competencyTypeNameEn }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'competency.framework' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ c.frameworkNameAr | localizedText:c.frameworkNameEn }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'competency.displayOrder' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ c.displayOrder }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.status' | translate }}</span>
+                      <span class="lux-dc-meta__value">
+                        <span class="ds-badge" [class.ds-badge--success]="c.isActive" [class.ds-badge--neutral]="!c.isActive">{{ c.isActive ? ('status.active' | translate) : ('status.inactive' | translate) }}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="lux-dc-actions-inherit">
+                    @if (canEdit()) {
+                      <app-lux-action-icon kind="edit" [label]="'common.edit' | translate" (activate)="openEdit(c)" />
+                      <app-lux-action-icon kind="toggle" [activeHighlight]="c.isActive" [label]="'org.setStatus' | translate" (activate)="setStatus(c)" />
+                    }
+                    @if (canDelete()) {
+                      <app-lux-action-icon kind="delete" [danger]="true" [label]="'common.delete' | translate" (activate)="confirmDelete(c)" />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"

@@ -6,11 +6,25 @@ import { PageShellComponent } from '../../../shared/page-shell/page-shell.compon
 import { AssessmentsApiService } from '../../../core/api/assessments/assessments-api.service';
 import type { AssessmentResultListDto } from '../../../core/api/assessments/assessments-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-assessment-results-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, DecimalPipe],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    DecimalPipe,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+  ],
   template: `
     <app-page-shell [title]="'assessments.resultsTitle' | translate" [breadcrumbs]="breadcrumbs()">
       <div filters>
@@ -22,6 +36,7 @@ import type { PagedResult } from '../../../core/models/api-response';
             </div>
           </div>
           <div class="ds-filterbar__actions">
+            <app-data-view-toggle />
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
@@ -45,6 +60,7 @@ import type { PagedResult } from '../../../core/models/api-response';
             <p class="ds-empty__title">{{ 'empty.noItems' | translate }}</p>
           </div>
         } @else {
+          @if (dataViewPref.mode() === 'table') {
           <div class="ds-table-wrap">
             <table class="ds-table">
               <thead>
@@ -67,6 +83,26 @@ import type { PagedResult } from '../../../core/models/api-response';
               </tbody>
             </table>
           </div>
+          } @else {
+            <div class="lux-dc-page-pad">
+              <app-lux-data-card-grid>
+                @for (r of data()!.items; track r.id) {
+                  <app-lux-data-card [title]="r.employeeNameEn" [subtitle]="r.cycleNameEn" [interactive]="true">
+                    <div class="lux-dc-meta">
+                      <div class="lux-dc-meta__row">
+                        <span class="lux-dc-meta__label">{{ 'assessments.status' | translate }}</span>
+                        <span class="lux-dc-meta__value">{{ r.status }}</span>
+                      </div>
+                      <div class="lux-dc-meta__row">
+                        <span class="lux-dc-meta__label">{{ 'assessments.gap' | translate }}</span>
+                        <span class="lux-dc-meta__value">{{ r.averageGap | number: '1.1-1' }}</span>
+                      </div>
+                    </div>
+                  </app-lux-data-card>
+                }
+              </app-lux-data-card-grid>
+            </div>
+          }
         }
       </div>
     </app-page-shell>
@@ -75,11 +111,13 @@ import type { PagedResult } from '../../../core/models/api-response';
     .filter-row { display: flex; gap: var(--space-md); align-items: center; flex-wrap: wrap; }
     .filter-search { max-width: 280px; }
     .table-loading { padding: var(--space-md) 0; }
+    .lux-dc-page-pad { padding: var(--space-md) 0; }
   `]
 })
 export class AssessmentResultsPageComponent implements OnInit {
   private readonly api = inject(AssessmentsApiService);
   private readonly translate = inject(TranslateService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<AssessmentResultListDto> | null>(null);
   readonly loading = signal(false);

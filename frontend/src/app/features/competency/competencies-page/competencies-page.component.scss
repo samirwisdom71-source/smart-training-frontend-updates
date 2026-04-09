@@ -180,3 +180,11 @@
     align-items: stretch;
   }
 }
+
+.lux-dc-page-pad {
+  padding: var(--space-md) 0;
+}
+
+.lux-dc-actions-inherit {
+  display: contents;
+}

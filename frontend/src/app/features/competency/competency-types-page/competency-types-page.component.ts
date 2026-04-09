@@ -15,11 +15,31 @@ import { LocalizedTextPipe } from '../../../shared/pipes/localized-text.pipe';
 import type { CompetencyTypeListDto, CreateCompetencyTypeRequest, UpdateCompetencyTypeRequest } from '../../../core/api/competency-types/competency-types-api.models';
 import type { CompetencyFrameworkListDto } from '../../../core/api/competency-frameworks/competency-frameworks-api.models';
 import type { PagedResult } from '../../../core/models/api-response';
+import {
+  DataViewPreferenceService,
+  DataViewToggleComponent,
+  LuxActionIconComponent,
+  LuxDataCardComponent,
+  LuxDataCardGridComponent,
+} from '../../../shared/data-view';
 
 @Component({
   selector: 'app-competency-types-page',
   standalone: true,
-  imports: [FormsModule, TranslateModule, PageShellComponent, ConfirmDialogComponent, LocalizedTextPipe, TooltipDirective, PortalToBodyDirective, PaginationComponent],
+  imports: [
+    FormsModule,
+    TranslateModule,
+    PageShellComponent,
+    ConfirmDialogComponent,
+    LocalizedTextPipe,
+    TooltipDirective,
+    PortalToBodyDirective,
+    PaginationComponent,
+    DataViewToggleComponent,
+    LuxDataCardComponent,
+    LuxDataCardGridComponent,
+    LuxActionIconComponent,
+  ],
   template: `
     <app-page-shell [title]="'nav.competencyTypes' | translate" [breadcrumbs]="breadcrumbs()">
       <div class="actions-row" actions>
@@ -60,6 +80,7 @@ import type { PagedResult } from '../../../core/models/api-response';
             </div>
           </div>
           <div class="ds-filterbar__actions">
+            <app-data-view-toggle />
             <button type="button" class="ds-btn ds-btn--secondary ds-btn--sm" (click)="clearFilters()">
               {{ 'common.clearFilters' | translate }}
             </button>
@@ -82,6 +103,7 @@ import type { PagedResult } from '../../../core/models/api-response';
           }
         </div>
       } @else {
+        @if (dataViewPref.mode() === 'table') {
         <div class="ds-table-wrap">
           <table class="ds-table">
             <thead>
@@ -165,6 +187,41 @@ import type { PagedResult } from '../../../core/models/api-response';
             </tbody>
           </table>
         </div>
+        } @else {
+          <div class="lux-dc-page-pad">
+            <app-lux-data-card-grid>
+              @for (t of data()!.items; track t.id) {
+                <app-lux-data-card [title]="displayName(t.nameEn, t.nameAr)" [subtitle]="t.code" [interactive]="true">
+                  <div class="lux-dc-meta">
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'competency.framework' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ t.frameworkNameAr | localizedText:t.frameworkNameEn }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'competency.displayOrder' | translate }}</span>
+                      <span class="lux-dc-meta__value">{{ t.displayOrder }}</span>
+                    </div>
+                    <div class="lux-dc-meta__row">
+                      <span class="lux-dc-meta__label">{{ 'table.status' | translate }}</span>
+                      <span class="lux-dc-meta__value">
+                        <span class="ds-badge" [class.ds-badge--success]="t.isActive" [class.ds-badge--neutral]="!t.isActive">{{ t.isActive ? ('status.active' | translate) : ('status.inactive' | translate) }}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div luxCardActions class="lux-dc-actions-inherit">
+                    @if (canEdit()) {
+                      <app-lux-action-icon kind="edit" [label]="'common.edit' | translate" (activate)="openEdit(t)" />
+                      <app-lux-action-icon kind="toggle" [activeHighlight]="t.isActive" [label]="'org.setStatus' | translate" (activate)="setStatus(t)" />
+                    }
+                    @if (canDelete()) {
+                      <app-lux-action-icon kind="delete" [danger]="true" [label]="'common.delete' | translate" (activate)="confirmDelete(t)" />
+                    }
+                  </div>
+                </app-lux-data-card>
+              }
+            </app-lux-data-card-grid>
+          </div>
+        }
         <app-pagination
           [page]="page()"
           [totalPages]="data()?.totalPages ?? 1"
@@ -401,6 +458,9 @@ import type { PagedResult } from '../../../core/models/api-response';
       .premium-modal__footer { flex-direction: column-reverse; align-items: stretch; }
       .modal-overlay { padding: var(--space-md); }
     }
+
+    .lux-dc-page-pad { padding: var(--space-md) 0; }
+    .lux-dc-actions-inherit { display: contents; }
   `]
 })
 export class CompetencyTypesPageComponent implements OnInit {
@@ -409,6 +469,7 @@ export class CompetencyTypesPageComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
+  readonly dataViewPref = inject(DataViewPreferenceService);
 
   readonly data = signal<PagedResult<CompetencyTypeListDto> | null>(null);
   readonly loading = signal(false);
