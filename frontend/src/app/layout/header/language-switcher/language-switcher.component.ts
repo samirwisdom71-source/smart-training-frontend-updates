@@ -59,7 +59,7 @@ import { TooltipDirective } from '../../../shared/tooltip/tooltip.directive';
       background: linear-gradient(
         165deg,
         #ffffff 0%,
-        color-mix(in srgb, var(--color-bg-elevated) 92%, var(--color-primary-muted)) 100%
+        color-mix(in srgb,rgb(9, 80, 58) 92%, var(--color-primary-muted)) 100%
       );
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 0.95),
